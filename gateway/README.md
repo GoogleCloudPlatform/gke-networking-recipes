@@ -1,8 +1,22 @@
 # Gateway API Tutorial
 
-This guide shows how to use the open source Gateway API to deploy routing to a istio-ingressgateway. The Gateway API is an effort by a consortioum of companies to evolve the current Kubernetes Ingress API. Gateway aims to improve upon Ingress by becoming a more expressive, extensible, role-oriented API while remaining a generic routing API that has many implementations and broad industry support. 
+This guide shows how to use the open source Gateway API from the [service-apis Kubernetes SIG](https://kubernetes-sigs.github.io/service-apis/) to deploy routing to an istio-ingressgateway. The Gateway API is an effort by a consortioum of companies to evolve the current Kubernetes Ingress API. Gateway aims to improve upon Ingress by becoming a more expressive, extensible, role-oriented API while remaining a generic routing API that has many implementations and broad industry support. 
 
-The Gateway API is comprised of several different resource types and different ones may be leveraged depending on the use-case.
+#### How does Gateway improve upon Ingress?
+
+- More expressive - It includes core functionality for header-based matching, traffic weighting, and other capabilities that were only possible through custom means in the Ingress spec.
+- More extensible - It allows for custom resources to be linked at multiple layers within its resources. This allows for more granular customization at the appropriate places within the API structure.
+- Role oriented - It is broken into API resources that map to the types of roles that commonly deploy and configure load balancing.
+- Generic - This isn't an improvement but rather something that should stay the same. Just as Ingress is a universal specification with [numerous implementations](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/), Gateway is designed to be a portable specification for many implementations.
+
+Some other notable capabilities include ...
+
+- Shared Gateways - It allows the sharing of load balancers and VIPs by permitting independent Route resources to bind to the same Gateway. This allows teams to share infrastructure safely without requiring direct coordination. 
+- Typed backend references - With typed backend references Routes can reference Kubernetes Services, but also any kind of Kubernetes resource that is designed to be a Gateway backend.
+- Cross-Namespace references - Routes across different Namespaces can bind to Gateways. This allows for shared networking infrastructure despite Namespace segementation for workloads.
+- Classes - GatewayClasses formalize types of load balancing implementations. These classes make it easy and explicit for users to understand what kind of capabilities are available as a resource model itself.
+
+The Gateway API is currently pre-Alpha. If you have feedback or would like to get involved, feel free to attend the [community meetings](https://kubernetes-sigs.github.io/service-apis/community/#meetings) or [file issues](https://github.com/kubernetes-sigs/service-apis/issues/new/choose) against the service-apis repo. Below is a tutorial that demonstrates the usage of the Gateway API resources. We hope that you will find it helpful in understanding the core capabilities offered by this API.
 
 ![Gateway API](./images/gateway-api.svg)
 
