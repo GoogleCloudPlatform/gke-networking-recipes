@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baz
+  namespace: gateway-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: baz
+  template:
+    metadata:
+      labels:
+        app: baz
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.0.1
+        ports:
+          - containerPort: 8080
+        env:
+        - name: METADATA
+          value: "baz"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baz-svc
+  namespace: gateway-demo
+spec:
+  selector:
+    app: baz
+  ports:
+  - port: 80
+    targetPort: 8080
