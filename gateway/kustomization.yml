@@ -1,0 +1,3 @@
+resources:
+# Minimal Istio deployment to handle Ingress/Gateway
+- deploy.yaml
