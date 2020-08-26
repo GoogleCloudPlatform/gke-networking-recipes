@@ -22,12 +22,6 @@ spec:
             - backend:
                 serviceName: bar
                 servicePort: 8080
-      - host: bar2.example.com
-        http:
-          paths:
-            - backend:
-                serviceName: bar
-                servicePort: 8080
 ---
 apiVersion: networking.gke.io/v1
 kind: MultiClusterService
