@@ -43,7 +43,7 @@ Each recipe's README should consist of the following sections. In general the RE
 | ------------- | ------------- |
 | [Basic External Ingress](/external-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
 | [Basic Internal Ingress](/internal-ingress-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
-| [External LoadBalancer Service](/external-lb-service)  |   |
+| [External LoadBalancer Service](/external-lb-service)  | [@seils](https://github.com/seils)  |
 | [Internal LoadBalancer Service](/internal-lb-service)  |   |
 | [Custom Ingress Health Check](/ingress-custom-http-health-check)  |   |
 | [Ingress gRPC Health Check](/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
