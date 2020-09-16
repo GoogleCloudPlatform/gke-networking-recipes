@@ -67,7 +67,7 @@ spec:
 1. Download this repo and navigate to this folder
 
 ```sh
-$ git clone https://github.com/mark-church/gke-networking-recipes
+$ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
 $ cd gke-networking-recipes/external-ingress-basic
