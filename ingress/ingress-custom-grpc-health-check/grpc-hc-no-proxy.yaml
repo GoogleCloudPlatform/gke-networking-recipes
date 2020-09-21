@@ -1,0 +1,62 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: foo-external
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+  - host: foo.example.com
+    http:
+      paths:
+      - backend:
+          serviceName: foo
+          servicePort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: foo
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"8080":"hc-backendconfig"}}'
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: foo
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: foo
+  template:
+    metadata:
+      labels:
+        app: foo
+    spec:
+      containers:
+      - name: hc-proxy
+        image: gcr.io/mygcr/healthchecker
+        ports:
+        - containerPort: 8081
+     - name: grpc-app
+       image: gcr.io/mygcr/myapp
+       ports:
+       - containerPort: 8080
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: hc-backend-config
+spec:
+  healthCheck:
+    port: 8081
+    protocol: "HTTP"
