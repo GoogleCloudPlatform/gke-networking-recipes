@@ -12,7 +12,7 @@ The goal for GKE Networking Recipes is to provide a bite-sized, easy to consume,
 - Each recipe should have its own folder that includes all of the deployment YAML necessary to achieve the use-case in addition to its README.
 - The resource manifests should be stored in a single YAML file so that it can be easily copied, pasted, and deployed with a single command. Exceptions include multiple deployment steps (like v1 and v2 of an app) or multiple clusters where different manifests are deployed to each.
 - Each recipe should use the [whereami sample application](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples/tree/master/whereami) wherever possible to demonstrate the use-case. There may be use-cases that depend on specific application functionality so it is fine to diverge in these instances.
-- Recipes should rely on the shared [GKE cluster setup](,/cluster-setup.md) steps instead of instructing how to deploy the cluster or environment. Each recipe should focus on just the use-case without repeating any boilerplate setup. For special cases where a unique environment or more than one cluster is required, feel free to include these steps in the recipe.
+- Recipes should rely on the shared [GKE cluster setup](./cluster-setup.md) steps instead of instructing how to deploy the cluster or environment. Each recipe should focus on just the use-case without repeating any boilerplate setup. For special cases where a unique environment or more than one cluster is required, feel free to include these steps in the recipe.
 - There should be clear ownership of a recipe. Each recipe has one owner. If you contributed it then you own it until someone else has agreed to be the owner. If functionality changes and your recipe is no longer valid or no longer makes sense, it is your responsibility to update over time.
 - Each recipe should be listed as a bullet point with a brief description on the [primary README page](./README.md)
 
@@ -43,7 +43,7 @@ Each recipe's README should consist of the following sections. In general the RE
 | ------------- | ------------- |
 | [Basic External Ingress](/external-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
 | [Basic Internal Ingress](/internal-ingress-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
-| [External LoadBalancer Service](/external-lb-service)  |   |
+| [External LoadBalancer Service](/external-lb-service)  | [@seils](https://github.com/seils)  |
 | [Internal LoadBalancer Service](/internal-lb-service)  |   |
 | [Custom Ingress Health Check](/ingress-custom-http-health-check)  |   |
 | [Ingress gRPC Health Check](/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
