@@ -3,8 +3,6 @@ kind: HTTPRoute
 metadata:
   name: foobar-route
   namespace: default
-  labels:
-    gateway: internal-gw-2
 spec:
   hosts:
   - hostnames: 
