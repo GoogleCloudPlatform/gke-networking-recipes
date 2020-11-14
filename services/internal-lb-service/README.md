@@ -66,7 +66,7 @@ service/foo created
 deployment.apps/foo created
 ```
 
-3. It may take up to a minute for the pods to deploy and up to a few minutes for the internal IP address of the Service resource to be ready.  Ensure [Google Cloud probers](https://cloud.google.com/load-balancing/docs/health-check-concepts#ip-ranges) are allowed in the VPC Firewall rules so health-checks can be used. Validate the progress and make sure that no errors are surfaced in the resource events.
+3. It may take up to a minute for the pods to deploy and up to a few minutes for the internal IP address of the Service resource to be ready. Validate the progress and make sure that no errors are surfaced in the resource events. [Google Cloud health checks](https://cloud.google.com/load-balancing/docs/health-check-concepts#ip-ranges) are created within your VPC by the GKE Service controller so that health checks are allowed to reach your cluster. If the load balancer health checks appear to not be passing, check that the correct VPC firewall rules are installed.
 
 ```sh
 $ kubectl get deploy foo
