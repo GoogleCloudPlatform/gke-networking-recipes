@@ -21,7 +21,7 @@ Internal Ingress on GKE deploys a regional Internal HTTP(S) Load Balancer for pr
 
 ### Networking Manifests
 
-In this example an internal Ingress resource matches for HTTP traffic with `foo.example.com` and sends it to the `foo` Service at port 80. A private IP address is automatically provisioned by the Ingress controller which listens for traffic on port 80. This private IP address can only be reached privately: from the VPC, any other VPC privately connected or even from on-prem if privately connected via VPN or Inteconnect, depending on your setup. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses. 
+In this example an internal Ingress resource matches for HTTP traffic with `foo.example.com` and sends it to the `foo` Service at port 80. A private IP address is automatically provisioned by the Ingress controller which listens for traffic on port 80. This private IP address can only be reached privately: from the VPC, any other VPC privately connected or even from on-prem if privately connected via VPN or Interconnect, depending on your setup. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses.
 
 
 ```yaml
@@ -41,7 +41,7 @@ spec:
           servicePort: 80
 ```
 
-The following `foo` Service selects across the Pods from the `foo` Deployment. This Deployement consists of three Pods which will get load balanced across. Note the use of the `cloud.google.com/neg: '{"ingress": true}'` annotation. This enables container native load balancing which is a best practice. In GKE 1.17+ this is annotated by default.
+The following `foo` Service selects across the Pods from the `foo` Deployment. This Deployment consists of three Pods which will get load balanced across. Note the use of the `cloud.google.com/neg: '{"ingress": true}'` annotation. This enables container native load balancing which is a best practice. In GKE 1.17+ this is annotated by default.
 
 ```yaml
 apiVersion: v1
@@ -54,7 +54,7 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-    name: http 
+    name: http
   selector:
     app: foo
   type: ClusterIP
@@ -65,7 +65,7 @@ spec:
 1. Download this repo and navigate to this folder
 
 ```sh
-$ git clone https://github.com/mark-church/gke-networking-recipes
+$ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
 $ cd gke-networking-recipes/internal-ingress-basic
