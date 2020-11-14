@@ -32,7 +32,7 @@ Each recipe's README should consist of the following sections. In general the RE
 	- This section should describe in a few steps how to deploy the networking manifests to achieve the use-case
 	- Do not try and recreate an entire tutorial. Try to demonstrate this in as few steps as necessary and put most of the description and detail in the Network Manifests section
 	- Demonstrate that the use-case works and display the output that validates it (whether that be a succesful ping or a specific expected response)
-- Example remarks
+- Summary
   - Use this section if it's necessary to add closing comments or add any detail to the example for explanation.
 - Cleanup
   - Everything needed to delete the resources created in this recipe
