@@ -43,7 +43,6 @@ spec:
   sslPolicy: gke-ingress-ssl-policy
   redirectToHttps:
     enabled: true
-    responseCodeName: MOVED_PERMANENTLY_DEFAULT
 ---
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
