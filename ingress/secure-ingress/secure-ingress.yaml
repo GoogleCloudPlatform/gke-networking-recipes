@@ -20,15 +20,16 @@ metadata:
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.global-static-ip-name: gke-foobar-public-ip
     networking.gke.io/managed-certificates: foobar-certificate
+    networking.gke.io/v1beta1.FrontendConfig: ingress-security-config
 spec:
   rules:
-  - host: foo.gkeapp.com
+  - host: foo.${DOMAIN}.com
     http:
       paths:
       - backend:
           serviceName: foo
           servicePort: 8080
-  - host: bar.gkeapp.com
+  - host: bar.${DOMAIN}.com
     http:
       paths:
       - backend:
@@ -50,8 +51,8 @@ metadata:
   name: foobar-certificate
 spec:
   domains:
-    - foo.gkeapp.com
-    - bar.gkeapp.com
+    - foo.${DOMAIN}.com
+    - bar.${DOMAIN}.com
 ---
 apiVersion: v1
 kind: Service
