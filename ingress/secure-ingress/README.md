@@ -16,7 +16,7 @@
 
 #### Versions & Compatibility
 
-- HTTPS redirects is only supported on [1.18.10-gke.600](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#fnb)+
+- HTTPS redirects is only supported on GKE [1.18.10](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#fnb)+
 - External GKE Ingress with the HTTP(S) Load Balancer
 - Tested and validated with 1.18.10-gke.1500 on Nov 15th 2020
 
@@ -36,7 +36,7 @@ Several declarative Kubernetes resources are used in the deployment of this reci
 - `networking.gke.io/managed-certificates` references a managed certificate resource which generates a public certificate for the hostnames in the Ingress resource
 - `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy
 
-The Ingress resource also has routing rules for `foo.example.com` and `bar.example.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace these domain names with domains that you own and that are mapped to the static IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
+The Ingress resource also has routing rules for `foo.example.com` and `bar.example.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace these domain names with domains that you own. This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
@@ -105,14 +105,14 @@ $ cd gke-networking-recipes/ingress/secure-ingress
 
 2. Deploy the cluster `gke-1` as specified in [cluster setup](../cluster-setup.md)
 
-4. Create a static public IP address in your project.
+3. Create a static public IP address in your project.
 
 ```
 $ gcloud compute addresses create --global gke-foobar-public-ip
 Created [https://www.googleapis.com/compute/v1/projects/xxx/global/addresses/gke-foobar-public-ip].
 ```
 
-5. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that cllients negotiate using TLS 1.2 or higher.
+4. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that cllients negotiate using TLS 1.2 or higher.
 
 ```
 $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
@@ -120,7 +120,7 @@ $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
     --min-tls-version 1.2
 ```
 
-6. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the foo and bar applications, the FrontendConfig, ManagedCertificate, and Ingress resource.
+5. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the foo and bar applications, the FrontendConfig, ManagedCertificate, and Ingress resource.
 
 ```sh
 $ kubectl apply -f secure-ingress.yaml
@@ -133,19 +133,46 @@ deployment.apps/foo created
 deployment.apps/bar created
 ```
 
-
-3. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
+6. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
 
 
 ```bash
 $ kubectl describe ingress secure-ingress
-...
+Name:             secure-ingress
+Namespace:        default
+Address:          xxx
+Default backend:  default-http-backend:80 (10.8.2.7:8080)
+Rules:
+  Host            Path  Backends
+  ----            ----  --------
+  foo.gkeapp.com
+                     foo:8080 (10.8.0.11:8080,10.8.1.9:8080)
+  bar.gkeapp.com
+                     bar:8080 (10.8.0.10:8080,10.8.0.9:8080)
+Annotations:
+  ingress.kubernetes.io/https-target-proxy:          k8s2-ts-j09o68xc-default-secure-ingress-jfepd28q
+  ingress.kubernetes.io/target-proxy:                k8s2-tp-j09o68xc-default-secure-ingress-jfepd28q
+  kubectl.kubernetes.io/last-applied-configuration:  {"apiVersion":"networking.k8s.io/v1beta1","kind":"Ingress","metadata":{"annotations":{"kubernetes.io/ingress.class":"gce","kubernetes.io/ingress.global-static-ip-name":"gke-foobar-public-ip","networking.gke.io/managed-certificates":"foobar-certificate"},"name":"secure-ingress","namespace":"default"},"spec":{"rules":[{"host":"foo.gkeapp.com","http":{"paths":[{"backend":{"serviceName":"foo","servicePort":8080}}]}},{"host":"bar.gkeapp.com","http":{"paths":[{"backend":{"serviceName":"bar","servicePort":8080}}]}}]}}
+
+  kubernetes.io/ingress.class:                  gce
+  kubernetes.io/ingress.global-static-ip-name:  gke-foobar-public-ip
+  ingress.gcp.kubernetes.io/pre-shared-cert:    mcrt-49e7a559-5fe7-4f1d-abb1-8b047e8fd963
+  ingress.kubernetes.io/forwarding-rule:        k8s2-fr-j09o68xc-default-secure-ingress-jfepd28q
+  ingress.kubernetes.io/https-forwarding-rule:  k8s2-fs-j09o68xc-default-secure-ingress-jfepd28q
+  networking.gke.io/managed-certificates:       foobar-certificate
+  ingress.kubernetes.io/backends:               {"k8s-be-30401--0dfd9a8f1bfbe064":"HEALTHY","k8s1-0dfd9a8f-default-bar-8080-2c5d0692":"HEALTHY","k8s1-0dfd9a8f-default-foo-8080-4f0e99e4":"HEALTHY"}
+  ingress.kubernetes.io/ssl-cert:               mcrt-49e7a559-5fe7-4f1d-abb1-8b047e8fd963
+  ingress.kubernetes.io/url-map:                k8s2-um-j09o68xc-default-secure-ingress-jfepd28q
+Events:
+  Type    Reason  Age                   From                     Message
+  ----    ------  ----                  ----                     -------
+  Normal  Sync    118s (x115 over 17h)  loadbalancer-controller  Scheduled for sync
 
 ```
 
-4. Now use your browser and connect to your URL (remember to use your own domain for this). You can validate the certificate by clicking on the lock icon in your browser. This will show that the foo.* and bar.* hostnames are both secured via the generated certificate.
+7. Now use your browser and connect to your URL (remember to use your own domain for this). You can validate the certificate by clicking on the lock icon in your browser. This will show that the foo.* and bar.* hostnames are both secured via the generated certificate.
 
-   ![secure ingress certificate](../../images/secure-ingress-cert.png)
+![secure ingress certificate](../../images/secure-ingress-cert.png)
 
 You are now ready to serve securely on the internet!
 
@@ -153,4 +180,6 @@ You are now ready to serve securely on the internet!
 
 ```sh
 $ kubectl delete -f secure-ingress.yaml
+$ gcloud compute addresses delete --global gke-foobar-public-ip
+$ gcloud compute ssl-policies delete gke-ingress-ssl-policy
 ```
