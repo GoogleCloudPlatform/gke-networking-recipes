@@ -1,8 +1,6 @@
 # Secure Ingress
 
-GKE Ingress exposes much of the underlying functionality of the Google Cloud load balancers. This recipe focuses on several pieces of functionality that together provide secure, HTTPS encrypted Ingress for your GKE clusters. 
-
-[Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions. 
+[GKE Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress) exposes much of the underlying functionality of the Google Cloud load balancers. This recipe focuses on several pieces of functionality that together provide secure, HTTPS encrypted Ingress for your GKE clusters. See the [secure-ingress.yaml](secure-ingress.yaml) manifest for the full deployment spec.
 
 ### Use-cases
 
@@ -11,7 +9,7 @@ GKE Ingress exposes much of the underlying functionality of the Google Cloud loa
 
 ### Relevant documentation
 
-- [Ingress for GKE](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
+- [GKE Ingress Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
 - [Ingress for External HTTP(S) Load Balancing](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb)
 - [HTTPS Redirects for GKE Ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect)
 - [Google-managed SSL Certificates](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs)
@@ -24,7 +22,7 @@ GKE Ingress exposes much of the underlying functionality of the Google Cloud loa
 
 This recipe exposes two Services hosted on GKE to the internet through an Ingress resource. The Ingress leverages HTTPS to encrypt all traffic between the internet client and the Google Cloud load balancer. This recipe also leverages [Google-managed certificates](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs) to autogenerate the public certificate and attach it to the Ingress resource. This removes the need to self-generate and provide certificates for the load balancer.
 
-In addition to encrpting the traffic, additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly, [HTTPS redirects]((https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect) are also specified on the Ingress, which redirects all 80/HTTP traffic to 443/HTTPS. This provides a more user-friendly method of redirecting clients to negotiate HTTPS than outright blocking port 80. When using HTTPS redirects, no traffic (besides the redirect) is capable of being transmitted unencrypted on port 80.
+In addition to encrpting the traffic, additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly, [HTTPS redirects](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect) are also specified on the Ingress, which redirects all 80/HTTP traffic to 443/HTTPS. This provides a more user-friendly method of redirecting clients to negotiate HTTPS than outright blocking port 80. When using HTTPS redirects, no traffic (besides the redirect) is capable of being transmitted unencrypted on port 80.
 
 
 ![secure ingress](../../images/secure-ingress.png)
