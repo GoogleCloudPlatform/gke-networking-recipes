@@ -10,6 +10,7 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
 
 - [Basic External Ingress](./ingress/external-ingress-basic) - Deploy host-based routing through an internet-facing HTTP load balancer
 - [Basic Internal Ingress](./ingress/internal-ingress-basic) - Deploy host-based routing through a private, internal HTTP load balancer
+- [Secure Ingress](./ingress/secure-ingress) - Secure Ingress-hosted Services with HTTPS, Google-managed certificates, SSL policies, and HTTPS redirects.
 - [Basic LoadBalancer Service](./services/external-lb-service) - Deploy an internet-facing TCP/UDP network load balancer
 - [Basic Internal LoadBalancer Service](./services/internal-lb-service) - Deploy an internal TCP/UDP load balancer
 
