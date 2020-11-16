@@ -36,13 +36,13 @@ Several declarative Kubernetes resources are used in the deployment of this reci
 - `networking.gke.io/managed-certificates` references a managed certificate resource which generates a public certificate for the hostnames in the Ingress resource
 - `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy
 
-The Ingress resource also has routing rules for `foo.example.com` and `bar.example.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace these domain names with domains that you own. This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
+The Ingress resource also has routing rules for `foo.*.com` and `bar.*.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: foo-external
+  name: secure-ingress
   annotations:
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.global-static-ip-name: gke-foobar-public-ip
@@ -50,13 +50,13 @@ metadata:
     networking.gke.io/v1beta1.FrontendConfig: ingress-security-config
 spec:
   rules:
-  - host: foo.example.com
+  - host: foo.${DOMAIN}.com
     http:
       paths:
       - backend:
           serviceName: foo
           servicePort: 8080
-  - host: bar.example.com
+  - host: bar.${DOMAIN}.com
     http:
       paths:
       - backend:
@@ -86,8 +86,8 @@ metadata:
   name: foobar-certificate
 spec:
   domains:
-    - foo.example.com
-    - bar.example.com
+    - foo.${DOMAIN}.com
+    - bar.${DOMAIN}.com
 ```
 
 With these three resources, you are capable of securing your Ingress for production-ready traffic.
@@ -173,6 +173,19 @@ Events:
 7. Now use your browser and connect to your URL (remember to use your own domain for this). You can validate the certificate by clicking on the lock icon in your browser. This will show that the foo.* and bar.* hostnames are both secured via the generated certificate.
 
 ![secure ingress certificate](../../images/secure-ingress-cert.png)
+
+You can try to reach your application on HTTP but you won't be able to.
+
+```bash
+$ curl http://foo.gkeapp.com
+
+<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>301 Moved</TITLE></HEAD><BODY>
+<H1>301 Moved</H1>
+The document has moved
+<A HREF="https://foo.gkeapp.com/">here</A>.
+</BODY></HTML>
+```
 
 You are now ready to serve securely on the internet!
 
