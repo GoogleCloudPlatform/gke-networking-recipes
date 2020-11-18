@@ -23,7 +23,7 @@
 
 ### Networking Manifests
 
-This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose two differente Services hosted across both clusters. The cluster `gke-1` is in `us-west1-a` and `gke-2` is hosted in `us-east1-b`, demonstrating multi-regional load balancinig across clusters. All Services will share the same MultiClusterIngress and load balancer IP, but the load balancer will match traffic and send it to the right region, cluster, and Service depending on the request.
+This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose two different Services hosted across both clusters. The cluster `gke-1` is in `us-west1-a` and `gke-2` is hosted in `us-east1-b`, demonstrating multi-regional load balancinig across clusters. All Services will share the same MultiClusterIngress and load balancer IP, but the load balancer will match traffic and send it to the right region, cluster, and Service depending on the request.
 
 There are two applications in this example, foo and bar. Each is deployed on both clusters. The External HTTP(S) Load Balancer is designed to route traffic to the closest (to the client) available backend with capacity. Traffic from clients will be load balanced to the closest backend cluster depending on the traffic matching specified in the MultiClusterIngress resource.
 
@@ -118,6 +118,7 @@ $ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-ingress-basic
 ```
 
 2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../cluster-setup.md)
+
 3. Now follow the steps for cluster registreation with Hub and enablement of Multi-cluster Ingress.
 
 There are two manifests in this folder:
@@ -125,25 +126,23 @@ There are two manifests in this folder:
 - app.yaml is the manifest for the foo and bar Deployments. This manifest should be deployed on both clusters.
 - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
 
-4. Separately log in to each cluster and deploy the app.yaml manifest
+4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../cluster-setup.md).
 
 ```sh
-# gke-1
-$ kubectl apply -f app.yaml
+$ kubectl --context=gke-1 apply -f app.yaml
 namespace/multi-cluster-demo created
 deployment.apps/foo created
 deployment.apps/bar created
 deployment.apps/default-backend created
 
-# gke-2
-$ kubectl apply -f app.yaml
+$ kubectl --context=gke-2 apply -f app.yaml
 namespace/multi-cluster-demo created
 deployment.apps/foo created
 deployment.apps/bar created
 deployment.apps/default-backend created
 
 # Shows that all pods are running and happy
-$ kubectl get deploy -n multi-cluster-demo
+$ kubectl --context=gke-2 get deploy -n multi-cluster-demo
 NAME              READY   UP-TO-DATE   AVAILABLE   AGE
 bar               2/2     2            2           44m
 default-backend   1/1     1            1           44m
@@ -151,12 +150,11 @@ foo               2/2     2            2           44m
 ```
 
 
-3. Now log into `gke-1` and deploy the ingress.yaml manifest.
+5. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
 
 ```bash
-# gke-1
-$ kubectl apply -f ingress.yaml
+$ kubectl --context=gke-1 apply -f ingress.yaml
 multiclusteringress.networking.gke.io/foobar-ingress created
 multiclusterservice.networking.gke.io/foo created
 multiclusterservice.networking.gke.io/bar created
@@ -164,7 +162,7 @@ multiclusterservice.networking.gke.io/default-backend created
 backendconfig.cloud.google.com/backend-health-check created
 ```
 
-4. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going.  
+6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going.  
 
 ```sh
 Name:         foobar-ingress
@@ -230,7 +228,7 @@ Events:
   Normal  UPDATE  49m (x2 over 50m)  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
 ```
 
-5. Now use the IP address from the MCI output to reach the load balancer. Try hitting the load balancer on the different host rules to confirm that traffic is being routed correctly. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
+7. Now use the IP address from the MCI output to reach the load balancer. Try hitting the load balancer on the different host rules to confirm that traffic is being routed correctly. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
 
 ```bash
 # Hitting the default backend
@@ -252,7 +250,7 @@ gke-1
 bar-5bdf58646c-rbbdn
 ```
 
-6. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service. 
+8. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service. 
 
 ```bash
 $ while true; do curl -s -H "host: foo.example.com" 35.201.75.57 | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
@@ -266,11 +264,11 @@ $ while true; do curl -s -H "host: foo.example.com" 35.201.75.57 | jq -c '{clust
 
 **Note:** Traffic will be load balanced to the closest cluster to the client. If you are curling from your laptop then your traffic will be directed to the closest GKE cluster to you. Whichever cluster is recieving traffic in this step will be the closest one to you so fail pods in that cluster in the next step and watch traffic failover to the other cluster.
 
-7. Open up a second shell to scale the replicas down to zero. 
+9. Open up a second shell to scale the replicas down to zero. 
 
 ```bash
 # Do this in the same cluster where the response came from in the previous step
-$ kubectl scale --replicas=0 deploy foo -n multi-cluster-demo
+$ kubectl --context=gke-1 scale --replicas=0 deploy foo -n multi-cluster-demo
 deployment.apps/foo scaled
 
 $ kubectl get deploy -n multi-cluster-demo foo
@@ -300,10 +298,8 @@ foo    0/0     0            0           63m
 ### Cleanup
 
 ```sh
-# gke-1
-kubectl delete -f app.yaml
-kubectl delete -f ingress.yaml
 
-# gke-2
-kubectl delete -f app.yaml
+kubectl --context=gke-1 delete -f app.yaml
+kubectl --context=gke-1 delete -f ingress.yaml
+kubectl --context=gke-2 delete -f app.yaml
 ```

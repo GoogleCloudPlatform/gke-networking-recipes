@@ -23,9 +23,25 @@ $ gcloud container clusters create gke-1 \
  	--release-channel rapid 
 
 $ gcloud container clusters create gke-2 \
-	--zone us-east1-a \
+	--zone us-east1-b \
 	--enable-ip-alias \
   --release-channel rapid 
+```
+
+3. Get the cluster credentials and rename the contexts to something easier to use:
+
+```bash
+$ gcloud container clusters get-credentials gke-1 --zone us-west1-a
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for gke-1.
+
+$ gcloud container clusters get-credentials gke-2 --zone us-east1-b
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for gke-2.
+
+$ kubectl config rename-context ${GKE1_CONTEXT} gke-1
+
+$ kubectl config rename-context ${GKE2_CONTEXT} gke-2
 ```
 
 2. Enable the Hub, Anthos, and MultiClusterIngress APIs as done [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
