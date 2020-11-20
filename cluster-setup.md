@@ -10,7 +10,7 @@ $ gcloud container clusters create gke-1 \
 ```
 
 
-## Multi-cluster environment
+## Multi-cluster environment (basic)
 
 The multi-cluster examples use the following GKE setup for deploying the manifests.
 
@@ -83,3 +83,15 @@ name: projects/church-243723/locations/global/features/multiclusteringress
 updateTime: '2020-11-14T20:50:54.761389487Z'
 ```
 
+## Multi-cluster environment (blue-green cluster)
+
+To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster. 
+
+1. Deploy another GKE cluster to `us-west1-a`
+
+```bash
+$ gcloud container clusters create gke-1 \
+	--zone us-west1-a \
+	--enable-ip-alias \
+ 	--release-channel rapid 
+```
