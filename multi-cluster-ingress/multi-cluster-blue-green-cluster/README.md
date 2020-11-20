@@ -8,7 +8,7 @@
 
 The Blue/Green MCI cluster pattern is designed to address Kubernetes cluster lifecycle use cases where a given GCP region has two or more GKE clusters hosting the same application(s). 
 
-Redundant GKE clusters are deployed so that one cluster can be removed from service at a time, upgraded, and returned to service, while the other cluster(s) continue to service client traffic. 
+Redundant GKE clusters are deployed so that one cluster can be removed from service at a time, upgraded, and returned to service, while the other cluster(s) continue to service client traffic for that region. 
 
 ### Relevant documentation
 
