@@ -50,6 +50,15 @@ $ kubectl config rename-context gke_${PROJECT}_us-east1-b_gke-2 gke-2
 
 3. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
 
+```bash
+
+$ gcloud services enable gkehub.googleapis.com
+
+$ gcloud services enable anthos.googleapis.com
+
+$ gcloud services enable multiclusteringress.googleapis.com
+```
+
 4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. Confirm that they are registered with Hub.
 
 ```
