@@ -64,6 +64,7 @@ $ gcloud services enable multiclusteringress.googleapis.com
 There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
 
 For `gke-1`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-a/clusters/gke-1```
+
 For `gke-2`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-east1-b/clusters/gke-b```
 
 
