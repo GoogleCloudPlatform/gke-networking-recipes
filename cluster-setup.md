@@ -59,7 +59,15 @@ $ gcloud services enable anthos.googleapis.com
 $ gcloud services enable multiclusteringress.googleapis.com
 ```
 
-4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. Confirm that they are registered with Hub.
+4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. 
+
+There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
+
+For `gke-1`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-a/clusters/gke-1```
+For `gke-2`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-east1-b/clusters/gke-b```
+
+
+Confirm that they are registered with Hub.
 
 ```
 $ gcloud container hub memberships list
@@ -72,7 +80,7 @@ gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
 
 ```bash
 $ gcloud alpha container hub ingress enable \
-  --config-membership=projects/<your-project>/locations/global/memberships/gke-1
+  --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
 ```
 
 6. Confirm that MCI is configured properly.
