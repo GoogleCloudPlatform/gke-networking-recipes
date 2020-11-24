@@ -1,3 +1,12 @@
+## Set up environment variable
+
+This will be referenced in upcoming command line examples.
+
+```bash
+$ export PROJECT=$(gcloud config get-value project) # or your preferred project
+```
+
+
 ## Single-cluster environment
 
 The single-cluster examples use the following GKE setup for deploying the manifests.
@@ -12,7 +21,7 @@ $ gcloud container clusters create gke-1 \
 
 ## Multi-cluster environment (basic)
 
-The multi-cluster examples use the following GKE setup for deploying the manifests.
+The multi-cluster examples use the following GKE setup for deploying the manifests. If you've already created `gke-1` in the [single-cluster section](#), you can reuse that cluster.
 
 1. Deploy two GKE clusters within your Google Cloud project.
 
@@ -28,24 +37,20 @@ $ gcloud container clusters create gke-2 \
   --release-channel rapid 
 ```
 
-3. Get the cluster credentials and rename the contexts to something easier to use:
+2. Rename contexts
+
+The prior step will have added credentials for your new clusters to your `kubeconfig`, but let's rename the contexts to something a little shorter:
 
 ```bash
-$ gcloud container clusters get-credentials gke-1 --zone us-west1-a
-Fetching cluster endpoint and auth data.
-kubeconfig entry generated for gke-1.
 
-$ gcloud container clusters get-credentials gke-2 --zone us-east1-b
-Fetching cluster endpoint and auth data.
-kubeconfig entry generated for gke-2.
+$ kubectl config rename-context gke_${PROJECT}_us-west1-a_gke-1 gke-1
 
-$ kubectl config rename-context ${GKE1_CONTEXT} gke-1
-
-$ kubectl config rename-context ${GKE2_CONTEXT} gke-2
+$ kubectl config rename-context gke_${PROJECT}_us-east1-b_gke-2 gke-2
 ```
 
-2. Enable the Hub, Anthos, and MultiClusterIngress APIs as done [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
-3. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. Confirm that they are registered with Hub.
+3. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
+
+4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. Confirm that they are registered with Hub.
 
 ```
 $ gcloud container hub memberships list
@@ -54,14 +59,14 @@ gke-1  50468ae8-29a3-4ea1-b7ff-0e216533619a
 gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
 ```
 
-4. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
+5. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
 
 ```bash
 $ gcloud alpha container hub ingress enable \
   --config-membership=projects/<your-project>/locations/global/memberships/gke-1
 ```
 
-5. Confirm that MCI is configured properly.
+6. Confirm that MCI is configured properly.
 
 ```bash
 $ gcloud alpha container hub ingress describe
@@ -85,12 +90,12 @@ updateTime: '2020-11-14T20:50:54.761389487Z'
 
 ## Multi-cluster environment (blue-green cluster)
 
-To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster. 
+To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`.
 
 1. Deploy another GKE cluster to `us-west1-a`
 
 ```bash
-$ gcloud container clusters create gke-1 \
+$ gcloud container clusters create gke-3 \
 	--zone us-west1-a \
 	--enable-ip-alias \
  	--release-channel rapid 
