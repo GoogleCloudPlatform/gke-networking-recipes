@@ -110,11 +110,13 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`.
 
-1. Deploy another GKE cluster to `us-west1-a`
+1. Deploy another GKE cluster to `us-west1-b` (same region as `gke-1`)
 
-```bash
-$ gcloud container clusters create gke-3 \
-	--zone us-west1-a \
-	--enable-ip-alias \
- 	--release-channel rapid 
-```
+    ```bash
+    $ gcloud container clusters create gke-3 \
+      --zone us-west1-b \
+      --enable-ip-alias \
+      --release-channel rapid 
+    ```
+
+2. Rename context
