@@ -79,32 +79,32 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 5. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
 
-```bash
-$ gcloud alpha container hub ingress enable \
-  --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
-```
+    ```bash
+    $ gcloud alpha container hub ingress enable \
+      --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
+    ```
 
 6. Confirm that MCI is configured properly.
 
-```bash
-$ gcloud alpha container hub ingress describe
-createTime: '2020-11-14T20:50:53.856780163Z'
-featureState:
-  details:
-    code: OK
-    description: Ready to use
-  detailsByMembership:
-    projects/759444700240/locations/global/memberships/gke-1:
-      code: OK
-    projects/759444700240/locations/global/memberships/gke-2:
-      code: OK
-  hasResources: true
-  lifecycleState: ENABLED
-multiclusteringressFeatureSpec:
-  configMembership: projects/church-243723/locations/global/memberships/gke-1
-name: projects/church-243723/locations/global/features/multiclusteringress
-updateTime: '2020-11-14T20:50:54.761389487Z'
-```
+    ```bash
+    $ gcloud alpha container hub ingress describe
+    createTime: '2020-11-14T20:50:53.856780163Z'
+    featureState:
+      details:
+        code: OK
+        description: Ready to use
+      detailsByMembership:
+        projects/759444700240/locations/global/memberships/gke-1:
+          code: OK
+        projects/759444700240/locations/global/memberships/gke-2:
+          code: OK
+      hasResources: true
+      lifecycleState: ENABLED
+    multiclusteringressFeatureSpec:
+      configMembership: projects/church-243723/locations/global/memberships/gke-1
+    name: projects/church-243723/locations/global/features/multiclusteringress
+    updateTime: '2020-11-14T20:50:54.761389487Z'
+    ```
 
 ## Multi-cluster environment (blue-green cluster)
 
