@@ -108,9 +108,9 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 ## Multi-cluster environment (blue-green cluster)
 
-To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`.
+To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`. This section builds on the [previous section]().
 
-1. Deploy another GKE cluster to `us-west1-b` (same region as `gke-1`)
+1. Deploy another GKE cluster to the `us-west1` region (same region as `gke-1`)
 
     ```bash
     $ gcloud container clusters create gke-3 \
