@@ -39,72 +39,72 @@ $ gcloud container clusters create gke-2 \
 
 2. Rename contexts
 
-  The prior step will have added credentials for your new clusters to your `kubeconfig`, but let's rename the contexts to something a little shorter:
+    The prior step will have added credentials for your new clusters to your `kubeconfig`, but let's rename the contexts to something a little shorter:
 
-  ```bash
+    ```bash
 
-  $ kubectl config rename-context gke_${PROJECT}_us-west1-a_gke-1 gke-1
+    $ kubectl config rename-context gke_${PROJECT}_us-west1-a_gke-1 gke-1
 
-  $ kubectl config rename-context gke_${PROJECT}_us-east1-b_gke-2 gke-2
-  ```
+    $ kubectl config rename-context gke_${PROJECT}_us-east1-b_gke-2 gke-2
+    ```
 
 3. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
 
-  ```bash
+```bash
 
-  $ gcloud services enable gkehub.googleapis.com
+$ gcloud services enable gkehub.googleapis.com
 
-  $ gcloud services enable anthos.googleapis.com
+$ gcloud services enable anthos.googleapis.com
 
-  $ gcloud services enable multiclusteringress.googleapis.com
-  ```
+$ gcloud services enable multiclusteringress.googleapis.com
+```
 
 4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. 
 
-  There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
+There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
 
-  For `gke-1`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-a/clusters/gke-1```
+For `gke-1`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-a/clusters/gke-1```
 
-  For `gke-2`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-east1-b/clusters/gke-b```
+For `gke-2`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-east1-b/clusters/gke-b```
 
 
-  Confirm that they are registered with Hub.
+Confirm that they are registered with Hub.
 
-  ```
-  $ gcloud container hub memberships list
-  NAME   EXTERNAL_ID
-  gke-1  50468ae8-29a3-4ea1-b7ff-0e216533619a
-  gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
-  ```
+```
+$ gcloud container hub memberships list
+NAME   EXTERNAL_ID
+gke-1  50468ae8-29a3-4ea1-b7ff-0e216533619a
+gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
+```
 
 5. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
 
-  ```bash
-  $ gcloud alpha container hub ingress enable \
-    --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
-  ```
+```bash
+$ gcloud alpha container hub ingress enable \
+  --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
+```
 
 6. Confirm that MCI is configured properly.
 
-  ```bash
-  $ gcloud alpha container hub ingress describe
-  createTime: '2020-11-14T20:50:53.856780163Z'
-  featureState:
-    details:
+```bash
+$ gcloud alpha container hub ingress describe
+createTime: '2020-11-14T20:50:53.856780163Z'
+featureState:
+  details:
+    code: OK
+    description: Ready to use
+  detailsByMembership:
+    projects/759444700240/locations/global/memberships/gke-1:
       code: OK
-      description: Ready to use
-    detailsByMembership:
-      projects/759444700240/locations/global/memberships/gke-1:
-        code: OK
-      projects/759444700240/locations/global/memberships/gke-2:
-        code: OK
-    hasResources: true
-    lifecycleState: ENABLED
-  multiclusteringressFeatureSpec:
-    configMembership: projects/church-243723/locations/global/memberships/gke-1
-  name: projects/church-243723/locations/global/features/multiclusteringress
-  updateTime: '2020-11-14T20:50:54.761389487Z'
-  ```
+    projects/759444700240/locations/global/memberships/gke-2:
+      code: OK
+  hasResources: true
+  lifecycleState: ENABLED
+multiclusteringressFeatureSpec:
+  configMembership: projects/church-243723/locations/global/memberships/gke-1
+name: projects/church-243723/locations/global/features/multiclusteringress
+updateTime: '2020-11-14T20:50:54.761389487Z'
+```
 
 ## Multi-cluster environment (blue-green cluster)
 
