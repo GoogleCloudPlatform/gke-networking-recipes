@@ -88,22 +88,20 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     ```bash
     $ gcloud alpha container hub ingress describe
-    createTime: '2020-11-14T20:50:53.856780163Z'
+    createTime: '2020-08-16T05:15:32.127012063Z'
     featureState:
       details:
         code: OK
         description: Ready to use
       detailsByMembership:
-        projects/759444700240/locations/global/memberships/gke-1:
-          code: OK
-        projects/759444700240/locations/global/memberships/gke-2:
+        projects/1050705688268/locations/global/memberships/gke-1:
           code: OK
       hasResources: true
       lifecycleState: ENABLED
     multiclusteringressFeatureSpec:
-      configMembership: projects/church-243723/locations/global/memberships/gke-1
-    name: projects/church-243723/locations/global/features/multiclusteringress
-    updateTime: '2020-11-14T20:50:54.761389487Z'
+      configMembership: projects/alexmattson-ifa-081520-0404/locations/global/memberships/i4a-us-central1-01
+    name: projects/alexmattson-ifa-081520-0404/locations/global/features/multiclusteringress
+    updateTime: '2020-08-16T05:15:33.464612511Z'
     ```
 
 ## Multi-cluster environment (blue-green cluster)
