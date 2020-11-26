@@ -106,7 +106,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 ## Multi-cluster environment (blue-green cluster)
 
-To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`. This section builds on the [previous section](#Multi-cluster-environment-(basic)).
+To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`. This section builds on the [previous section](#multi-cluster-environment-(basic)).
 
 1. Deploy another GKE cluster to the `us-west1` region (same region as `gke-1`)
 
