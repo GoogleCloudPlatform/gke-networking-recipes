@@ -13,40 +13,6 @@ spec:
 apiVersion: networking.gke.io/v1
 kind: MultiClusterService
 metadata:
-  name: foo
-  namespace: multi-cluster-demo
-spec:
-  template:
-    spec:
-      selector:
-        app: foo
-      ports:
-      - name: http
-        protocol: TCP
-        port: 8080
-        targetPort: 8080
----
-apiVersion: networking.gke.io/v1
-kind: MultiClusterService
-metadata:
-  name: bar
-  namespace: multi-cluster-demo
-  annotations:
-    beta.cloud.google.com/backend-config: '{"ports": {"8080":"backend-health-check"}}'
-spec:
-  template:
-    spec:
-      selector:
-        app: bar
-      ports:
-      - name: http
-        protocol: TCP
-        port: 8080
-        targetPort: 8080
----
-apiVersion: networking.gke.io/v1
-kind: MultiClusterService
-metadata:
   name: default-backend
   namespace: multi-cluster-demo
   annotations:
@@ -61,6 +27,9 @@ spec:
         protocol: TCP
         port: 8080
         targetPort: 8080
+  clusters:
+  - link: "us-west1-a/gke-1"
+  - link: "us-west1-b/gke-3"
 ---
 apiVersion: cloud.google.com/v1
 kind: BackendConfig

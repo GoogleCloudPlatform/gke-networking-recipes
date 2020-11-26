@@ -47,35 +47,32 @@ spec:
         servicePort: 8080
 ```
 
-Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. This `foo` MCS specifies that all Pods with the following characteristics will be selected as backends for  `foo`:
-
-- Pods with the label `app: foo`
-- In the `multi-cluster-demo` Namespace
-- In any of the clusters that are registered as members to the Hub
-
-If more clusters are added to the Hub, then any Pods in those clusters that match these characteristics will also be registered as backends to `foo`.
+Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../multi-cluster-ingress-basic), in this recipe we're just going to use a single MCS, configured as the `default-backend`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definition below:
 
 ```yaml
 apiVersion: networking.gke.io/v1
 kind: MultiClusterService
 metadata:
-  name: foo
+  name: default-backend
   namespace: multi-cluster-demo
   annotations:
-    beta.cloud.google.com/backend-config: '{"ports": {"8080":"backend-health-check"}}'
+    beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
 spec:
   template:
     spec:
       selector:
-        app: foo
+        app: default-backend
       ports:
       - name: http
         protocol: TCP
         port: 8080
         targetPort: 8080
+  clusters:
+  - link: "us-west1-a/gke-1"
+  - link: "us-west1-b/gke-3"
 ```
 
-Each of the three MCS's referenced in the `foobar-ingress` MCI have their own manifest to describe the matching parameters of that MCS. A BackendConfig resource is also referenced. This allows settings specific to a Service to be configured. We use it here to configure the health check that the Google Cloud load balancer uses.
+The `default-backend` sevice also serves a secondary function; it exposes a `/healthz` path to provide a health check endpoint.
 
 ```yaml
 apiVersion: cloud.google.com/v1
@@ -96,189 +93,247 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 1. Download this repo and navigate to this folder
 
-```sh
-$ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
-Cloning into 'gke-networking-recipes'...
+    ```sh
+    $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
+    Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-blue-green-cluster
-```
+    $ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-blue-green-cluster
+    ```
 
 2. Deploy the two clusters `gke-1` and `gke-3` as specified in [cluster setup](../../cluster-setup.md)
 
-3. Now follow the steps for cluster registreation with Hub and enablement of Multi-cluster Ingress.
+3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
 
 There are two manifests in this folder:
 
-- app.yaml is the manifest for the foo and bar Deployments. This manifest should be deployed on both clusters.
-- ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
+    - app.yaml is the manifest for the `default-backend` Deployment. This manifest should be deployed on both clusters.
+    - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
 
 4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../cluster-setup.md).
 
-```sh
-$ kubectl --context=gke-1 apply -f app.yaml
-namespace/multi-cluster-demo created
-deployment.apps/foo created
-deployment.apps/bar created
-deployment.apps/default-backend created
+    ```sh
+    $ kubectl --context=gke-1 apply -f app.yaml
+    namespace/multi-cluster-demo created
+    deployment.apps/default-backend created
 
-$ kubectl --context=gke-2 apply -f app.yaml
-namespace/multi-cluster-demo created
-deployment.apps/foo created
-deployment.apps/bar created
-deployment.apps/default-backend created
+    $ kubectl --context=gke-3 apply -f app.yaml
+    namespace/multi-cluster-demo created
+    deployment.apps/default-backend created
 
-# Shows that all pods are running and happy
-$ kubectl --context=gke-2 get deploy -n multi-cluster-demo
-NAME              READY   UP-TO-DATE   AVAILABLE   AGE
-bar               2/2     2            2           44m
-default-backend   1/1     1            1           44m
-foo               2/2     2            2           44m
-```
+    # Shows that all pods are running and happy
+    $ kubectl --context=gke-3 get deploy -n multi-cluster-demo
+    NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+    default-backend   1/1     1            1           44m
+    ```
 
 
 5. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
 
+    ```bash
+    $ kubectl --context=gke-1 apply -f ingress.yaml
+    multiclusteringress.networking.gke.io/foobar-ingress created
+    multiclusterservice.networking.gke.io/default-backend created
+    backendconfig.cloud.google.com/backend-health-check created
+    ```
+
+6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
+
+    ```sh
+    $ kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
+    Name:         foobar-ingress
+    Namespace:    multi-cluster-demo
+    Labels:       <none>
+    Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                    {"apiVersion":"networking.gke.io/v1","kind":"MultiClusterIngress","metadata":{"annotations":{},"name":"foobar-ingress","namespace":"multi-...
+                networking.gke.io/last-reconcile-time: Saturday, 14-Nov-20 21:46:46 UTC
+    API Version:  networking.gke.io/v1
+    Kind:         MultiClusterIngress
+    Metadata:
+    Resource Version:  144786
+    Self Link:         /apis/networking.gke.io/v1/namespaces/multi-cluster-demo/multiclusteringresses/foobar-ingress
+    UID:               47fe4406-9660-4968-8eea-0a2f028f03d2
+    spec:
+    template:
+        spec:
+        backend:
+            serviceName: default-backend
+            servicePort: 8080
+    Status:
+    Cloud Resources:
+        Backend Services:
+        mci-6rsucs-8080-multi-cluster-demo-default-backend
+        Firewalls:
+        mci-6rsucs-default-l7
+        Forwarding Rules:
+        mci-6rsucs-fw-multi-cluster-demo-foobar-ingress
+        Health Checks:
+        mci-6rsucs-8080-multi-cluster-demo-default-backend
+        Network Endpoint Groups:
+        zones/us-west1-a/networkEndpointGroups/k8s1-3efcccf3-multi-cluste-mci-default-backend-svc--80-b2c88574
+        zones/us-west1-b/networkEndpointGroups/k8s1-6c1ae7d4-multi-cluste-mci-default-backend-svc--80-f8b91776
+        Target Proxies:
+        mci-6rsucs-multi-cluster-demo-foobar-ingress
+        URL Map:  mci-6rsucs-multi-cluster-demo-foobar-ingress
+    VIP:        34.120.46.9
+    Events:
+    Type     Reason  Age                  From                              Message
+    ----     ------  ----                 ----                              -------
+    Normal   ADD     12m                  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+    Warning  SYNC    5m31s (x2 over 10m)  multi-cluster-ingress-controller  Error AVMBR102: MultiClusterService multi-cluster-demo/default-backend not found.
+    Normal   UPDATE  98s (x2 over 12m)    multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+    ```
+
+    ```bash
+    # capture the IP address for the MCI resource
+    $ export MCI_ENDPOINT=$(kubectl --context=gke-1 get mci -n multi-cluster-demo -o yaml | grep "VIP" | awk 'END{ print $2}')
+    ```
+
+7. Now use the IP address from the MCI output to reach the load balancer. Running it several times should reflect that traffic is being load-balanced between `gke-1` and `gke-3`. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
+
+    ```bash
+    # Hitting the default backend attempt #1
+    $ curl -s ${MCI_ENDPOINT} | jq -r '.zone, .cluster_name, .pod_name'
+    us-west1-a
+    gke-1
+    default-backend-85798bc9b5-bnqhr
+
+    # Hitting the default backend attempt #2
+    $ curl -s ${MCI_ENDPOINT} | jq -r '.zone, .cluster_name, .pod_name'
+    us-west1-b
+    gke-3
+    default-backend-85798bc9b5-wpb59
+    ```
+
+
+8. Now let's demonstrate how to take one of the clusters (in this case, `gke-1`) temporarily out of service. Start by sending requests to the MCI endpoint.
+
 ```bash
-$ kubectl --context=gke-1 apply -f ingress.yaml
-multiclusteringress.networking.gke.io/foobar-ingress created
-multiclusterservice.networking.gke.io/foo created
-multiclusterservice.networking.gke.io/bar created
-multiclusterservice.networking.gke.io/default-backend created
-backendconfig.cloud.google.com/backend-health-check created
+$ while true; do curl -s ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
+
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+...
 ```
 
-6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going.  
+**Note:** This failover process will take several minutes to take effect.
 
-```sh
-Name:         foobar-ingress
-Namespace:    multi-cluster-demo
-Labels:       <none>
-Annotations:  kubectl.kubernetes.io/last-applied-configuration:
-                {"apiVersion":"networking.gke.io/v1","kind":"MultiClusterIngress","metadata":{"annotations":{},"name":"foobar-ingress","namespace":"multi-...
-              networking.gke.io/last-reconcile-time: Saturday, 14-Nov-20 21:46:46 UTC
-API Version:  networking.gke.io/v1
-Kind:         MultiClusterIngress
-Metadata:
-  Resource Version:  144786
-  Self Link:         /apis/networking.gke.io/v1/namespaces/multi-cluster-demo/multiclusteringresses/foobar-ingress
-  UID:               47fe4406-9660-4968-8eea-0a2f028f03d2
-Spec:
-  Template:
+9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`.
+
+    ```bash
+    $ kubectl patch MultiClusterService default-backend -n multi-cluster-demo --type merge --patch "$(cat ./patch.yaml)"
+    multiclusterservice.networking.gke.io/default-backend patched
+
+    $ kubectl describe MultiClusterService default-backend -n multi-cluster-demo
+    Name:         default-backend
+    Namespace:    multi-cluster-demo
+    Labels:       <none>
+    Annotations:  beta.cloud.google.com/backend-config: {"default": "backend-health-check"}
+    API Version:  networking.gke.io/v1
+    Kind:         MultiClusterService
+    Metadata:
+    Creation Timestamp:  2020-11-26T06:32:40Z
+    Finalizers:
+        mcs.finalizer.networking.gke.io
+    Generation:  2
+    Managed Fields:
+        API Version:  networking.gke.io/v1
+        Fields Type:  FieldsV1
+        fieldsV1:
+        f:metadata:
+            f:annotations:
+            .:
+            f:beta.cloud.google.com/backend-config:
+            f:kubectl.kubernetes.io/last-applied-configuration:
+        f:spec:
+            .:
+            f:template:
+            .:
+            f:spec:
+                .:
+                f:ports:
+                f:selector:
+                .:
+                f:app:
+        Manager:      kubectl-client-side-apply
+        Operation:    Update
+        Time:         2020-11-26T06:32:40Z
+        API Version:  networking.gke.io/v1beta1
+        Fields Type:  FieldsV1
+        fieldsV1:
+        f:metadata:
+            f:finalizers:
+            .:
+            v:"mcs.finalizer.networking.gke.io":
+        Manager:      Google-Multi-Cluster-Ingress
+        Operation:    Update
+        Time:         2020-11-26T06:32:41Z
+        API Version:  networking.gke.io/v1
+        Fields Type:  FieldsV1
+        fieldsV1:
+        f:spec:
+            f:clusters:
+        Manager:         kubectl-patch
+        Operation:       Update
+        Time:            2020-11-26T06:59:47Z
+    Resource Version:  743930
+    Self Link:         /apis/networking.gke.io/v1/namespaces/multi-cluster-demo/multiclusterservices/default-backend
+    UID:               d9984328-e644-43c6-abfa-b04985509cc1
     Spec:
-      Backend:
-        Service Name:  default-backend
-        Service Port:  8080
-      Rules:
-        Host:  foo.example.com
-        Http:
-          Paths:
-            Backend:
-              Service Name:  foo
-              Service Port:  8080
-        Host:                bar.example.com
-        Http:
-          Paths:
-            Backend:
-              Service Name:  bar
-              Service Port:  8080
-Status:
-  Cloud Resources:
-    Backend Services:
-      mci-8se3df-8080-multi-cluster-demo-bar
-      mci-8se3df-8080-multi-cluster-demo-default-backend
-      mci-8se3df-8080-multi-cluster-demo-foo
-    Firewalls:
-      mci-8se3df-default-l7
-    Forwarding Rules:
-      mci-8se3df-fw-multi-cluster-demo-foobar-ingress
-    Health Checks:
-      mci-8se3df-8080-multi-cluster-demo-bar
-      mci-8se3df-8080-multi-cluster-demo-default-backend
-      mci-8se3df-8080-multi-cluster-demo-foo
-    Network Endpoint Groups:
-      zones/us-east1-b/networkEndpointGroups/k8s1-b1f3fb3a-multi-cluste-mci-default-backend-svc--80-c7b851a2
-      zones/us-east1-b/networkEndpointGroups/k8s1-b1f3fb3a-multi-cluster--mci-bar-svc-067a3lzs8-808-45cc57ea
-      zones/us-east1-b/networkEndpointGroups/k8s1-b1f3fb3a-multi-cluster--mci-foo-svc-820zw3izx-808-c453c71e
-      zones/us-west1-a/networkEndpointGroups/k8s1-0dfd9a8f-multi-cluste-mci-default-backend-svc--80-f964d3fc
-      zones/us-west1-a/networkEndpointGroups/k8s1-0dfd9a8f-multi-cluster--mci-bar-svc-067a3lzs8-808-cd95ae93
-      zones/us-west1-a/networkEndpointGroups/k8s1-0dfd9a8f-multi-cluster--mci-foo-svc-820zw3izx-808-3996ee76
-    Target Proxies:
-      mci-8se3df-multi-cluster-demo-foobar-ingress
-    URL Map:  mci-8se3df-multi-cluster-demo-foobar-ingress
-  VIP:        35.201.75.57
-Events:
-  Type    Reason  Age                From                              Message
-  ----    ------  ----               ----                              -------
-  Normal  ADD     50m                multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
-  Normal  UPDATE  49m (x2 over 50m)  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
-```
+    Clusters:
+        Link:  us-west1-b/gke-3
+    Template:
+        Spec:
+        Ports:
+            Name:         http
+            Port:         8080
+            Protocol:     TCP
+            Target Port:  8080
+        Selector:
+            App:  default-backend
+    Events:
+    Type    Reason  Age                  From                              Message
+    ----    ------  ----                 ----                              -------
+    Normal  ADD     28m                  multi-cluster-ingress-controller  multi-cluster-demo/default-backend
+    Normal  SYNC    3m21s (x8 over 27m)  multi-cluster-ingress-controller  Derived Service was ensured in cluster {us-west1-a/gke-1 gke-1}
+    Normal  UPDATE  61s (x2 over 28m)    multi-cluster-ingress-controller  multi-cluster-demo/default-backend
+    Normal  SYNC    51s (x9 over 27m)    multi-cluster-ingress-controller  Derived Service was deleted in cluster {us-east1-b/gke-2 gke-2}
+    Normal  SYNC    51s (x9 over 27m)    multi-cluster-ingress-controller  Derived Service was ensured in cluster {us-west1-b/gke-3 gke-3}
+    Normal  SYNC    51s                  multi-cluster-ingress-controller  Derived Service was deleted in cluster {us-west1-a/gke-1 gke-1}
+    ```
 
-7. Now use the IP address from the MCI output to reach the load balancer. Try hitting the load balancer on the different host rules to confirm that traffic is being routed correctly. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
-
-```bash
-# Hitting the default backend
-$ curl -s 35.201.75.57 | jq -r '.zone, .cluster_name, .pod_name'
-us-west1-a
-gke-1
-default-backend-6b9bd45db8-gzdjc
-
-# Hitting the foo Service
-$ curl -s -H "host: foo.example.com" 35.201.75.57  | jq -r '.zone, .cluster_name, .pod_name'
-us-west1-a
-gke-1
-foo-7b994cdbd5-wxgpk
-
-# Hitting the bar Service
-$ curl -s -H "host: bar.example.com" 35.201.75.57  | jq -r '.zone, .cluster_name, .pod_name'
-us-west1-a
-gke-1
-bar-5bdf58646c-rbbdn
-```
-
-8. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service. 
-
-```bash
-$ while true; do curl -s -H "host: foo.example.com" 35.201.75.57 | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
-
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-...
-```
-
-**Note:** Traffic will be load balanced to the closest cluster to the client. If you are curling from your laptop then your traffic will be directed to the closest GKE cluster to you. Whichever cluster is recieving traffic in this step will be the closest one to you so fail pods in that cluster in the next step and watch traffic failover to the other cluster.
-
-9. Open up a second shell to scale the replicas down to zero. 
-
-```bash
-# Do this in the same cluster where the response came from in the previous step
-$ kubectl --context=gke-1 scale --replicas=0 deploy foo -n multi-cluster-demo
-deployment.apps/foo scaled
-
-$ kubectl get deploy -n multi-cluster-demo foo
-NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-foo    0/0     0            0           63m
-```
-
-7. Watch how traffic switches from one cluster to another as the Pods dissappear from `gke-1`. Because the `foo` Pods from both clusters are active-active backends to the load balancer, there is no traffic interuption or delay when switching over traffic from one cluster to the other. Traffic is seamllessly routed to the available backends in the other cluster.
+7. Watch how all traffic eventually gets routed to `gke-3`. Because `gke-1` has been removed from the MCS, MCI will drain and remove all traffic to it.
 
 ```bash
 ...
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"} # <----- cutover happens here
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"} # <----- cutover happens here
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
 ...
 ```
-
 
 
 ### Cleanup

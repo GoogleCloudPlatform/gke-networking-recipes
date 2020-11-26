@@ -165,7 +165,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
 
     ```sh
-    $ kubectl --context=gke-1 get mci/foobar-ingress -n multi-cluster-demo -o yaml
+    $ kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
     Name:         foobar-ingress
     Namespace:    multi-cluster-demo
     Labels:       <none>
