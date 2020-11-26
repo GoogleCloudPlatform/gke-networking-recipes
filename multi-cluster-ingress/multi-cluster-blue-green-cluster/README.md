@@ -208,17 +208,17 @@ There are two manifests in this folder:
 
 8. Now let's demonstrate how to take one of the clusters (in this case, `gke-1`) temporarily out of service. Start by sending requests to the MCI endpoint.
 
-```bash
-$ while true; do curl -s ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
+    ```bash
+    $ while true; do curl -s ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
 
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-...
-```
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    ...
+    ```
 
 **Note:** This failover process will take several minutes to take effect.
 
@@ -306,34 +306,43 @@ $ while true; do curl -s ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: 
     Normal  SYNC    51s                  multi-cluster-ingress-controller  Derived Service was deleted in cluster {us-west1-a/gke-1 gke-1}
     ```
 
-7. Watch how all traffic eventually gets routed to `gke-3`. Because `gke-1` has been removed from the MCS, MCI will drain and remove all traffic to it.
+10. Watch how all traffic eventually gets routed to `gke-3`. Because `gke-1` has been removed from the MCS, MCI will drain and remove all traffic to it.
 
-```bash
-...
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"} # <----- cutover happens here
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-{"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-...
-```
+    ```bash
+    ...
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"} # <----- cutover happens here
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    ...
+    ```
+
+11. (Optional) Re-add `gke-1` by re-applying the original MCS definition.
+
+    ```bash
+    $ kubectl --context=gke-1 apply -f ingress.yaml
+    multiclusteringress.networking.gke.io/foobar-ingress unchanged
+    multiclusterservice.networking.gke.io/default-backend configured
+    backendconfig.cloud.google.com/backend-health-check unchanged
+    ```
 
 
 ### Cleanup
