@@ -114,11 +114,11 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
     $ gcloud container clusters create gke-3 \
       --zone us-west1-b \
       --enable-ip-alias \
-      --release-channel rapid 
+      --release-channel rapid
     ```
 
 2. Rename context
 
     ```bash
-        $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
+      $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
     ```

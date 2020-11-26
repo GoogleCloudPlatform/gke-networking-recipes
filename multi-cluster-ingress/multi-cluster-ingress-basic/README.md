@@ -306,6 +306,6 @@ Now that you have the background knowledge and understanding of MCI, you can try
 ```sh
 
 kubectl --context=gke-1 delete -f app.yaml
-kubectl --context=gke-1 delete -f ingress.yaml
+kubectl --context=gke-1 delete -f ingress.yaml # this is unnecessary as the namespace hosting these CRDs has already been deleted in the previous step
 kubectl --context=gke-2 delete -f app.yaml
 ```
