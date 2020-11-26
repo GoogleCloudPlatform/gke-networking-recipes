@@ -59,7 +59,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     $ gcloud services enable multiclusteringress.googleapis.com
     ```
 
-4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters. 
+4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`). 
 
     There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
 
@@ -121,4 +121,19 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
 
     ```bash
       $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
+    ```
+
+3. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) `gke-3`, following the same steps used previously.
+
+    Again, figuring out the `gke-uri` of a given cluster can be tricky, so use:
+
+    ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-b/clusters/gke-3```
+
+    Confirm registration of your clusters.
+    ```
+    $ gcloud container hub memberships list
+    NAME   EXTERNAL_ID
+    gke-3  8187e1cd-35e8-41e1-b204-8ac5c7c7a240
+    gke-2  47081e57-c326-4fa0-b808-7a7652863d32
+    gke-1  90eeb089-cd16-4281-85ce-e724953249dc
     ```
