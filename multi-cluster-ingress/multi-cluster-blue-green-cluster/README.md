@@ -103,7 +103,7 @@ Cloning into 'gke-networking-recipes'...
 $ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-blue-green-cluster
 ```
 
-2. Deploy the two clusters `gke-1` and `gke-3` as specified in [cluster setup](../cluster-setup.md)
+2. Deploy the two clusters `gke-1` and `gke-3` as specified in [cluster setup](../../cluster-setup.md)
 
 3. Now follow the steps for cluster registreation with Hub and enablement of Multi-cluster Ingress.
 
