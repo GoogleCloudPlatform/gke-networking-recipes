@@ -120,7 +120,7 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
 2. Rename context
 
     ```bash
-      $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
+    $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
     ```
 
 3. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) `gke-3`, following the same steps used previously.
