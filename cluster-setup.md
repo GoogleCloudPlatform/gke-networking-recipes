@@ -106,7 +106,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 ## Multi-cluster environment (blue-green cluster)
 
-To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`. This section builds on the [previous section](#multi-cluster-environment-basic), and assumes you still ahve those clusters up and running.
+To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`. This section builds on the [previous section](#multi-cluster-environment-basic), and assumes you still have those clusters up and running.
 
 1. Deploy another GKE cluster to the `us-west1` region (same region as `gke-1`, but a different zone)
 
@@ -118,3 +118,7 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
     ```
 
 2. Rename context
+
+    ```bash
+        $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
+    ```
