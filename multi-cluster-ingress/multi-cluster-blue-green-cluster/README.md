@@ -8,7 +8,9 @@
 
 The Blue/Green MCI cluster pattern is designed to address Kubernetes cluster lifecycle use cases where a given GCP region has two or more GKE clusters hosting the same application(s). 
 
-Redundant GKE clusters are deployed so that one cluster can be removed from service at a time, upgraded, and returned to service, while the other cluster(s) continue to service client traffic for that region. 
+Redundant GKE clusters are deployed so that one cluster can be removed from service at a time, upgraded, and returned to service, while the other cluster(s) continue to service client traffic. In this example, both clusters reside in the same GCP region to demonstrate a blue/green upgrade pattern where one cluster at a time can be removed from service, upgraded, and returned to service, all while clients can continue to access a given application.
+
+This pattern could also be used cross-region, although that introduces concerns around data residency, so to keep things simple, this example demonstrates blue/green within a single region.
 
 ### Relevant documentation
 
@@ -25,16 +27,11 @@ Redundant GKE clusters are deployed so that one cluster can be removed from serv
 
 ### Networking Manifests
 
-This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose two different Services hosted across both clusters. Unlike the [prior example](../multi-cluster-ingress-basic) the cluster `gke-1` is in `us-west1-a` and `gke-3` is hosted in `us-west1-b`, demonstrating multi-regional load balancinig across clusters. All Services will share the same MultiClusterIngress and load balancer IP, but the load balancer will match traffic and send it to the right region, cluster, and Service depending on the request.
-
-There are two applications in this example, foo and bar. Each is deployed on both clusters. The External HTTP(S) Load Balancer is designed to route traffic to the closest (to the client) available backend with capacity. Traffic from clients will be load balanced to the closest backend cluster depending on the traffic matching specified in the MultiClusterIngress resource.
+This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose a single service hosted across both clusters. Unlike the [prior example](../multi-cluster-ingress-basic) both clusters (`gke-1` and `gke-3`) reside in the same GCP region (`us-west1`), although they're placed in two different zones. Both clusters sit behind the same MultiClusterIngress and load balancer IP, and the load balancer will round-robin traffic between both clusters, as they sit within the same GCP region.
 
 The two clusters in this example can be backends to MCI only if they are registered through Hub. Hub is a central registry of clusters that determines which clusters MCI can function across. A cluster must first be registered to Hub before it can be used with MCI.
 
-
-![basic external ingress](../../images/multi-cluster-ingress-external.png)
-
-There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior. Similar to an Ingress resource, it can specify host and path matching with Services. This MCI specifies two host rules and a default backend which will recieve all traffic that does not have a match. The `serviceName` field in this MCI specifies the name of an MCS resource. 
+There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior.
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -48,19 +45,6 @@ spec:
       backend:
         serviceName: default-backend
         servicePort: 8080
-      rules:
-      - host: foo.example.com
-        http:
-          paths:
-            - backend:
-                serviceName: foo
-                servicePort: 8080
-      - host: bar.example.com
-        http:
-          paths:
-            - backend:
-                serviceName: bar
-                servicePort: 8080
 ```
 
 Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. This `foo` MCS specifies that all Pods with the following characteristics will be selected as backends for  `foo`:
@@ -116,10 +100,10 @@ Now that you have the background knowledge and understanding of MCI, you can try
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-ingress-basic
+$ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-blue-green-cluster
 ```
 
-2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../cluster-setup.md)
+2. Deploy the two clusters `gke-1` and `gke-3` as specified in [cluster setup](../cluster-setup.md)
 
 3. Now follow the steps for cluster registreation with Hub and enablement of Multi-cluster Ingress.
 
