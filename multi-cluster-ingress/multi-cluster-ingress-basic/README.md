@@ -258,46 +258,46 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 8. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service. 
 
-```bash
-$ while true; do curl -s -H "host: foo.example.com" ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
+    ```bash
+    $ while true; do curl -s -H "host: foo.example.com" ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
 
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-...
-```
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
+    ...
+    ```
 
 **Note:** Traffic will be load balanced to the closest cluster to the client. If you are curling from your laptop then your traffic will be directed to the closest GKE cluster to you. Whichever cluster is recieving traffic in this step will be the closest one to you so fail pods in that cluster in the next step and watch traffic failover to the other cluster.
 
 9. Open up a second shell to scale the replicas down to zero. 
 
-```bash
-# Do this in the same cluster where the response came from in the previous step
-$ kubectl --context=gke-1 scale --replicas=0 deploy foo -n multi-cluster-demo
-deployment.apps/foo scaled
+    ```bash
+    # Do this in the same cluster where the response came from in the previous step
+    $ kubectl --context=gke-1 scale --replicas=0 deploy foo -n multi-cluster-demo
+    deployment.apps/foo scaled
 
-$ kubectl get deploy -n multi-cluster-demo foo
-NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-foo    0/0     0            0           63m
-```
+    $ kubectl get deploy -n multi-cluster-demo foo
+    NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+    foo    0/0     0            0           63m
+    ```
 
 7. Watch how traffic switches from one cluster to another as the Pods dissappear from `gke-1`. Because the `foo` Pods from both clusters are active-active backends to the load balancer, there is no traffic interuption or delay when switching over traffic from one cluster to the other. Traffic is seamllessly routed to the available backends in the other cluster.
 
-```bash
-...
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-{"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"} # <----- cutover happens here
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-{"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-...
-```
+    ```bash
+    ...
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
+    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"} # <----- cutover happens here
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
+    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
+    ...
+    ```
 
 
 
