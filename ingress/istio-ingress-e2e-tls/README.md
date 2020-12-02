@@ -35,6 +35,49 @@ In addition to encrpting the client to GCLB traffic, we are also enabling [Secur
 
 ![secure ingress](../../images/istio-ingress-e2e-tls.png)
 
+### Istio Manifest
+
+You will be using the [Istio Operator API](https://istio.io/latest/docs/setup/install/operator/) to customize the Istio installation.
+
+Looking at the operator file below, here a breakdown of the cutomization needed.
+
+- `enableAutoMtls`: enabled mTLS everywhere
+- `k8s`: ovveride the Service definition of the `istio-ingressgateway` and enabled two ports. `443` for application traffic and `15021` for health-check. We are disabling port `80` here.
+- `service_annotations`: there are three annotations:
+  - `cloud.google.com/neg`: Enables [Container Native Load Balancing](https://cloud.google.com/kubernetes-engine/docs/how-to/container-native-load-balancing).
+  - `cloud.google.com/backend-config`: Associates a `BackenConfig` with `istio-ingressgateway` the Service. See below for more details.
+  - `cloud.google.com/app-protocols`: Indicates to the LoadBalancer that the backend if HTTPS.
+
+```yaml
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: default
+  meshConfig:
+    accessLogFile: /dev/stdout
+    outboundTrafficPolicy: 
+      mode: ALLOW_ANY
+    enableAutoMtls: true
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        service:
+          type: ClusterIP
+          ports:
+          - name: status-port
+            port: 15021
+            targetPort: 15021
+          - name: https
+            port: 443
+            targetPort: 8443
+        service_annotations:
+          cloud.google.com/neg: '{"ingress": true}'
+          cloud.google.com/backend-config: '{"default":"istio-ingress-be-config"}'
+          cloud.google.com/app-protocols: '{"https":"HTTPS"}'
+```
+
 ### Networking Manifests
 
 Several declarative Kubernetes resources are used in the deployment of this recipe. The primary one is the Ingress resource. It uses the following annotations to enable the security features mentioned above:
@@ -167,7 +210,7 @@ With these resources, you are capable of securing your Ingress for production-re
 
 1. Download this repo and navigate to this folder
 
-```sh
+```bash
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -179,66 +222,66 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
 3. Setup Istio
 
     * Download the Istio release.
-      ```
+      ```bash
       $ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.5 sh -
       ```
 
     * [Prepare the GKE Cluster](https://istio.io/v1.7/docs/setup/platform-setup/gke/) to install Istio.
 
     * Install istio using the provided Operator file. For more details on how to cutomize Istio installation via the Operator API refer to this [doc](https://istio.io/latest/docs/setup/install/operator/)
-      ```
+      ```bash
       $ istioctl install -f operator.yaml
       ```
     
     * Verify the Istio installation
-      ```
+      ```bash
       $ kubectl get pods -n istio-system
       ```
     
     * Your output will be different but both the `istio-ingressgateway` and `istiod` should be installed and running
 
     * Enable Automatic sidecar injection on the default namespace
-      ```
+      ```bash
       $ kubectl label namespace default istio-injection=enabled 
       ```
 
 4. Create a static public IP address in your project.
 
-```
+```bash
 $ gcloud compute addresses create --global gke-istio-ingress
 ```
 
 5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that echoserver.${DOMAIN}.com resolves to the Public IP of the Ingress.
 
-```
+```bash
 gcloud compute addresses describe --global gke-istio-ingress 
 ```
 
 6. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that clients negotiate using TLS 1.2 or higher.
 
-```
+```bash
 $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
     --profile MODERN \
     --min-tls-version 1.2
 ```
 7. Create the TLS root certificate, certificates and private keys for the Istio-Ingressgateway. This is the TLS certificates that will be used by the GCLB to encrypt traffic before sending it to the Ingress-gateway. Replace ${DOMAIN} with the appropriate value.
 
-```
+```bash
 $ mkdir certs
- openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout certs/${DOMAIN}.com.key -out certs/${DOMAIN}.com.crt
- openssl req -out certs/echoserver.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout certs/echoserver.${DOMAIN}.com.key -subj "/CN=echoserver.${DOMAIN}.com/O=${DOMAIN} organization"
- openssl x509 -req -days 365 -CA certs/${DOMAIN}.com.crt -CAkey certs/${DOMAIN}.com.key -set_serial 0 -in certs/echoserver.${DOMAIN}.com.csr -out certs/echoserver.${DOMAIN}.com.crt
+$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout certs/${DOMAIN}.com.key -out certs/${DOMAIN}.com.crt
+$ openssl req -out certs/echoserver.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout certs/echoserver.${DOMAIN}.com.key -subj "/CN=echoserver.${DOMAIN}.com/O=${DOMAIN} organization"
+$ openssl x509 -req -days 365 -CA certs/${DOMAIN}.com.crt -CAkey certs/${DOMAIN}.com.key -set_serial 0 -in certs/echoserver.${DOMAIN}.com.csr -out certs/echoserver.${DOMAIN}.com.crt
 ```
 
 8. Add the certificate and key to the istio-system namespace
 
-```
+```bash
 $ kubectl create -n istio-system secret tls echoserver-credentials --key=certs/echoserver.${DOMAIN}.com.key --cert=certs/echoserver.${DOMAIN}.com.crt
 ```
 
 9. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the echoserver app and Service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, Ingress resource and Istio Objects (Gateway and VirtualService).
 
-```
+```bash
 $ kubectl apply -f istio-ingress.yaml
 managedcertificate.networking.gke.io/istio-ingress-cert created
 frontendconfig.networking.gke.io/istio-ingress-fe-config created
@@ -250,7 +293,7 @@ service/echoserver created
 deployment.apps/echoserver created
 ```
 
-6. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
+10. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
 
 
 ```bash
@@ -277,14 +320,13 @@ Events:
   Type    Reason  Age                    From                     Message
   ----    ------  ----                   ----                     -------
   Normal  Sync    4m34s (x153 over 24h)  loadbalancer-controller  Scheduled for sync
-
 ```
 
-7. Now use your browser and connect to your URL (remember to use your own domain for this) over HTTPS.
+11. Now use your browser and connect to your URL (remember to use your own domain for this) over HTTPS.
 
 Your output should look something like:
 
-```
+```html
 CLIENT VALUES:
 client_address=127.0.0.1
 command=GET
@@ -331,7 +373,7 @@ The `echoserver` app we used return a lot of useful headers, here is an explanat
 - `x-forwarded-for`: Shows the chain of IP addresses from the client (80.216.72.128) to the GCLB IP(34.120.200.50,130) to the GCLB proxy IP (130.211.2.61). Yours will be different.
 - `x-forwarded-proto`: Show that the connection from the GCLB to the istio-ingressgateway was made over https. The echoserver app see's this as the call was forwarded from the istio-gateway.
 
-You can try to reach your application on HTTP but you won't be able to.
+12. You can try to reach your application on HTTP but you won't be able to.
 
 ```bash
 $ curl http://echoserver.${DOMAIN}.com
@@ -350,7 +392,7 @@ This means the allow-http annotation is allowed on the LoadBalancer.
 
 ### Cleanup
 
-```sh
+```bash
 $ kubectl delete -f istio-ingress.yaml
 $ gcloud compute addresses delete --global gke-istio-ingress
 $ gcloud compute ssl-policies delete gke-ingress-ssl-policy

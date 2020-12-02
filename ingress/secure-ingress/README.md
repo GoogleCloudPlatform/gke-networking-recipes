@@ -29,7 +29,7 @@ In addition to encrpting the traffic, additional security policies are used to m
 
 ### Networking Manifests
 
-Several declarative Kubernetes resources are used in the deployment of this recipe. The primary one is the Ingress resource. It uses the following annotations to link to enable the security features mentioned above:
+Several declarative Kubernetes resources are used in the deployment of this recipe. The primary one is the Ingress resource. It uses the following annotations to enable the security features mentioned above:
 
 - `kubernetes.io/ingress.class: "gce"` specifies that the External HTTP(S) Load Balancer will be deployed
 - `kubernetes.io/ingress.global-static-ip-name` deploys the Ingress with a static IP. This allows the IP address to remain the same even if the Ingress is redeployed in the future.
