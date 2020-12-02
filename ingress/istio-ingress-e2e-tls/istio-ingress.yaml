@@ -5,7 +5,7 @@ metadata:
   namespace: istio-system
 spec:
   domains:
-    - gke1.abdel.cloud
+    - echoserver.${DOMAIN}.com
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig

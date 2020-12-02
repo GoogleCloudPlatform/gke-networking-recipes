@@ -39,61 +39,124 @@ Several declarative Kubernetes resources are used in the deployment of this reci
 - `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy.
 - `kubernetes.io/ingress.allow-http` disables port 80 on the LoadBalancer VIP.
 
-The Ingress resource also has single route rules for `foo.*.com` and `bar.*.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
+The Ingress resource also has single route rules for `echoserver.${DOMAIN}.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
+
+The backend of the Ingress is the `istio-ingressgateway` Service which points to the `istio-ingressgateway` pods in the `istio-system` namespace. This mean all the traffic coming from the LoadBalancer will be sent to the Ingress Pods. From theire we route traffic toward the proper pod using the `Gateway` and `VirtualService` Istio resources (more details about these below).
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: secure-ingress
+  name: istio-ingress
+  namespace: istio-system
   annotations:
-    kubernetes.io/ingress.class: "gce"
-    kubernetes.io/ingress.global-static-ip-name: gke-foobar-public-ip
-    networking.gke.io/managed-certificates: foobar-certificate
-    networking.gke.io/v1beta1.FrontendConfig: ingress-security-config
+    kubernetes.io/ingress.global-static-ip-name: gke-istio-ingress
+    networking.gke.io/managed-certificates: istio-ingress-cert
+    networking.gke.io/v1beta1.FrontendConfig: "istio-ingress-fe-config"
+    kubernetes.io/ingress.allow-http: "false"
 spec:
-  rules:
-  - host: foo.${DOMAIN}.com
-    http:
-      paths:
-      - backend:
-          serviceName: foo
-          servicePort: 8080
-  - host: bar.${DOMAIN}.com
-    http:
-      paths:
-      - backend:
-          serviceName: bar
-          servicePort: 8080
+  backend:
+    serviceName: istio-ingressgateway
+    servicePort: 443
 ```
 
-The next resource is the  `FrontendConfig` which provides configuration for the [frontend of the Ingress.](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#associating_frontendconfig_with_your_ingress) This config enables HTTPS redirects. Note that it is enabled for the entire Ingress and so it will apply to all Services in the Ingress resource. The other field references an SSL policy. You'll create an SSL policy as a separate Google Cloud resource where you can specify which ciphers can be negotiated in the TLS connection.
+The next resource is the `FrontendConfig` which provides configuration for the [frontend of the Ingress.](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#associating_frontendconfig_with_your_ingress).This config references an SSL policy. You'll create an SSL policy as a separate Google Cloud resource where you can specify which ciphers can be negotiated in the TLS connection. Note that this just an examples, please refer to the documentation above for more info of on the `FrontendConfig` Resource.
 
 ```yaml
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
 metadata:
-  name: ingress-security-config
+  name: istio-ingress-fe-config
+  namespace: istio-system
 spec:
   sslPolicy: gke-ingress-ssl-policy
-  redirectToHttps:
-    enabled: true
+```
+
+Next resource is the [BackendConfig](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#direct_health) which customizes the LoadBalancer HealthCheck path and port to the one the `istio-ingressgateway` supports. The `istio-ingressgateway` serves traffic on ports `443` on the `/` path in this case. But the Health-Check status is served on port `15021` on the `/healthz/ready path`
+
+```yaml
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: istio-ingress-be-config
+  namespace: istio-system
+spec:
+  healthCheck:
+    checkIntervalSec: 3
+    timeoutSec: 1
+    healthyThreshold: 3
+    unhealthyThreshold: 2
+    type: HTTP
+    requestPath: /healthz/ready
+    port: 15021
 ```
 
 The managed certificate generation is goverened via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource with these two hostnames as SANs to the cert. 
 
 ```yaml
-apiVersion: networking.gke.io/v1
+apiVersion: networking.gke.io/v1beta2
 kind: ManagedCertificate
 metadata:
-  name: foobar-certificate
+  name: istio-ingress-cert
+  namespace: istio-system
 spec:
   domains:
-    - foo.${DOMAIN}.com
-    - bar.${DOMAIN}.com
+    - echoserver.${DOMAIN}.com
 ```
 
-With these three resources, you are capable of securing your Ingress for production-ready traffic.
+The `Gateway` Object performs the following:
+
+- Accepts traffic coming via the LoadBalancer via the `hosts` value set to `*`
+- Presents a tls certificate to the LoadBalancer, the Certificate and private Key are store in kubernetes secrets under `echoserver-credentials`.
+- Set the minimum protocol Version of TLS to 1.2
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-ingressgateway
+  namespace: default
+spec: 
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: echoserver-credentials #Must exist as a secret in the istio-system namespace
+      minProtocolVersion: TLSV1_2
+    hosts:
+    - "*"
+```
+
+The `VirtualService` Object is configured to route all traffic accepted by the `Gateway` and route it to the echoserver Service on port 8080. In the istio World this is where you can configure more intelligent routing based on paths and headers. Refeer to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) doc for more details
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: echoserver
+  namespace: default
+spec:
+  hosts:
+  - "gke1.abdel.cloud"
+  gateways:
+  - istio-ingressgateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+      - destination:
+          port:
+            number: 8080
+          host: echoserver.default.svc.cluster.local
+```
+
+With these resources, you are capable of securing your Ingress for production-ready traffic.
 
 ### Try it out
 
