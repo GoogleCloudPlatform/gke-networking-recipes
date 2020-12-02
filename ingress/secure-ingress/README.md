@@ -103,7 +103,7 @@ Cloning into 'gke-networking-recipes'...
 $ cd gke-networking-recipes/ingress/secure-ingress
 ```
 
-2. Deploy the cluster `gke-1` as specified in [cluster setup](../cluster-setup.md)
+2. Deploy the cluster `gke-1` as specified in [cluster setup](../../cluster-setup.md)
 
 3. Create a static public IP address in your project.
 

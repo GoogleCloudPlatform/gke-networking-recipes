@@ -1,6 +1,6 @@
 # Istio Ingress End to End TLS
 
-[Istio Ingress Gateway](https://istio.io/latest/docs/tasks/traffic-management/ingress/ingress-control/) is typically used to expose applications inside an Istio Mesh to the outside world. Default installations deploys the Istio Ingress Gateway behind a Network Load Balancer (L4 LB) on GCP and have the Ingress gateway perform L7 capabilities like terminating TLS and path based routing. This recipe demonstrate how we can deploy an Istio Ingress Gateway behind a GCLB with Ingress, how to configure End to End Encryption From the User to the application pod and how to take advantage of some [GKE Ingress features] (https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#request_headers) to define policies and customize health check.
+[Istio Ingress Gateway](https://istio.io/v1.7/docs/tasks/traffic-management/ingress/ingress-control/ is typically used to expose applications inside an Istio Mesh to the outside world. Default installations deploys the Istio Ingress Gateway behind a Network Load Balancer (L4 LB) on GCP and have the Ingress gateway perform L7 capabilities like terminating TLS and path based routing. This recipe demonstrate how we can deploy an Istio Ingress Gateway behind a GCLB with Ingress, how to configure End to End Encryption From the User to the application pod and how to take advantage of some [GKE Ingress features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#request_headers) to define policies and customize health check.
 
 ### Use-cases
 
@@ -11,21 +11,22 @@
 
 ### Relevant documentation
 
+- [GKE Ingress Features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features)
 - [GKE Ingress Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
 - [Ingress for External HTTP(S) Load Balancing](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb)
 - [HTTPS Redirects for GKE Ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect)
 - [Google-managed SSL Certificates](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs)
+- [Secure Istio Gateway](https://istio.io/v1.7/docs/tasks/traffic-management/ingress/secure-ingress/)
 
 #### Versions & Compatibility
 
 - The [BackendConfig CRD](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#associating_backendconfig_with_your_ingress)  is only supported on GKE 1.16.15-gke.4091+.
-- This recipes uses Istio 1.7. It should work with Istio 1.6
-- Tested and validated with GKE 1.16.15-gke.4091 and Istio 1.7 on Dec 1st 2020
+- This recipes uses the latest release of [Istio 1.7](https://istio.io/v1.7/). It should also work with Istio 1.6.
+- This Recipe have been tested and validated with [GKE 1.16.15-gke.4901](https://cloud.google.com/kubernetes-engine/docs/release-notes#november_12_2020_r37) and [Istio 1.7.5](https://istio.io/v1.7/) on Dec 2nd 2020
 
-This recipe exposes two Services hosted on GKE to the internet through an Ingress resource. The Ingress leverages HTTPS to encrypt all traffic between the internet client and the Google Cloud load balancer. This recipe also leverages [Google-managed certificates](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs) to autogenerate the public certificate and attach it to the Ingress resource. This removes the need to self-generate and provide certificates for the load balancer.
+This recipe exposes one Service hosted on GKE to the internet through an Ingress resource. The Ingress leverages HTTPS to encrypt all traffic between the internet client and the Google Cloud load balancer. This recipe also leverages [Google-managed certificates](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs) to autogenerate the public certificate and attach it to the Ingress resource. This removes the need to self-generate and provide certificates for the load balancer. 
 
-In addition to encrpting the traffic, additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly, [HTTPS redirects](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect) are also specified on the Ingress, which redirects all 80/HTTP traffic to 443/HTTPS. This provides a more user-friendly method of redirecting clients to negotiate HTTPS than outright blocking port 80. When using HTTPS redirects, no traffic (besides the redirect) is capable of being transmitted unencrypted on port 80.
-
+In addition to encrpting the client to GCLB traffic, we are also enabling Secure Istio Gateways with a self-signed certificate. Additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly we are enabling [mTLS](https://istio.io/v1.7/docs/reference/config/istio.mesh.v1alpha1/#MeshConfig) on Istio to ensure traffic between the Istio Ingress Gateway is encrypted and authenticated, effictivly acheiving End 2 End Encryption
 
 ![secure ingress](../../images/secure-ingress.png)
 
