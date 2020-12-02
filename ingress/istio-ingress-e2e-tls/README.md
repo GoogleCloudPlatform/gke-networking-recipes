@@ -142,7 +142,7 @@ metadata:
   namespace: default
 spec:
   hosts:
-  - "gke1.abdel.cloud"
+  - "echoserver.${DOMAIN}.com"
   gateways:
   - istio-ingressgateway
   http:
@@ -247,70 +247,112 @@ backendconfig.cloud.google.com/istio-ingress-be-config created
 ingress.networking.k8s.io/istio-ingress created
 gateway.networking.istio.io/istio-ingressgateway created
 virtualservice.networking.istio.io/echoserver created
-service/whereami created
-deployment.apps/whereami created
+service/echoserver created
+deployment.apps/echoserver created
 ```
 
 6. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
 
 
 ```bash
-$ kubectl describe ingress secure-ingress
-Name:             secure-ingress
-Namespace:        default
-Address:          xxx
-Default backend:  default-http-backend:80 (10.8.2.7:8080)
+$ kubectl describe ingress istio-ingress -n istio-system                  
+Name:             istio-ingress
+Namespace:        istio-system
+Address:          34.120.200.50
+Default backend:  istio-ingressgateway:443 (10.8.2.4:8443)
 Rules:
-  Host            Path  Backends
-  ----            ----  --------
-  foo.gkeapp.com
-                     foo:8080 (10.8.0.11:8080,10.8.1.9:8080)
-  bar.gkeapp.com
-                     bar:8080 (10.8.0.10:8080,10.8.0.9:8080)
-Annotations:
-  ingress.kubernetes.io/https-target-proxy:          k8s2-ts-j09o68xc-default-secure-ingress-jfepd28q
-  ingress.kubernetes.io/target-proxy:                k8s2-tp-j09o68xc-default-secure-ingress-jfepd28q
-  kubectl.kubernetes.io/last-applied-configuration:  {"apiVersion":"networking.k8s.io/v1beta1","kind":"Ingress","metadata":{"annotations":{"kubernetes.io/ingress.class":"gce","kubernetes.io/ingress.global-static-ip-name":"gke-foobar-public-ip","networking.gke.io/managed-certificates":"foobar-certificate"},"name":"secure-ingress","namespace":"default"},"spec":{"rules":[{"host":"foo.gkeapp.com","http":{"paths":[{"backend":{"serviceName":"foo","servicePort":8080}}]}},{"host":"bar.gkeapp.com","http":{"paths":[{"backend":{"serviceName":"bar","servicePort":8080}}]}}]}}
-
-  kubernetes.io/ingress.class:                  gce
-  kubernetes.io/ingress.global-static-ip-name:  gke-foobar-public-ip
-  ingress.gcp.kubernetes.io/pre-shared-cert:    mcrt-49e7a559-5fe7-4f1d-abb1-8b047e8fd963
-  ingress.kubernetes.io/forwarding-rule:        k8s2-fr-j09o68xc-default-secure-ingress-jfepd28q
-  ingress.kubernetes.io/https-forwarding-rule:  k8s2-fs-j09o68xc-default-secure-ingress-jfepd28q
-  networking.gke.io/managed-certificates:       foobar-certificate
-  ingress.kubernetes.io/backends:               {"k8s-be-30401--0dfd9a8f1bfbe064":"HEALTHY","k8s1-0dfd9a8f-default-bar-8080-2c5d0692":"HEALTHY","k8s1-0dfd9a8f-default-foo-8080-4f0e99e4":"HEALTHY"}
-  ingress.kubernetes.io/ssl-cert:               mcrt-49e7a559-5fe7-4f1d-abb1-8b047e8fd963
-  ingress.kubernetes.io/url-map:                k8s2-um-j09o68xc-default-secure-ingress-jfepd28q
+  Host        Path  Backends
+  ----        ----  --------
+  *           *     istio-ingressgateway:443 (10.8.2.4:8443)
+Annotations:  ingress.gcp.kubernetes.io/pre-shared-cert: mcrt-0300f011-c7a0-482f-81d6-27f96bf9a254
+              ingress.kubernetes.io/backends: {"k8s1-8076ec74-istio-system-istio-ingressgateway-443-fcd32a34":"HEALTHY"}
+              ingress.kubernetes.io/https-forwarding-rule: k8s2-fs-e0h00a6m-istio-system-istio-ingress-2j9y43h7
+              ingress.kubernetes.io/https-target-proxy: k8s2-ts-e0h00a6m-istio-system-istio-ingress-2j9y43h7
+              ingress.kubernetes.io/ssl-cert: mcrt-0300f011-c7a0-482f-81d6-27f96bf9a254
+              ingress.kubernetes.io/url-map: k8s2-um-e0h00a6m-istio-system-istio-ingress-2j9y43h7
+              kubernetes.io/ingress.allow-http: false
+              kubernetes.io/ingress.global-static-ip-name: gke-istio-ingress
+              networking.gke.io/managed-certificates: istio-ingress-cert
+              networking.gke.io/v1beta1.FrontendConfig: istio-ingress-fe-config
 Events:
-  Type    Reason  Age                   From                     Message
-  ----    ------  ----                  ----                     -------
-  Normal  Sync    118s (x115 over 17h)  loadbalancer-controller  Scheduled for sync
+  Type    Reason  Age                    From                     Message
+  ----    ------  ----                   ----                     -------
+  Normal  Sync    4m34s (x153 over 24h)  loadbalancer-controller  Scheduled for sync
 
 ```
 
-7. Now use your browser and connect to your URL (remember to use your own domain for this). You can validate the certificate by clicking on the lock icon in your browser. This will show that the foo.* and bar.* hostnames are both secured via the generated certificate.
+7. Now use your browser and connect to your URL (remember to use your own domain for this) over HTTPS.
 
-![secure ingress certificate](../../images/secure-ingress-cert.png)
+Your output should look something like:
+
+```
+CLIENT VALUES:
+client_address=127.0.0.1
+command=GET
+real path=/
+query=nil
+request_version=1.1
+request_uri=http://echoserver.${DOMAIN}.com:8080/
+
+SERVER VALUES:
+server_version=nginx: 1.10.0 - lua: 10001
+
+HEADERS RECEIVED:
+accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+accept-encoding=gzip, deflate, br
+accept-language=en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ro;q=0.6,nl;q=0.5
+cache-control=max-age=0
+content-length=0
+host=echoserver.${DOMAIN}.com
+sec-fetch-dest=document
+sec-fetch-mode=navigate
+sec-fetch-site=none
+sec-fetch-user=?1
+upgrade-insecure-requests=1
+user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36
+via=1.1 google
+x-b3-parentspanid=f9185dd81d255264
+x-b3-sampled=0
+x-b3-spanid=49a7869f2d1eb208
+x-b3-traceid=b388cd2a501c857ff9185dd81d255264
+x-client-data=CgSM6ZsV
+x-cloud-trace-context=6f195196cd58dfa8e5db468c0010b2f0/6415441609493339518
+x-envoy-attempt-count=1
+x-envoy-external-address=130.211.2.61
+x-forwarded-client-cert=By=spiffe://cluster.local/ns/default/sa/default;Hash=ef677407db48abbd11286e7b78c8c91fbf9102700f5a94ac65d1e5a68622d0a6;Subject="";URI=spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+x-forwarded-for=80.216.72.128, 34.120.200.50,130.211.2.61
+x-forwarded-proto=https
+x-request-id=f96dd087-e256-4dd6-832b-64bb9337caf1
+BODY:
+-no body in request-
+```
+
+The `echoserver` app we used return a lot of useful headers, here is an explanation of some of them:
+- `x-forwarded-client-cert`: Shows details on the mTLS authenticate chain. Since the traffic from the client to the echoserver pod went throught the GCLB, the Istio-Ingressgateway than the application pod. We can see the identity of echoserver pod (spiffe://cluster.local/ns/default/sa/default) and the istio-ingressgateway (spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account)
+- `x-forwarded-for`: Shows the chain of IP addresses from the client (80.216.72.128) to the GCLB IP(34.120.200.50,130) to the GCLB proxy IP (130.211.2.61)
+- `x-forwarded-proto`: Show that the external connection was made over https
 
 You can try to reach your application on HTTP but you won't be able to.
 
 ```bash
-$ curl http://foo.gkeapp.com
+$ curl http://echoserver.${DOMAIN}.com
 
-<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
-<TITLE>301 Moved</TITLE></HEAD><BODY>
-<H1>301 Moved</H1>
-The document has moved
-<A HREF="https://foo.gkeapp.com/">here</A>.
-</BODY></HTML>
+<!DOCTYPE html>
+<html lang=en>
+  <meta charset=utf-8>
+  <meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+  <title>Error 404 (Not Found)!!1</title>
+  <a href=//www.google.com/><span id=logo aria-label=Google></span></a>
+  <p><b>404.</b> <ins>That’s an error.</ins>
+  <p>The requested URL <code>/</code> was not found on this server.  <ins>That’s all we know.</ins>
 ```
 
-You are now ready to serve securely on the internet!
+This means the allow-http annotation is allowed on the LoadBalancer.
 
 ### Cleanup
 
 ```sh
-$ kubectl delete -f secure-ingress.yaml
-$ gcloud compute addresses delete --global gke-foobar-public-ip
+$ kubectl delete -f istio-ingress.yaml
+$ gcloud compute addresses delete --global gke-istio-ingress
 $ gcloud compute ssl-policies delete gke-ingress-ssl-policy
 ```

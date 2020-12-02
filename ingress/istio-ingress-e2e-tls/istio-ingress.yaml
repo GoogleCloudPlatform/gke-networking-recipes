@@ -72,7 +72,7 @@ metadata:
   namespace: default
 spec:
   hosts:
-  - "gke1.abdel.cloud"
+  - "echoserver.${DOMAIN}.com"
   gateways:
   - istio-ingressgateway
   http:
