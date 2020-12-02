@@ -41,15 +41,16 @@ Each recipe's README should consist of the following sections. In general the RE
 
 | Recipe  | Owner |
 | ------------- | ------------- |
-| [Basic External Ingress](/external-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
-| [Basic Internal Ingress](/internal-ingress-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
-| [External LoadBalancer Service](/external-lb-service)  | [@seils](https://github.com/seils)  |
-| [Internal LoadBalancer Service](/internal-lb-service)  |  [@techcet](https://github.com/techcet)  |
-| [Custom Ingress Health Check](/ingress-custom-http-health-check)  |   |
-| [Ingress gRPC Health Check](/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
-| [Basic Multi-Cluster Ingress](/multi-cluster-external-ingress)  | [@mark-church](https://github.com/mark-church)  |
-| [Multi-Cluster Ingress Blue-Green App Migration](/multi-cluster-blue-green-app)  |   |
-| [Multi-Cluster Ingress Blue-Green Cluster Migration](/multi-cluster-blue-green-cluster)  |   |
+| [Basic External Ingress](/ingress/external-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
+| [Basic Internal Ingress](/ingress/internal-ingress-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
+| [External LoadBalancer Service](/services/external-lb-service)  | [@seils](https://github.com/seils)  |
+| [Internal LoadBalancer Service](/services/internal-lb-service)  |  [@techcet](https://github.com/techcet)  |
+| [Custom Ingress Health Check](/ingress/ingress-custom-http-health-check)  |   |
+| [Ingress gRPC Health Check](/ingress/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
+| [Basic Multi-Cluster Ingress](/multi-cluster-ingress/multi-cluster-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
+| [Multi-Cluster Ingress Blue-Green App Migration](/multi-cluster-ingress/multi-cluster-blue-green-app)  |   |
+| [Multi-Cluster Ingress Blue-Green Cluster Migration](/multi-cluster-ingress/multi-cluster-blue-green-cluster)  |   |
+| [Istio Ingress with End-2-End encryption](/ingress/multi-cluster-blue-green-cluster)  |   |
 
 
 
