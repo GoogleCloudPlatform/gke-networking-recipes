@@ -1,20 +1,25 @@
 # Istio Ingress End to End TLS
 
-[Istio Ingress Gateway](https://istio.io/v1.7/docs/tasks/traffic-management/ingress/ingress-control/ is typically used to expose applications inside an Istio Mesh to the outside world. Default installations deploys the Istio Ingress Gateway behind a Network Load Balancer (L4 LB) on GCP and have the Ingress gateway perform L7 capabilities like terminating TLS and path based routing. This recipe demonstrate how we can deploy an Istio Ingress Gateway behind a GCLB with Ingress, how to configure End to End Encryption From the User to the application pod and how to take advantage of some [GKE Ingress features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#request_headers) to define policies and customize health check.
+[Istio Ingress Gateway](https://istio.io/v1.7/docs/tasks/traffic-management/ingress/ingress-control/) is typically used to expose applications inside an Istio Mesh to the outside world. Default installations deploys the Istio Ingress Gateway behind a Network Load Balancer (L4 LB) on GCP and have the Ingress gateway perform L7 capabilities like terminating TLS and path based routing. This recipe demonstrate how we can deploy an Istio Ingress Gateway behind a GCLB with Ingress, how to configure End to End Encryption From the User to the application pod and how to take advantage of some [GKE Ingress features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#request_headers) to define policies and customize HealthCheck.
+
+Deploying the Istio Ingress Gateway behind GCLB has many advantages:
+- Defense on the edge instead of inside the Cluster using Google Global Load Balancers.
+- Using [Cloud Armor](https://cloud.google.com/armor) to implement WAF or IP/Location restrictions on the edge
+- Using [Google Managed Certificates](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) on the edge which are trusted by most clients. Although in this recipes we will also configure TLS between GCLB and the Mesh, those certificates are only used internally and cab self-signed.
 
 ### Use-cases
 
 - Deploying Istio with an Ingess Gateway and mTLS enabled 
 - Exposing the Istio Ingress Gateway behind an HTTPS encrypted Load Balancer
 - Configuring encryption between the Load Balancers and the Istio Ingress Gateway
-- Granular control of HTTPS functionality through SSL Policies and HTTPS redirects 
+- Granular control of HTTPS functionality through SSL Policies.
+- Customizing GCLB HealthCheck paths and ports 
 
 ### Relevant documentation
 
-- [GKE Ingress Features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features)
 - [GKE Ingress Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
+- [GKE Ingress Features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features)
 - [Ingress for External HTTP(S) Load Balancing](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb)
-- [HTTPS Redirects for GKE Ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect)
 - [Google-managed SSL Certificates](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs)
 - [Secure Istio Gateway](https://istio.io/v1.7/docs/tasks/traffic-management/ingress/secure-ingress/)
 
@@ -26,22 +31,22 @@
 
 This recipe exposes one Service hosted on GKE to the internet through an Ingress resource. The Ingress leverages HTTPS to encrypt all traffic between the internet client and the Google Cloud load balancer. This recipe also leverages [Google-managed certificates](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs) to autogenerate the public certificate and attach it to the Ingress resource. This removes the need to self-generate and provide certificates for the load balancer. 
 
-In addition to encrpting the client to GCLB traffic, we are also enabling Secure Istio Gateways with a self-signed certificate. Additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly we are enabling [mTLS](https://istio.io/v1.7/docs/reference/config/istio.mesh.v1alpha1/#MeshConfig) on Istio to ensure traffic between the Istio Ingress Gateway is encrypted and authenticated, effictivly acheiving End 2 End Encryption
+In addition to encrpting the client to GCLB traffic, we are also enabling [Secure Istio Gateways](https://istio.io/v1.7/docs/tasks/traffic-management/ingress/secure-ingress/) with a self-signed certificate. Additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly we are enabling [mTLS](https://istio.io/v1.7/docs/reference/config/istio.mesh.v1alpha1/#MeshConfig) on Istio to ensure traffic between the Istio Ingress Gateway and the application pod is encrypted and authenticated, effectively acheiving End-2-End Encryption
 
 ![secure ingress](../../images/istio-ingress-e2e-tls.png)
 
 ### Networking Manifests
 
-Several declarative Kubernetes resources are used in the deployment of this recipe. The primary one is the Ingress resource. It uses the following annotations to link to enable the security features mentioned above:
+Several declarative Kubernetes resources are used in the deployment of this recipe. The primary one is the Ingress resource. It uses the following annotations to enable the security features mentioned above:
 
 - `kubernetes.io/ingress.global-static-ip-name` deploys the Ingress with a static IP. This allows the IP address to remain the same even if the Ingress is redeployed in the future.
 - `networking.gke.io/managed-certificates` references a managed certificate resource which generates a public certificate for the hostnames in the Ingress resource.
 - `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy.
 - `kubernetes.io/ingress.allow-http` disables port 80 on the LoadBalancer VIP.
 
-The Ingress resource also has single route rules for `echoserver.${DOMAIN}.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
+The Ingress resource also has single route rules for `echoserver.${DOMAIN}.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing. refer to this [doc](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs#troubleshooting) for more details
 
-The backend of the Ingress is the `istio-ingressgateway` Service which points to the `istio-ingressgateway` pods in the `istio-system` namespace. This mean all the traffic coming from the LoadBalancer will be sent to the Ingress Pods. From theire we route traffic toward the proper pod using the `Gateway` and `VirtualService` Istio resources (more details about these below).
+The backend of the Ingress is the `istio-ingressgateway` Service which points to the `istio-ingressgateway` pods in the `istio-system` namespace. This mean all the traffic coming from the LoadBalancer will be sent to the Ingress Gateway Pods. From there we route traffic toward the application pod using the `Gateway` and `VirtualService` Istio resources (more details about these below).
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
@@ -60,7 +65,7 @@ spec:
     servicePort: 443
 ```
 
-The next resource is the `FrontendConfig` which provides configuration for the [frontend of the Ingress.](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#associating_frontendconfig_with_your_ingress).This config references an SSL policy. You'll create an SSL policy as a separate Google Cloud resource where you can specify which ciphers can be negotiated in the TLS connection. Note that this just an examples, please refer to the documentation above for more info of on the `FrontendConfig` Resource.
+The next resource is the `FrontendConfig` which provides configuration for the [frontend of the Ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#associating_frontendconfig_with_your_ingress).This config references an SSL policy. You'll create an SSL policy as a separate Google Cloud resource where you can specify which ciphers can be negotiated in the TLS connection. Note that this just an examples, please refer to the documentation above for more info of on the `FrontendConfig` Resource.
 
 ```yaml
 apiVersion: networking.gke.io/v1beta1
@@ -72,7 +77,7 @@ spec:
   sslPolicy: gke-ingress-ssl-policy
 ```
 
-Next resource is the [BackendConfig](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#direct_health) which customizes the LoadBalancer HealthCheck path and port to the one the `istio-ingressgateway` supports. The `istio-ingressgateway` serves traffic on ports `443` on the `/` path in this case. But the Health-Check status is served on port `15021` on the `/healthz/ready path`
+Next resource is the [BackendConfig](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#direct_health) which customizes the LoadBalancer HealthCheck path and port to the ones supported by the `istio-ingressgateway`. The `istio-ingressgateway` serves traffic on ports `443` (and optionaly 80 which is out of scope of this recipe) on the `/` path in this case. But the HealthCheck status is served on port `15021` on the `/healthz/ready path`
 
 ```yaml
 apiVersion: cloud.google.com/v1
@@ -91,7 +96,7 @@ spec:
     port: 15021
 ```
 
-The managed certificate generation is goverened via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource with these two hostnames as SANs to the cert. 
+The managed certificate generation is goverened via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource for the echoserver.${DOMAIN}.com Domain
 
 ```yaml
 apiVersion: networking.gke.io/v1beta2
@@ -107,7 +112,7 @@ spec:
 The `Gateway` Object performs the following:
 
 - Accepts traffic coming via the LoadBalancer via the `hosts` value set to `*`
-- Presents a tls certificate to the LoadBalancer, the Certificate and private Key are store in kubernetes secrets under `echoserver-credentials`.
+- Presents a TLS certificate to the LoadBalancer, the Certificate and private Key are store in Kubernetes secrets under `echoserver-credentials`.
 - Set the minimum protocol Version of TLS to 1.2
 
 ```yaml
@@ -132,7 +137,7 @@ spec:
     - "*"
 ```
 
-The `VirtualService` Object is configured to route all traffic accepted by the `Gateway` and route it to the echoserver Service on port 8080. In the istio World this is where you can configure more intelligent routing based on paths and headers. Refeer to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) doc for more details
+The `VirtualService` Object is configured to route all traffic accepted by the `Gateway` to the echoserver Service on port 8080. In the istio World this is where you can configure more intelligent routing based on paths and headers. refer to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) doc for more details
 
 ```yaml
 apiVersion: networking.istio.io/v1alpha3
@@ -178,9 +183,9 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
       $ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.5 sh -
       ```
 
-    * [Prepare the GKE Cluster] (https://istio.io/v1.7/docs/setup/platform-setup/gke/) to install Istio.
+    * [Prepare the GKE Cluster](https://istio.io/v1.7/docs/setup/platform-setup/gke/) to install Istio.
 
-    * Install istio using the Operator file
+    * Install istio using the provided Operator file. For more details on how to cutomize Istio installation via the Operator API refer to this [doc](https://istio.io/latest/docs/setup/install/operator/)
       ```
       $ istioctl install -f operator.yaml
       ```
@@ -190,7 +195,7 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
       $ kubectl get pods -n istio-system
       ```
     
-    * Your output will be different but both the **istio-ingressgateway** and **istiod** should be installed
+    * Your output will be different but both the `istio-ingressgateway` and `istiod` should be installed and running
 
     * Enable Automatic sidecar injection on the default namespace
       ```
@@ -203,13 +208,13 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
 $ gcloud compute addresses create --global gke-istio-ingress
 ```
 
-5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that echoserver.${DOMAIN}.com resolves to the Public IP of the Ingress.\
+5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that echoserver.${DOMAIN}.com resolves to the Public IP of the Ingress.
 
 ```
 gcloud compute addresses describe --global gke-istio-ingress 
 ```
 
-6. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that cllients negotiate using TLS 1.2 or higher.
+6. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that clients negotiate using TLS 1.2 or higher.
 
 ```
 $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
@@ -219,16 +224,10 @@ $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
 7. Create the TLS root certificate, certificates and private keys for the Istio-Ingressgateway. This is the TLS certificates that will be used by the GCLB to encrypt traffic before sending it to the Ingress-gateway. Replace ${DOMAIN} with the appropriate value.
 
 ```
-$ mkdir certs && cd certs
-
-$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout ${DOMAIN}.com.key -out ${DOMAIN}.com.crt
-
-$ openssl req -out echoserver.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout echoserver.${DOMAIN}.com.key -subj "/CN=echoserver.${DOMAIN}.com/O=${DOMAIN} organization"
-
-$ openssl x509 -req -days 365 -CA ${DOMAIN}.com.crt -CAkey ${DOMAIN}.com.key -set_serial 0 -in echoserver.${DOMAIN}.com.csr -out echoserver.${DOMAIN}.example.com.crt
-
-cd ..
-
+$ mkdir certs
+ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout certs/${DOMAIN}.com.key -out certs/${DOMAIN}.com.crt
+ openssl req -out certs/echoserver.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout certs/echoserver.${DOMAIN}.com.key -subj "/CN=echoserver.${DOMAIN}.com/O=${DOMAIN} organization"
+ openssl x509 -req -days 365 -CA certs/${DOMAIN}.com.crt -CAkey certs/${DOMAIN}.com.key -set_serial 0 -in certs/echoserver.${DOMAIN}.com.csr -out certs/echoserver.${DOMAIN}.com.crt
 ```
 
 8. Add the certificate and key to the istio-system namespace
@@ -237,7 +236,7 @@ cd ..
 $ kubectl create -n istio-system secret tls echoserver-credentials --key=certs/echoserver.${DOMAIN}.com.key --cert=certs/echoserver.${DOMAIN}.com.crt
 ```
 
-5. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the whereami app and service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, and Ingress resource and Istio Objects (Gateway and VirtualService).
+9. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the echoserver app and Service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, Ingress resource and Istio Objects (Gateway and VirtualService).
 
 ```
 $ kubectl apply -f istio-ingress.yaml
@@ -328,9 +327,9 @@ BODY:
 ```
 
 The `echoserver` app we used return a lot of useful headers, here is an explanation of some of them:
-- `x-forwarded-client-cert`: Shows details on the mTLS authenticate chain. Since the traffic from the client to the echoserver pod went throught the GCLB, the Istio-Ingressgateway than the application pod. We can see the identity of echoserver pod (spiffe://cluster.local/ns/default/sa/default) and the istio-ingressgateway (spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account)
-- `x-forwarded-for`: Shows the chain of IP addresses from the client (80.216.72.128) to the GCLB IP(34.120.200.50,130) to the GCLB proxy IP (130.211.2.61)
-- `x-forwarded-proto`: Show that the external connection was made over https
+- `x-forwarded-client-cert`: Shows details on the mTLS authenticate chain. Since the traffic from the client to the echoserver pod went throught the GCLB, the Istio-Ingressgateway than the application pod. We can see the identity of `echoserver` pod (spiffe://cluster.local/ns/default/sa/default) and the `istio-ingressgateway` (spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account)
+- `x-forwarded-for`: Shows the chain of IP addresses from the client (80.216.72.128) to the GCLB IP(34.120.200.50,130) to the GCLB proxy IP (130.211.2.61). Yours will be different.
+- `x-forwarded-proto`: Show that the connection from the GCLB to the istio-ingressgateway was made over https. The echoserver app see's this as the call was forwarded from the istio-gateway.
 
 You can try to reach your application on HTTP but you won't be able to.
 
