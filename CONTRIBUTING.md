@@ -45,12 +45,12 @@ Each recipe's README should consist of the following sections. In general the RE
 | [Basic Internal Ingress](/ingress/internal-ingress-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
 | [External LoadBalancer Service](/services/external-lb-service)  | [@seils](https://github.com/seils)  |
 | [Internal LoadBalancer Service](/services/internal-lb-service)  |  [@techcet](https://github.com/techcet)  |
-| [Custom Ingress Health Check](/ingress/ingress-custom-http-health-check)  |   |
+| [Custom Ingress Health Check](/ingress/ingress-custom-http-health-check)  | TBD   |
 | [Ingress gRPC Health Check](/ingress/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
 | [Basic Multi-Cluster Ingress](/multi-cluster-ingress/multi-cluster-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
-| [Multi-Cluster Ingress Blue-Green App Migration](/multi-cluster-ingress/multi-cluster-blue-green-app)  |   |
-| [Multi-Cluster Ingress Blue-Green Cluster Migration](/multi-cluster-ingress/multi-cluster-blue-green-cluster)  |   |
-| [Istio Ingress with End-2-End encryption](/ingress/multi-cluster-blue-green-cluster)  |   |
+| [Multi-Cluster Ingress Blue-Green App Migration](/multi-cluster-ingress/multi-cluster-blue-green-app)  |  TBD |
+| [Multi-Cluster Ingress Blue-Green Cluster Migration](/multi-cluster-ingress/multi-cluster-blue-green-cluster)  | TBD  |
+| [Istio Ingress with End-2-End encryption](/ingress/multi-cluster-blue-green-cluster)  | [@boredabdel](https://github.com/boredabdel)  |
 
 
 
