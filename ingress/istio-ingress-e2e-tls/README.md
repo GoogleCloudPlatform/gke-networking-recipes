@@ -28,18 +28,18 @@ This recipe exposes one Service hosted on GKE to the internet through an Ingress
 
 In addition to encrpting the client to GCLB traffic, we are also enabling Secure Istio Gateways with a self-signed certificate. Additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly we are enabling [mTLS](https://istio.io/v1.7/docs/reference/config/istio.mesh.v1alpha1/#MeshConfig) on Istio to ensure traffic between the Istio Ingress Gateway is encrypted and authenticated, effictivly acheiving End 2 End Encryption
 
-![secure ingress](../../images/secure-ingress.png)
+![secure ingress](../../images/istio-ingress-e2e-tls.png)
 
 ### Networking Manifests
 
 Several declarative Kubernetes resources are used in the deployment of this recipe. The primary one is the Ingress resource. It uses the following annotations to link to enable the security features mentioned above:
 
-- `kubernetes.io/ingress.class: "gce"` specifies that the External HTTP(S) Load Balancer will be deployed
 - `kubernetes.io/ingress.global-static-ip-name` deploys the Ingress with a static IP. This allows the IP address to remain the same even if the Ingress is redeployed in the future.
-- `networking.gke.io/managed-certificates` references a managed certificate resource which generates a public certificate for the hostnames in the Ingress resource
-- `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy
+- `networking.gke.io/managed-certificates` references a managed certificate resource which generates a public certificate for the hostnames in the Ingress resource.
+- `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy.
+- `kubernetes.io/ingress.allow-http` disables port 80 on the LoadBalancer VIP.
 
-The Ingress resource also has routing rules for `foo.*.com` and `bar.*.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
+The Ingress resource also has single route rules for `foo.*.com` and `bar.*.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
 
 ```yaml
 apiVersion: networking.k8s.io/v1beta1
@@ -140,7 +140,7 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
 $ gcloud compute addresses create --global gke-istio-ingress
 ```
 
-5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that test.${DOMAIN}.com resolves to the Public IP of the Ingress.\
+5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that echoserver.${DOMAIN}.com resolves to the Public IP of the Ingress.\
 
 ```
 gcloud compute addresses describe --global gke-istio-ingress 
@@ -160,9 +160,9 @@ $ mkdir certs && cd certs
 
 $ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout ${DOMAIN}.com.key -out ${DOMAIN}.com.crt
 
-$ openssl req -out test.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout test.${DOMAIN}.com.key -subj "/CN=test.${DOMAIN}.com/O=${DOMAIN} organization"
+$ openssl req -out echoserver.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout echoserver.${DOMAIN}.com.key -subj "/CN=echoserver.${DOMAIN}.com/O=${DOMAIN} organization"
 
-$ openssl x509 -req -days 365 -CA ${DOMAIN}.com.crt -CAkey ${DOMAIN}.com.key -set_serial 0 -in test.${DOMAIN}.com.csr -out test.${DOMAIN}.example.com.crt
+$ openssl x509 -req -days 365 -CA ${DOMAIN}.com.crt -CAkey ${DOMAIN}.com.key -set_serial 0 -in echoserver.${DOMAIN}.com.csr -out echoserver.${DOMAIN}.example.com.crt
 
 cd ..
 
@@ -171,7 +171,7 @@ cd ..
 8. Add the certificate and key to the istio-system namespace
 
 ```
-$ kubectl create -n istio-system secret tls test-credentials --key=certs/test.${DOMAIN}.com.key --cert=certs/test.${DOMAIN}.com.crt
+$ kubectl create -n istio-system secret tls echoserver-credentials --key=certs/echoserver.${DOMAIN}.com.key --cert=certs/echoserver.${DOMAIN}.com.crt
 ```
 
 5. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the whereami app and service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, and Ingress resource and Istio Objects (Gateway and VirtualService).

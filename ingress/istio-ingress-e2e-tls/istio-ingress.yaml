@@ -60,7 +60,7 @@ spec:
       protocol: HTTPS
     tls:
       mode: SIMPLE
-      credentialName: test-credentials #Must exist as a secret in the istio-system namespace
+      credentialName: echoserver-credentials #Must exist as a secret in the istio-system namespace
       minProtocolVersion: TLSV1_2
     hosts:
     - "*"
