@@ -41,7 +41,7 @@ You will be using the [Istio Operator API](https://istio.io/latest/docs/setup/in
 
 Looking at the operator file below, here a breakdown of the cutomization needed.
 
-- `enableAutoMtls`: enabled mTLS everywhere
+- `enableAutoMtls`: enabled mTLS inside the Istio Mesh
 - `k8s`: ovveride the Service definition of the `istio-ingressgateway` and enabled two ports. `443` for application traffic and `15021` for health-check. We are disabling port `80` here.
 - `service_annotations`: there are three annotations:
   - `cloud.google.com/neg`: Enables [Container Native Load Balancing](https://cloud.google.com/kubernetes-engine/docs/how-to/container-native-load-balancing).
