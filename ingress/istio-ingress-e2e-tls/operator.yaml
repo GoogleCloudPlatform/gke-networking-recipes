@@ -1,0 +1,27 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: default
+  meshConfig:
+    accessLogFile: /dev/stdout
+    outboundTrafficPolicy: 
+      mode: ALLOW_ANY
+    enableAutoMtls: true
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        service:
+          type: ClusterIP
+          ports:
+          - name: status-port
+            port: 15021
+            targetPort: 15021
+          - name: https
+            port: 443
+            targetPort: 8443
+        service_annotations:
+          cloud.google.com/neg: '{"ingress": true}'
+          cloud.google.com/backend-config: '{"default":"istio-ingress-be-config"}'
+          cloud.google.com/app-protocols: '{"https":"HTTPS"}'

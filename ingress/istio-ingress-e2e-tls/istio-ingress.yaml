@@ -1,0 +1,120 @@
+apiVersion: networking.gke.io/v1beta2
+kind: ManagedCertificate
+metadata:
+  name: istio-ingress-cert
+  namespace: istio-system
+spec:
+  domains:
+    - gke1.abdel.cloud
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: istio-ingress-fe-config
+  namespace: istio-system
+spec:
+  sslPolicy: gke-ingress-ssl-policy
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: istio-ingress-be-config
+  namespace: istio-system
+spec:
+  healthCheck:
+    checkIntervalSec: 3
+    timeoutSec: 1
+    healthyThreshold: 3
+    unhealthyThreshold: 2
+    type: HTTP
+    requestPath: /healthz/ready
+    port: 15021
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: istio-ingress
+  namespace: istio-system
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: gke-istio-ingress
+    networking.gke.io/managed-certificates: istio-ingress-cert
+    networking.gke.io/v1beta1.FrontendConfig: "istio-ingress-fe-config"
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  backend:
+    serviceName: istio-ingressgateway
+    servicePort: 443
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-ingressgateway
+  namespace: default
+spec: 
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: test-credentials #Must exist as a secret in the istio-system namespace
+      minProtocolVersion: TLSV1_2
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: echoserver
+  namespace: default
+spec:
+  hosts:
+  - "gke1.abdel.cloud"
+  gateways:
+  - istio-ingressgateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+      - destination:
+          port:
+            number: 8080
+          host: echoserver.default.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echoserver
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http 
+  selector:
+    app: echoserver
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoserver
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: echoserver
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      containers:
+      - name: echoserver
+        image: k8s.gcr.io/echoserver:1.4
+        ports:
+          - name: http
+            containerPort: 8080
