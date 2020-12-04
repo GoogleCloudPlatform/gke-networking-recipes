@@ -87,7 +87,7 @@ Several declarative Kubernetes resources are used in the deployment of this reci
 - `networking.gke.io/v1beta1.FrontendConfig` references a policy resource used to enable HTTPS redirects and an SSL policy.
 - `kubernetes.io/ingress.allow-http` disables port 80 on the LoadBalancer VIP.
 
-The Ingress resource also has single route rules for `echoserver.${DOMAIN}.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing. refer to this [doc](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs#troubleshooting) for more details
+The Ingress resource also has single route rules for `whereami.${DOMAIN}.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing. refer to this [doc](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs#troubleshooting) for more details
 
 The backend of the Ingress is the `istio-ingressgateway` Service which points to the `istio-ingressgateway` pods in the `istio-system` namespace. This mean all the traffic coming from the LoadBalancer will be sent to the Ingress Gateway Pods. From there we route traffic toward the application pod using the `Gateway` and `VirtualService` Istio resources (more details about these below).
 
@@ -139,7 +139,7 @@ spec:
     port: 15021
 ```
 
-The managed certificate generation is goverened via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource for the echoserver.${DOMAIN}.com Domain
+The managed certificate generation is goverened via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource for the whereami.${DOMAIN}.com Domain
 
 ```yaml
 apiVersion: networking.gke.io/v1beta2
@@ -149,13 +149,13 @@ metadata:
   namespace: istio-system
 spec:
   domains:
-    - echoserver.${DOMAIN}.com
+    - whereami.${DOMAIN}.com
 ```
 
 The `Gateway` Object performs the following:
 
 - Accepts traffic coming via the LoadBalancer via the `hosts` value set to `*`
-- Presents a TLS certificate to the LoadBalancer, the Certificate and private Key are store in Kubernetes secrets under `echoserver-credentials`.
+- Presents a TLS certificate to the LoadBalancer, the Certificate and private Key are store in Kubernetes secrets under `whereami-credentials`.
 - Set the minimum protocol Version of TLS to 1.2
 
 ```yaml
@@ -174,23 +174,23 @@ spec:
       protocol: HTTPS
     tls:
       mode: SIMPLE
-      credentialName: echoserver-credentials #Must exist as a secret in the istio-system namespace
+      credentialName: whereami-credentials #Must exist as a secret in the istio-system namespace
       minProtocolVersion: TLSV1_2
     hosts:
     - "*"
 ```
 
-The `VirtualService` Object is configured to route all traffic accepted by the `Gateway` to the echoserver Service on port 8080. In the istio World this is where you can configure more intelligent routing based on paths and headers. refer to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) doc for more details
+The `VirtualService` Object is configured to route all traffic accepted by the `Gateway` to the whereami Service on port 8080. In the istio World this is where you can configure more intelligent routing based on paths and headers. refer to [Istio VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/) doc for more details
 
 ```yaml
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: echoserver
+  name: whereami
   namespace: default
 spec:
   hosts:
-  - "echoserver.${DOMAIN}.com"
+  - "whereami.${DOMAIN}.com"
   gateways:
   - istio-ingressgateway
   http:
@@ -201,7 +201,7 @@ spec:
       - destination:
           port:
             number: 8080
-          host: echoserver.default.svc.cluster.local
+          host: whereami.default.svc.cluster.local
 ```
 
 With these resources, you are capable of securing your Ingress for production-ready traffic.
@@ -251,7 +251,7 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
 $ gcloud compute addresses create --global gke-istio-ingress
 ```
 
-5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that echoserver.${DOMAIN}.com resolves to the Public IP of the Ingress.
+5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that whereami.${DOMAIN}.com resolves to the Public IP of the Ingress.
 
 ```bash
 gcloud compute addresses describe --global gke-istio-ingress 
@@ -269,17 +269,17 @@ $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
 ```bash
 $ mkdir certs
 $ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout certs/${DOMAIN}.com.key -out certs/${DOMAIN}.com.crt
-$ openssl req -out certs/echoserver.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout certs/echoserver.${DOMAIN}.com.key -subj "/CN=echoserver.${DOMAIN}.com/O=${DOMAIN} organization"
-$ openssl x509 -req -days 365 -CA certs/${DOMAIN}.com.crt -CAkey certs/${DOMAIN}.com.key -set_serial 0 -in certs/echoserver.${DOMAIN}.com.csr -out certs/echoserver.${DOMAIN}.com.crt
+$ openssl req -out certs/whereami.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout certs/whereami.${DOMAIN}.com.key -subj "/CN=whereami.${DOMAIN}.com/O=${DOMAIN} organization"
+$ openssl x509 -req -days 365 -CA certs/${DOMAIN}.com.crt -CAkey certs/${DOMAIN}.com.key -set_serial 0 -in certs/whereami.${DOMAIN}.com.csr -out certs/whereami.${DOMAIN}.com.crt
 ```
 
 8. Add the certificate and key to the istio-system namespace
 
 ```bash
-$ kubectl create -n istio-system secret tls echoserver-credentials --key=certs/echoserver.${DOMAIN}.com.key --cert=certs/echoserver.${DOMAIN}.com.crt
+$ kubectl create -n istio-system secret tls whereami-credentials --key=certs/whereami.${DOMAIN}.com.key --cert=certs/whereami.${DOMAIN}.com.crt
 ```
 
-9. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the echoserver app and Service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, Ingress resource and Istio Objects (Gateway and VirtualService).
+9. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the whereami app and Service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, Ingress resource and Istio Objects (Gateway and VirtualService).
 
 ```bash
 $ kubectl apply -f istio-ingress.yaml
@@ -288,9 +288,9 @@ frontendconfig.networking.gke.io/istio-ingress-fe-config created
 backendconfig.cloud.google.com/istio-ingress-be-config created
 ingress.networking.k8s.io/istio-ingress created
 gateway.networking.istio.io/istio-ingressgateway created
-virtualservice.networking.istio.io/echoserver created
-service/echoserver created
-deployment.apps/echoserver created
+virtualservice.networking.istio.io/whereami created
+service/whereami created
+deployment.apps/whereami created
 ```
 
 10. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
@@ -322,61 +322,55 @@ Events:
   Normal  Sync    4m34s (x153 over 24h)  loadbalancer-controller  Scheduled for sync
 ```
 
-11. Now use your browser and connect to your URL (remember to use your own domain for this) over HTTPS.
+11. Now use curl to connect your URL (remember to use your own domain for this) over HTTPS. The `whereami` app returns the output in JSON format so you also have to use `jq` to format it properly
+
+```bash
+curl -s https://whereami.${DOMAIN}.com
+```
 
 Your output should look something like:
 
 ```html
-CLIENT VALUES:
-client_address=127.0.0.1
-command=GET
-real path=/
-query=nil
-request_version=1.1
-request_uri=http://echoserver.${DOMAIN}.com:8080/
-
-SERVER VALUES:
-server_version=nginx: 1.10.0 - lua: 10001
-
-HEADERS RECEIVED:
-accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-accept-encoding=gzip, deflate, br
-accept-language=en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ro;q=0.6,nl;q=0.5
-cache-control=max-age=0
-content-length=0
-host=echoserver.${DOMAIN}.com
-sec-fetch-dest=document
-sec-fetch-mode=navigate
-sec-fetch-site=none
-sec-fetch-user=?1
-upgrade-insecure-requests=1
-user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36
-via=1.1 google
-x-b3-parentspanid=f9185dd81d255264
-x-b3-sampled=0
-x-b3-spanid=49a7869f2d1eb208
-x-b3-traceid=b388cd2a501c857ff9185dd81d255264
-x-client-data=CgSM6ZsV
-x-cloud-trace-context=6f195196cd58dfa8e5db468c0010b2f0/6415441609493339518
-x-envoy-attempt-count=1
-x-envoy-external-address=130.211.2.61
-x-forwarded-client-cert=By=spiffe://cluster.local/ns/default/sa/default;Hash=ef677407db48abbd11286e7b78c8c91fbf9102700f5a94ac65d1e5a68622d0a6;Subject="";URI=spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
-x-forwarded-for=80.216.72.128, 34.120.200.50,130.211.2.61
-x-forwarded-proto=https
-x-request-id=f96dd087-e256-4dd6-832b-64bb9337caf1
-BODY:
--no body in request-
+{
+  "cluster_name": "gke-1",
+  "headers": {
+    "Accept": "*/*",
+    "Content-Length": "0",
+    "Host": "gke1.abdel.cloud",
+    "User-Agent": "curl/7.72.0",
+    "Via": "1.1 google",
+    "X-B3-Parentspanid": "c9ccc927380735e6",
+    "X-B3-Sampled": "0",
+    "X-B3-Spanid": "ab35269f0f58964a",
+    "X-B3-Traceid": "d56ac3dfe97c3f66c9ccc927380735e6",
+    "X-Cloud-Trace-Context": "2c51f4218ff4ba563148c44c8f5409d4/9153278612683363795",
+    "X-Envoy-Attempt-Count": "1",
+    "X-Envoy-External-Address": "130.211.2.44",
+    "X-Forwarded-Client-Cert": "By=spiffe://cluster.local/ns/default/sa/default;Hash=c25f091ddda2fec64169fa12412c2b2e56fa5e691394a97e4a4313f4a418a7a0;Subject=\"\";URI=spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account",
+    "X-Forwarded-For": "80.216.72.128, 34.120.200.50,130.211.2.44",
+    "X-Forwarded-Proto": "https",
+    "X-Request-Id": "d0de1361-fc33-4340-b0cd-cf61afca854e"
+  },
+  "host_header": "gke1.abdel.cloud",
+  "metadata": "echo_headers_enabled",
+  "node_name": "gke-gke-1-default-pool-94ebed87-q2z9.c.lbg-project-278414.internal",
+  "pod_name": "whereami-555cc58d9c-slkxr",
+  "pod_name_emoji": "🇻",
+  "project_id": "lbg-project-278414",
+  "timestamp": "2020-12-04T09:23:11",
+  "zone": "us-west1-a"
+}
 ```
 
-The `echoserver` app we used return a lot of useful headers, here is an explanation of some of them:
-- `x-forwarded-client-cert`: Shows details on the mTLS authenticate chain. Since the traffic from the client to the echoserver pod went throught the GCLB, the Istio-Ingressgateway than the application pod. We can see the identity of `echoserver` pod (spiffe://cluster.local/ns/default/sa/default) and the `istio-ingressgateway` (spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account)
-- `x-forwarded-for`: Shows the chain of IP addresses from the client (80.216.72.128) to the GCLB IP(34.120.200.50,130) to the GCLB proxy IP (130.211.2.61). Yours will be different.
-- `x-forwarded-proto`: Show that the connection from the GCLB to the istio-ingressgateway was made over https. The echoserver app see's this as the call was forwarded from the istio-gateway.
+The `whereami` app we used return a lot of useful headers, here is an explanation of some of them:
+- `X-Forwarded-Client-Cert`: Shows details on the mTLS authenticate chain. Since the traffic from the client to the whereami pod went throught the GCLB, the Istio-Ingressgateway than the application pod. We can see the identity of `whereami` pod (spiffe://cluster.local/ns/default/sa/default) and the `istio-ingressgateway` (spiffe://cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account)
+- `X-Forwarded-For`: Shows the chain of IP addresses from the client (80.216.72.128) to the GCLB IP(34.120.200.50,130) to the GCLB proxy IP (130.211.2.61). Yours will be different.
+- `X-Forwarded-Proto`: Show that the connection from the GCLB to the istio-ingressgateway was made over https. The whereami app see's this as the call was forwarded from the istio-gateway.
 
 12. You can try to reach your application on HTTP but you won't be able to.
 
 ```bash
-$ curl http://echoserver.${DOMAIN}.com
+$ curl -v http://whereami.${DOMAIN}.com
 
 <!DOCTYPE html>
 <html lang=en>
@@ -388,7 +382,7 @@ $ curl http://echoserver.${DOMAIN}.com
   <p>The requested URL <code>/</code> was not found on this server.  <ins>That’s all we know.</ins>
 ```
 
-This means the allow-http annotation is allowed on the LoadBalancer.
+This means the `allow-http` annotation is blocking http on the LoadBalancer.
 
 ### Cleanup
 

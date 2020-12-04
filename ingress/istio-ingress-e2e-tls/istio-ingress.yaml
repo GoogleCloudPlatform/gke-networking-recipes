@@ -5,7 +5,7 @@ metadata:
   namespace: istio-system
 spec:
   domains:
-    - echoserver.${DOMAIN}.com
+    - whereami.${DOMAIN}.com
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
@@ -60,7 +60,7 @@ spec:
       protocol: HTTPS
     tls:
       mode: SIMPLE
-      credentialName: echoserver-credentials #Must exist as a secret in the istio-system namespace
+      credentialName: whereami-credentials #Must exist as a secret in the istio-system namespace
       minProtocolVersion: TLSV1_2
     hosts:
     - "*"
@@ -68,11 +68,11 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: echoserver
+  name: whereami
   namespace: default
 spec:
   hosts:
-  - "echoserver.${DOMAIN}.com"
+  - "whereami.${DOMAIN}.com"
   gateways:
   - istio-ingressgateway
   http:
@@ -83,38 +83,65 @@ spec:
       - destination:
           port:
             number: 8080
-          host: echoserver.default.svc.cluster.local
+          host: whereami.default.svc.cluster.local
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: echoserver
+  name: whereami
+  namespace: default
 spec:
   ports:
   - port: 8080
     targetPort: 8080
     name: http 
   selector:
-    app: echoserver
+    app: whereami
   type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: echoserver
+  name: whereami
+  namespace: default
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: echoserver
+      app: whereami
   template:
     metadata:
       labels:
-        app: echoserver
+        app: whereami
     spec:
       containers:
-      - name: echoserver
-        image: k8s.gcr.io/echoserver:1.4
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.1.1
         ports:
           - name: http
             containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+        env:
+          - name: ECHO_HEADERS
+            valueFrom:
+              configMapKeyRef:
+                name: whereami-configmap
+                key: ECHO_HEADERS
+          - name: METADATA
+            valueFrom:
+              configMapKeyRef:
+                name: whereami-configmap
+                key: METADATA
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: whereami-configmap
+  namespace: default
+data:
+  METADATA: "echo_headers_enabled"
+  ECHO_HEADERS: "True"
