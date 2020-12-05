@@ -207,7 +207,7 @@ There are two manifests in this folder:
 
 **Note:** This failover process will take several minutes to take effect.
 
-9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`. The patching process is going to remove `gke-1` from the MultiClusterService resource by only specifying `gke-3`:
+9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`. The patching process is going to remove `gke-1` from the MultiClusterService resource by only specifying `gke-3` in the `clusters` field:
 
     ```yaml
     spec:
