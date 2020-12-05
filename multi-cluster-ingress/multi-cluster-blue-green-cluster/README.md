@@ -89,7 +89,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
 
-There are two manifests in this folder:
+    There are two manifests in this folder:
 
     - app.yaml is the manifest for the `default-backend` Deployment. This manifest should be deployed on both clusters.
     - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
@@ -205,7 +205,7 @@ There are two manifests in this folder:
     ...
     ```
 
-**Note:** This failover process will take several minutes to take effect.
+    **Note:** This failover process will take several minutes to take effect.
 
 9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`. The patching process is going to remove `gke-1` from the MultiClusterService resource by only specifying `gke-3` in the `clusters` field:
 
