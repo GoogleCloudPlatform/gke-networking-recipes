@@ -342,5 +342,5 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 kubectl --context=gke-1 delete -f app.yaml
 kubectl --context=gke-1 delete -f ingress.yaml
-kubectl --context=gke-2 delete -f app.yaml
+kubectl --context=gke-3 delete -f app.yaml
 ```
