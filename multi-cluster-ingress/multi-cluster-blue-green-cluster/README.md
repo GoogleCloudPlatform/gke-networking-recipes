@@ -47,7 +47,7 @@ spec:
         servicePort: 8080
 ```
 
-Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../multi-cluster-ingress-basic), in this recipe we're just going to use a single MCS, configured as the `default-backend`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definition below:
+Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../multi-cluster-ingress-basic), in this recipe we're just going to use a single MCS, configured as the `default-backend`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definition below - we're explicitly specifying which clusters are hosting this service:
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -70,21 +70,6 @@ spec:
   clusters:
   - link: "us-west1-a/gke-1"
   - link: "us-west1-b/gke-3"
-```
-
-The `default-backend` sevice also serves a secondary function; it exposes a `/healthz` path to provide a health check endpoint.
-
-```yaml
-apiVersion: cloud.google.com/v1
-kind: BackendConfig
-metadata:
-  name: backend-health-check
-  namespace: multi-cluster-demo
-spec:
-  healthCheck:
-    requestPath: /healthz
-    port: 8080
-    type: HTTP
 ```
 
 Now that you have the background knowledge and understanding of MCI, you can try it out yourself.
@@ -222,7 +207,13 @@ There are two manifests in this folder:
 
 **Note:** This failover process will take several minutes to take effect.
 
-9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`.
+9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`. The patching process is going to remove `gke-1` from the MultiClusterService resource by only specifying `gke-3`:
+
+    ```yaml
+    spec:
+    clusters:
+    - link: "us-west1-b/gke-3"
+    ```
 
     ```bash
     $ kubectl patch MultiClusterService default-backend -n multi-cluster-demo --type merge --patch "$(cat ./patch.yaml)"
@@ -321,7 +312,7 @@ There are two manifests in this folder:
     {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
     {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
     {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"} # <----- cutover happens here
+    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"} # <----- gke-1 cluster removed here
     {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
     {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
     {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}

@@ -63,10 +63,11 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
 
-    For `gke-1`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-a/clusters/gke-1```
+    You can find the URI for each cluster via the following command:
 
-    For `gke-2`: ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-east1-b/clusters/gke-b```
-
+    ```bash
+    $ gcloud container clusters list --uri
+    ```
 
     Confirm that they are registered with Hub.
 
@@ -127,7 +128,9 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
 
     Again, figuring out the `gke-uri` of a given cluster can be tricky, so use:
 
-    ```https://container.googleapis.com/v1/projects/${PROJECT}/locations/us-west1-b/clusters/gke-3```
+    ```bash
+    $ gcloud container clusters list --uri
+    ```
 
     Confirm registration of your clusters.
     ```
