@@ -70,7 +70,7 @@ spec:
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/external-ingress-basic
+$ cd gke-networking-recipes/ingress/external-ingress-basic
 ```
 
 2. Deploy the Ingress, Deployment, and Service resources in the [external-ingress-basic.yaml](external-ingress-basic.yaml) manifest.
