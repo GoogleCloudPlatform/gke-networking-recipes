@@ -45,11 +45,39 @@ spec:
       backend:
         serviceName: default-backend
         servicePort: 8080
+      rules:
+      - host: foo.example.com
+        http:
+          paths:
+            - backend:
+                serviceName: foo
+                servicePort: 8080
 ```
 
-Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../multi-cluster-ingress-basic), in this recipe we're just going to use a single MCS, configured as the `default-backend`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definition below - we're explicitly specifying which clusters are hosting this service:
+Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../multi-cluster-ingress-basic), in this recipe we're just going to use a pair of MCSs, configured as the `default-backend` and `foo`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definitions below - we're explicitly specifying which clusters are hosting these services:
 
 ```yaml
+apiVersion: networking.gke.io/v1
+kind: MultiClusterService
+metadata:
+  name: foo
+  namespace: multi-cluster-demo
+  annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"8080":"backend-health-check"}}'
+spec:
+  template:
+    spec:
+      selector:
+        app: foo
+      ports:
+      - name: http
+        protocol: TCP
+        port: 8080
+        targetPort: 8080
+  clusters:
+  - link: "us-west1-a/gke-1"
+  - link: "us-west1-b/gke-3"
+---
 apiVersion: networking.gke.io/v1
 kind: MultiClusterService
 metadata:
@@ -100,15 +128,18 @@ Now that you have the background knowledge and understanding of MCI, you can try
     $ kubectl --context=gke-1 apply -f app.yaml
     namespace/multi-cluster-demo created
     deployment.apps/default-backend created
+    deployment.apps/foo created
 
     $ kubectl --context=gke-3 apply -f app.yaml
     namespace/multi-cluster-demo created
     deployment.apps/default-backend created
+    deployment.apps/foo created
 
     # Shows that all pods are running and happy
     $ kubectl --context=gke-3 get deploy -n multi-cluster-demo
     NAME              READY   UP-TO-DATE   AVAILABLE   AGE
     default-backend   1/1     1            1           44m
+    foo               2/2     2            2           44m
     ```
 
 
@@ -118,6 +149,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     ```bash
     $ kubectl --context=gke-1 apply -f ingress.yaml
     multiclusteringress.networking.gke.io/foobar-ingress created
+    multiclusterservice.networking.gke.io/foo created
     multiclusterservice.networking.gke.io/default-backend created
     backendconfig.cloud.google.com/backend-health-check created
     ```
@@ -129,44 +161,96 @@ Now that you have the background knowledge and understanding of MCI, you can try
     Name:         foobar-ingress
     Namespace:    multi-cluster-demo
     Labels:       <none>
-    Annotations:  kubectl.kubernetes.io/last-applied-configuration:
-                    {"apiVersion":"networking.gke.io/v1","kind":"MultiClusterIngress","metadata":{"annotations":{},"name":"foobar-ingress","namespace":"multi-...
-                networking.gke.io/last-reconcile-time: Saturday, 14-Nov-20 21:46:46 UTC
+    Annotations:  networking.gke.io/last-reconcile-time: Monday, 07-Dec-20 06:33:33 UTC
     API Version:  networking.gke.io/v1
     Kind:         MultiClusterIngress
     Metadata:
-    Resource Version:  144786
+    Creation Timestamp:  2020-11-26T06:24:52Z
+    Finalizers:
+        mci.finalizer.networking.gke.io
+    Generation:  6
+    Managed Fields:
+        API Version:  networking.gke.io/v1
+        Fields Type:  FieldsV1
+        fieldsV1:
+        f:metadata:
+            f:annotations:
+            .:
+            f:kubectl.kubernetes.io/last-applied-configuration:
+        f:spec:
+            .:
+            f:template:
+            .:
+            f:spec:
+                .:
+                f:backend:
+                .:
+                f:serviceName:
+                f:servicePort:
+                f:rules:
+        Manager:      kubectl-client-side-apply
+        Operation:    Update
+        Time:         2020-12-06T04:38:51Z
+        API Version:  networking.gke.io/v1beta1
+        Fields Type:  FieldsV1
+        fieldsV1:
+        f:metadata:
+            f:annotations:
+            f:networking.gke.io/last-reconcile-time:
+            f:finalizers:
+        f:status:
+            .:
+            f:CloudResources:
+            .:
+            f:BackendServices:
+            f:Firewalls:
+            f:ForwardingRules:
+            f:HealthChecks:
+            f:NetworkEndpointGroups:
+            f:TargetProxies:
+            f:UrlMap:
+            f:VIP:
+        Manager:         Google-Multi-Cluster-Ingress
+        Operation:       Update
+        Time:            2020-12-07T06:33:33Z
+    Resource Version:  6427773
     Self Link:         /apis/networking.gke.io/v1/namespaces/multi-cluster-demo/multiclusteringresses/foobar-ingress
-    UID:               47fe4406-9660-4968-8eea-0a2f028f03d2
-    spec:
-    template:
-        spec:
-        backend:
-            serviceName: default-backend
-            servicePort: 8080
+    UID:               e50db551-53f3-4dd2-a7cd-ad43d3f922fd
+    Spec:
+    Template:
+        Spec:
+        Backend:
+            Service Name:  default-backend
+            Service Port:  8080
+        Rules:
+            Host:  foo.example.com
+            Http:
+            Paths:
+                Backend:
+                Service Name:  foo
+                Service Port:  8080
     Status:
     Cloud Resources:
         Backend Services:
         mci-6rsucs-8080-multi-cluster-demo-default-backend
+        mci-6rsucs-8080-multi-cluster-demo-foo
         Firewalls:
         mci-6rsucs-default-l7
         Forwarding Rules:
         mci-6rsucs-fw-multi-cluster-demo-foobar-ingress
         Health Checks:
         mci-6rsucs-8080-multi-cluster-demo-default-backend
+        mci-6rsucs-8080-multi-cluster-demo-foo
         Network Endpoint Groups:
         zones/us-west1-a/networkEndpointGroups/k8s1-3efcccf3-multi-cluste-mci-default-backend-svc--80-b2c88574
+        zones/us-west1-a/networkEndpointGroups/k8s1-3efcccf3-multi-cluster--mci-foo-svc-820zw3izx-808-91712bb3
         zones/us-west1-b/networkEndpointGroups/k8s1-6c1ae7d4-multi-cluste-mci-default-backend-svc--80-f8b91776
+        zones/us-west1-b/networkEndpointGroups/k8s1-6c1ae7d4-multi-cluster--mci-foo-svc-820zw3izx-808-0787a440
         Target Proxies:
         mci-6rsucs-multi-cluster-demo-foobar-ingress
         URL Map:  mci-6rsucs-multi-cluster-demo-foobar-ingress
     VIP:        34.120.46.9
-    Events:
-    Type     Reason  Age                  From                              Message
-    ----     ------  ----                 ----                              -------
-    Normal   ADD     12m                  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
-    Warning  SYNC    5m31s (x2 over 10m)  multi-cluster-ingress-controller  Error AVMBR102: MultiClusterService multi-cluster-demo/default-backend not found.
-    Normal   UPDATE  98s (x2 over 12m)    multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+    Events:       <none>
     ```
 
     ```bash
