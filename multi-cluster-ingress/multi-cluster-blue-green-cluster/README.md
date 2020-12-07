@@ -415,7 +415,8 @@ Now that you have the background knowledge and understanding of MCI, you can try
     ```bash
     $ kubectl --context=gke-1 apply -f ingress.yaml
     multiclusteringress.networking.gke.io/foobar-ingress unchanged
-    multiclusterservice.networking.gke.io/default-backend configured
+    multiclusterservice.networking.gke.io/foo configured
+    multiclusterservice.networking.gke.io/default-backend unchanged
     backendconfig.cloud.google.com/backend-health-check unchanged
     ```
 
