@@ -261,61 +261,74 @@ Now that you have the background knowledge and understanding of MCI, you can try
 7. Now use the IP address from the MCI output to reach the load balancer. Running it several times should reflect that traffic is being load-balanced between `gke-1` and `gke-3`. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
 
     ```bash
-    # Hitting the default backend attempt #1
-    $ curl -s ${MCI_ENDPOINT} | jq -r '.zone, .cluster_name, .pod_name'
-    us-west1-a
-    gke-1
-    default-backend-85798bc9b5-bnqhr
-
-    # Hitting the default backend attempt #2
-    $ curl -s ${MCI_ENDPOINT} | jq -r '.zone, .cluster_name, .pod_name'
+    # Hitting the `foo` service attempt #1
+    $ curl -s ${MCI_ENDPOINT} -H "host: foo.example.com" | jq -r '.zone, .cluster_name, .pod_name'
     us-west1-b
     gke-3
-    default-backend-85798bc9b5-wpb59
+    foo-bf8dcc887-mbjtz
+
+    # Hitting the `foo` service attempt #2
+    $ curl -s ${MCI_ENDPOINT} -H "host: foo.example.com" | jq -r '.zone, .cluster_name, .pod_name'
+    us-west1-a
+    gke-1
+    foo-bf8dcc887-fk27v
     ```
 
 
-8. Now let's demonstrate how to take one of the clusters (in this case, `gke-1`) temporarily out of service. Start by sending requests to the MCI endpoint.
+8. Now let's demonstrate how to take one of the clusters (in this case, `gke-1`) temporarily out of service. Start by sending requests to the MCI endpoint, accessing the `foo` service.
 
     ```bash
-    $ while true; do curl -s ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
+    $ while true; do curl -s ${MCI_ENDPOINT} -H "host: foo.example.com" | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
 
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-mbjtz"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
     ...
     ```
 
     **Note:** This failover process will take several minutes to take effect.
 
-9. Open up a second shell to remove `gke-1` from the MultiClusterService via `patch`. The patching process is going to remove `gke-1` from the MultiClusterService resource by only specifying `gke-3` in the `clusters` field:
+9. Open up a second shell to remove `gke-1` from the `foo` MultiClusterService via `patch`. The patching process is going to remove `gke-1` from the `foo` MultiClusterService resource by only specifying `gke-3` in the `clusters` field:
 
     ```yaml
+    metadata:
+      name: foo
+      namespace: multi-cluster-demo
     spec:
     clusters:
     - link: "us-west1-b/gke-3"
     ```
 
     ```bash
-    $ kubectl patch MultiClusterService default-backend -n multi-cluster-demo --type merge --patch "$(cat ./patch.yaml)"
-    multiclusterservice.networking.gke.io/default-backend patched
+    $ kubectl --context=gke-1 patch MultiClusterService foo -n multi-cluster-demo --type merge --patch "$(cat ./patch.yaml)"
+    multiclusterservice.networking.gke.io/foo patched
 
-    $ kubectl describe MultiClusterService default-backend -n multi-cluster-demo
-    Name:         default-backend
+    $ kubectl --context=gke-1 describe MultiClusterService foo -n multi-cluster-demo
+    Name:         foo
     Namespace:    multi-cluster-demo
     Labels:       <none>
-    Annotations:  beta.cloud.google.com/backend-config: {"default": "backend-health-check"}
+    Annotations:  beta.cloud.google.com/backend-config: {"ports": {"8080":"backend-health-check"}}
     API Version:  networking.gke.io/v1
     Kind:         MultiClusterService
     Metadata:
-    Creation Timestamp:  2020-11-26T06:32:40Z
+    Creation Timestamp:  2020-12-06T04:38:52Z
     Finalizers:
         mcs.finalizer.networking.gke.io
-    Generation:  2
+    Generation:  4
     Managed Fields:
+        API Version:  networking.gke.io/v1beta1
+        Fields Type:  FieldsV1
+        fieldsV1:
+        f:metadata:
+            f:finalizers:
+            .:
+            v:"mcs.finalizer.networking.gke.io":
+        Manager:      Google-Multi-Cluster-Ingress
+        Operation:    Update
+        Time:         2020-12-06T04:38:52Z
         API Version:  networking.gke.io/v1
         Fields Type:  FieldsV1
         fieldsV1:
@@ -336,17 +349,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
                 f:app:
         Manager:      kubectl-client-side-apply
         Operation:    Update
-        Time:         2020-11-26T06:32:40Z
-        API Version:  networking.gke.io/v1beta1
-        Fields Type:  FieldsV1
-        fieldsV1:
-        f:metadata:
-            f:finalizers:
-            .:
-            v:"mcs.finalizer.networking.gke.io":
-        Manager:      Google-Multi-Cluster-Ingress
-        Operation:    Update
-        Time:         2020-11-26T06:32:41Z
+        Time:         2020-12-07T06:32:31Z
         API Version:  networking.gke.io/v1
         Fields Type:  FieldsV1
         fieldsV1:
@@ -354,10 +357,10 @@ Now that you have the background knowledge and understanding of MCI, you can try
             f:clusters:
         Manager:         kubectl-patch
         Operation:       Update
-        Time:            2020-11-26T06:59:47Z
-    Resource Version:  743930
-    Self Link:         /apis/networking.gke.io/v1/namespaces/multi-cluster-demo/multiclusterservices/default-backend
-    UID:               d9984328-e644-43c6-abfa-b04985509cc1
+        Time:            2020-12-07T06:46:03Z
+    Resource Version:  6432248
+    Self Link:         /apis/networking.gke.io/v1/namespaces/multi-cluster-demo/multiclusterservices/foo
+    UID:               6d39aa11-7cc4-4528-93d4-5808f34372e3
     Spec:
     Clusters:
         Link:  us-west1-b/gke-3
@@ -369,44 +372,41 @@ Now that you have the background knowledge and understanding of MCI, you can try
             Protocol:     TCP
             Target Port:  8080
         Selector:
-            App:  default-backend
+            App:  foo
     Events:
-    Type    Reason  Age                  From                              Message
-    ----    ------  ----                 ----                              -------
-    Normal  ADD     28m                  multi-cluster-ingress-controller  multi-cluster-demo/default-backend
-    Normal  SYNC    3m21s (x8 over 27m)  multi-cluster-ingress-controller  Derived Service was ensured in cluster {us-west1-a/gke-1 gke-1}
-    Normal  UPDATE  61s (x2 over 28m)    multi-cluster-ingress-controller  multi-cluster-demo/default-backend
-    Normal  SYNC    51s (x9 over 27m)    multi-cluster-ingress-controller  Derived Service was deleted in cluster {us-east1-b/gke-2 gke-2}
-    Normal  SYNC    51s (x9 over 27m)    multi-cluster-ingress-controller  Derived Service was ensured in cluster {us-west1-b/gke-3 gke-3}
-    Normal  SYNC    51s                  multi-cluster-ingress-controller  Derived Service was deleted in cluster {us-west1-a/gke-1 gke-1}
+    Type    Reason  Age                    From                              Message
+    ----    ------  ----                   ----                              -------
+    Normal  SYNC    7m18s (x448 over 26h)  multi-cluster-ingress-controller  Derived Service was ensured in cluster {us-west1-b/gke-3 gke-3}
+    Normal  UPDATE  46s (x4 over 26h)      multi-cluster-ingress-controller  multi-cluster-demo/foo
     ```
 
 10. Watch how all traffic eventually gets routed to `gke-3`. Because `gke-1` has been removed from the MCS, MCI will drain and remove all traffic to it.
 
     ```bash
     ...
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-1","pod":"default-backend-85798bc9b5-bnqhr"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"} # <----- gke-1 cluster removed here
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
-    {"cluster":"gke-3","pod":"default-backend-85798bc9b5-wpb59"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-fk27v"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-fk27v"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-fk27v"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-fk27v"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-fk27v"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-mf27w"}
+    {"cluster":"gke-1","pod":"foo-bf8dcc887-fk27v"} # <----- gke-1 cluster removed here
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-mbjtz"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-mbjtz"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-hxt5w"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-mbjtz"}
+    {"cluster":"gke-3","pod":"foo-bf8dcc887-mbjtz"}
     ...
     ```
 
