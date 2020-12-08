@@ -1,0 +1,6 @@
+metadata:
+  name: foo
+  namespace: multi-cluster-demo
+spec:
+  clusters:
+  - link: "us-west1-b/gke-3"
