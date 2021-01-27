@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fe-deployment
+  labels:
+    app: fe
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fe
+  template:
+    metadata:
+      labels:
+        app: fe
+    spec:
+      containers:
+      - name: hc-proxy
+        image: gcr.io/cloud-solutions-images/grpc_health_proxy:1.0.0
+        args: [
+          "--http-listen-addr=0.0.0.0:8080",
+          "--grpcaddr=localhost:50051",
+          "--service-name=echo.EchoServer",
+          "--https-listen-ca=/config/CA_crt.pem",
+          "--https-listen-cert=/certs/http_server_crt.pem",
+          "--https-listen-key=/certs/http_server_key.pem",
+          "--grpctls",        
+          "--grpc-sni-server-name=grpc.domain.com",
+          "--grpc-ca-cert=/config/CA_crt.pem",
+          "--logtostderr=1",
+          "-v=1"
+        ]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-vol
+          mountPath: /config
+          readOnly: true
+        - name: certs-vol
+          mountPath: /certs
+          readOnly: true          
+      - name: grpc-app
+        image: gcr.io/cloud-solutions-images/grpc_app
+        args: [
+          "/grpc_server",
+          "--grpcport=0.0.0.0:50051",
+          "--tlsCert=/certs/tls.crt",
+          "--tlsKey=/certs/tls.key"        
+        ]
+        ports:
+        - containerPort: 50051
+        volumeMounts:
+          - name: fe-certs-vol
+            mountPath: /certs
+            readOnly: true          
+      volumes:
+      - name: config-vol
+        configMap:
+          name: settings
+          items:
+          - key: CA_crt.pem
+            path: CA_crt.pem
+      - name: certs-vol
+        secret:
+          secretName: hc-secret
+          items:
+          - key: http_server_crt.pem
+            path: http_server_crt.pem
+          - key: http_server_key.pem
+            path: http_server_key.pem
+      - name: fe-certs-vol
+        secret:
+          secretName: fe-secret
+          items:
+          - key: tls.crt
+            path: tls.crt
+          - key: tls.key
+            path: tls.key
+

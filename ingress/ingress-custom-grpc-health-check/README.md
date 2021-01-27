@@ -38,26 +38,36 @@ We will provide example YAMLs for both cases, as well as describing nuances in t
 
 Below is an example Deployment specification when using a health check proxy. You may use the image we have referenced below or write your own. Full documentation on our provided image can be found [here](https://github.com/salrashid123/grpc_health_proxy).
 
-```
-spec:
- containers:
- - name: hc-proxy
-   image: docker.io/salrashid123/grpc_health_proxy
-   args: [
-     "--http-listen-addr=localhost:8081",
-     "--grpc-addr=localhost:8080",
-     "--service-name=echo.EchoServer",
-   ]
-   ports:
-   - containerPort: 8081
- - name: grpc-app
-   image: gcr.io/mygcr/myapp
-   ports:
-   - containerPort: 8080
+```yaml
+    spec:
+      containers:
+      - name: hc-proxy
+        image: gcr.io/cloud-solutions-images/grpc_health_proxy:1.0.0
+        args: [
+          "--http-listen-addr=0.0.0.0:8080",
+          "--grpcaddr=localhost:50051",
+          "--service-name=echo.EchoServer",
+          "--https-listen-ca=/config/CA_crt.pem",
+          "--https-listen-cert=/certs/http_server_crt.pem",
+          "--https-listen-key=/certs/http_server_key.pem",
+          "--grpctls",        
+          "--grpc-sni-server-name=grpc.domain.com",
+          "--grpc-ca-cert=/config/CA_crt.pem",
+          "--logtostderr=1",
+          "-v=1"
+        ]
+        ports:
+        - containerPort: 8080        
+      - name: grpc-app
+        image: gcr.io/mygcr/grpc_app
+        ports:
+        - containerPort: 50051        
 ```
 
 Remember that your gRPC application must implement the gRPC health protocol
 (grpc.health.v1.Health).
+
+NOTE: both the HTTP HealthCheck proxy and the gRPC Container should support TLS
 
 #### Service & BackendConfig
 
@@ -83,6 +93,8 @@ spec:
     protocol: "HTTP"
     requestPath: [PATH]
 ```
+
+For a full end-to-end example, see the `example/` folder.
 
 ### Non-proxied Health Check
 
