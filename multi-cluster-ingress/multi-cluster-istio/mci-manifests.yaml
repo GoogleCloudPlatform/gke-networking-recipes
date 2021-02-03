@@ -1,0 +1,42 @@
+apiVersion: networking.gke.io/v1
+kind: MultiClusterIngress
+metadata:
+  annotations:
+    networking.gke.io/static-ip: 35.227.196.240
+    networking.gke.io/pre-shared-certs: "whereami-cert"
+  name: istio-ingressgateway-ingress
+  namespace: istio-system
+spec:
+  template:
+    spec:
+      backend:
+        serviceName: istio-ingressgateway-mcs
+        servicePort: 443
+---
+apiVersion: networking.gke.io/v1
+kind: MultiClusterService
+metadata:
+  annotations:
+    beta.cloud.google.com/backend-config: '{"default":"istio-ingress-be-config"}'
+    networking.gke.io/app-protocols: '{"https":"HTTPS"}'
+  name: istio-ingressgateway-mcs
+  namespace: istio-system
+spec:
+  template:
+    spec:
+      ports:
+      - name: status-port
+        port: 15020
+        protocol: TCP
+        targetPort: 15021
+      - name: https
+        port: 443
+        protocol: TCP
+        targetPort: 8443
+      - name: http
+        port: 80
+        protocol: TCP
+        targetPort: 8080
+      selector:
+        app: istio-ingressgateway
+        istio: ingressgateway

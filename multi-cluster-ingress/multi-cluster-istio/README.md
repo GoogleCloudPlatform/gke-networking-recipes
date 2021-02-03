@@ -241,7 +241,7 @@ $ cd gke-networking-recipes/ingress/istio-ingress-e2e-tls
 $ gcloud compute addresses create --global gke-istio-ingress
 ```
 
-5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that whereami.${DOMAIN}.com resolves to the Public IP of the Ingress.
+5. Get the reserved public IP address and register it with your domain. The remaining of this recipes will assume that whereami.whereami.abdel.cloud resolves to the Public IP of the Ingress.
 
 ```bash
 gcloud compute addresses describe --global gke-istio-ingress 
@@ -258,15 +258,15 @@ $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
 
 ```bash
 $ mkdir certs
-$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=${DOMAIN}.com Inc./CN=.com' -keyout certs/${DOMAIN}.com.key -out certs/${DOMAIN}.com.crt
-$ openssl req -out certs/whereami.${DOMAIN}.com.csr -newkey rsa:2048 -nodes -keyout certs/whereami.${DOMAIN}.com.key -subj "/CN=whereami.${DOMAIN}.com/O=${DOMAIN} organization"
-$ openssl x509 -req -days 365 -CA certs/${DOMAIN}.com.crt -CAkey certs/${DOMAIN}.com.key -set_serial 0 -in certs/whereami.${DOMAIN}.com.csr -out certs/whereami.${DOMAIN}.com.crt
+$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=whereami.abdel.cloud Inc./CN=.cloud' -keyout certs/whereami.abdel.cloud.key -out certs/whereami.abdel.cloud.crt
+$ openssl req -out certs/whereami.whereami.abdel.cloud.csr -newkey rsa:2048 -nodes -keyout certs/whereami.whereami.abdel.cloud.key -subj "/CN=whereami.whereami.abdel.cloud/O=abdel.cloud organization"
+$ openssl x509 -req -days 365 -CA certs/whereami.abdel.cloud.crt -CAkey certs/whereami.abdel.cloud.key -set_serial 0 -in certs/whereami.whereami.abdel.cloud.csr -out certs/whereami.whereami.abdel.cloud.crt
 ```
 
 8. Add the certificate and key to the istio-system namespace
 
 ```bash
-$ kubectl create -n istio-system secret tls whereami-credentials --key=certs/whereami.${DOMAIN}.com.key --cert=certs/whereami.${DOMAIN}.com.crt
+$ kubectl create -n istio-system secret tls whereami-credentials --key=certs/whereami.whereami.abdel.cloud.key --cert=certs/whereami.whereami.abdel.cloud.crt
 ```
 
 9. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the whereami app and Service, the FrontendConfig and BackendConfig Objects, the ManagedCertificate, Ingress resource and Istio Objects (Gateway and VirtualService).
