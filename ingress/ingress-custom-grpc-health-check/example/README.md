@@ -1,13 +1,13 @@
 ### Example GKE Deployment
 
-For an end-to-end example of gRPC Loadbalancing with gRPC:
+For an end-to-end example of gRPC Load Balancing with gRPC:
 
 First deploy a GKE cluster with NEG enabled:
 
 ```bash
-$ gcloud container  clusters create cluster-1 --machine-type "n1-standard-2" 
-  --zone us-central1-a  --num-nodes 2 --enable-ip-alias  \
-  --cluster-version "1.19"  -q
+$ gcloud container  clusters create cluster-1 \
+  --machine-type "n1-standard-2" \
+  --zone us-central1-a  --num-nodes 2 --enable-ip-alias  -q
 ```
 
 Deploy application
@@ -31,6 +31,9 @@ service/kubernetes       ClusterIP   10.10.32.1    <none>        443/TCP     4d9
 NAME                                       CLASS    HOSTS   ADDRESS         PORTS     AGE
 ingress.networking.k8s.io/fe-ilb-ingress   <none>   *       10.128.0.77     80, 443   3m1s
 ingress.networking.k8s.io/fe-ingress       <none>   *       34.120.140.72   80, 443   3m1s
+
+export XLB_IP=`kubectl get ingress.extensions/fe-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}'`
+export ILB_IP=`kubectl get ingress.extensions/fe-ilb-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}'`
 ```
 
 
@@ -39,7 +42,7 @@ ingress.networking.k8s.io/fe-ingress       <none>   *       34.120.140.72   80, 
 Verify external loadbalancing by transmitting 10 RPCs over one channel.  The responses will show different pods that handled each request
 
 ```log
-$ docker run --add-host grpc.domain.com:34.120.140.72  \
+$ docker run --add-host grpc.domain.com:$XLB_IP  \
   -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem \
    --servername grpc.domain.com --repeat 10
@@ -80,7 +83,7 @@ fe-deployment-6c96c9648-zj659   2/2     Running   0          4m39s
 
 Rerun the test.  Notice the new pods in the response 
 ```log
-$ docker run --add-host grpc.domain.com:34.120.140.72 \
+$ docker run --add-host grpc.domain.com:$XLB_IP \
    -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
    --servername grpc.domain.com --repeat 10
@@ -100,10 +103,10 @@ $ docker run --add-host grpc.domain.com:34.120.140.72 \
 
 #### Test Internal
 
-To test the internal loadbalancer, you must configure a VM from within an [allocated network](https://cloud.google.com/load-balancing/docs/l7-internal/setting-up-l7-internal#configuring_the_proxy-only_subnet)
+To test the internal loadbalancer, you must configure a VM from within an [allocated network](https://cloud.google.com/load-balancing/docs/l7-internal/setting-up-l7-internal#configuring_the_proxy-only_subnet) and export the environment variable `$XLB_IP` locally
 
 ```log
- $ docker run --add-host grpc.domain.com:10.128.0.77 \
+ $ docker run --add-host grpc.domain.com:$XLB_IP \
      -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
      --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
      --servername grpc.domain.com --repeat 10
