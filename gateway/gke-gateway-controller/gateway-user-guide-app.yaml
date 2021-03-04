@@ -52,8 +52,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: foo-svc
-  annotations:
-    cloud.google.com/neg: '{"exposed_ports": {"8080":{}}}'
 spec:
   selector:
     app: foo
@@ -66,8 +64,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: foo-v1
-  annotations:
-    cloud.google.com/neg: '{"exposed_ports": {"8080":{}}}'
 spec:
   selector:
     app: foo
@@ -80,8 +76,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: foo-v2
-  annotations:
-    cloud.google.com/neg: '{"exposed_ports": {"8080":{}}}'
 spec:
   selector:
     app: foo
@@ -144,8 +138,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: bar-svc
-  annotations:
-    cloud.google.com/neg: '{"exposed_ports": {"8080":{}}}'
 spec:
   selector:
     app: bar
@@ -158,8 +150,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: bar-svc-canary
-  annotations:
-    cloud.google.com/neg: '{"exposed_ports": {"8080":{}}}'
 spec:
   selector:
     app: bar
