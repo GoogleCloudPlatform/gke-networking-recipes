@@ -95,7 +95,7 @@ spec:
           - containerPort: 8080
         env:
         - name: METADATA
-          value: "store-german"
+          value: "Gutentag!"
 ---
 apiVersion: v1
 kind: Service
