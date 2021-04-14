@@ -22,9 +22,9 @@ accessible in a cluster.
 
 ### Networking Manifests
 
-This recipe demonstrates deploying Multi-cluster Services in a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`). In later steps, it also demonstrates app migration to a new cluster (`gke-2`) by exporting the same Service from `gke-2`. The exported Services can be accessed via DNS name `$svc.$ns.svc.clusterset.local` or a VIP called `ClusterSetIP`.
+This recipe demonstrates deploying Multi-cluster Services in a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`). The exported Services can be accessed via DNS name `$svc.$ns.svc.clusterset.local` or a VIP called `ClusterSetIP`. In later steps, it also demonstrates app migration to a new cluster (`gke-2`) by exporting the same Service from `gke-2`.
 
-![basic multi-cluster services](../../images/multi-cluster-services.png)
+![basic multi-cluster services](../../images/multi-cluster-services-basic.png)
 
 A Custom Resources (CRs) called `ServiceExport` is used to indicate a Service should be exported. When this CR is created, the Service with the same namespace and name in the cluster will be exported other clusters.
 
@@ -120,6 +120,8 @@ spec:
 
 Now to demonstrate how MCS can be used for cluster upgrade, let's simulate migration scenario. Assuming `gke-2` is the new cluster, you can deploy and export the same service from `gke-2` together from `gke-1`.
 
+![merged multi-cluster services](../../images/multi-cluster-services-merged.png)
+
 1. Deploy and export the same service in `gke-2`.
 
     ```bash
@@ -153,23 +155,23 @@ Now to demonstrate how MCS can be used for cluster upgrade, let's simulate migra
     $ kubectl --context=gke-2 run -ti --rm --restart=Never --image=radial/busyboxplus:curl shell-$RANDOM -- curl whereami.multi-cluster-demo.svc.clusterset.local | jq -r '.zone, .cluster_name, .pod_name'
     $ done
     us-east1-b
-    prod-test-2
+    gke-2
     whereami-559545767b-v8mmg
     
     us-west1-a
-    prod-test-1
+    gke-1
     whereami-559545767b-xrd4h
     
     us-east1-b
-    prod-test-2
+    gke-2
     whereami-559545767b-v8mmg
     
     us-east1-b
-    prod-test-2
+    gke-2
     whereami-559545767b-v8mmg
     
     us-west1-a
-    prod-test-1
+    gke-1
     whereami-559545767b-xrd4h
     ```
 
