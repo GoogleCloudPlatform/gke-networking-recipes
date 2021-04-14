@@ -18,7 +18,8 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
 - Services
   - [Basic LoadBalancer Service](./services/external-lb-service) - Deploy an internet-facing TCP/UDP network load balancer
   - [Basic Internal LoadBalancer Service](./services/internal-lb-service) - Deploy an internal TCP/UDP load balancer
-
+- Multi-cluster Services
+  - [Basic Multi-cluster Services](./multi-cluster-services/multi-cluster-services-basic) - Deploy applications across multiple clusters. Applications is accessed across clusters via a VIP similar to accessing [ClusterIP Service](https://cloud.google.com/kubernetes-engine/docs/concepts/service#services_of_type_clusterip).
 
 ### Contributions
 
