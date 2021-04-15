@@ -1,0 +1,5 @@
+apiVersion: net.gke.io/v1
+kind: ServiceExport
+metadata:
+  name: whereami
+  namespace: multi-cluster-demo

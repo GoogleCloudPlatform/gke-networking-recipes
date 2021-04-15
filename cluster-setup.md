@@ -29,12 +29,14 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     $ gcloud container clusters create gke-1 \
       --zone us-west1-a \
       --enable-ip-alias \
-      --release-channel rapid 
+      --release-channel rapid \
+      --workload-pool=${PROJECT}.svc.id.goog
 
     $ gcloud container clusters create gke-2 \
       --zone us-east1-b \
       --enable-ip-alias \
-      --release-channel rapid 
+      --release-channel rapid \
+      --workload-pool=${PROJECT}.svc.id.goog
     ```
 
 2. Rename contexts
@@ -139,4 +141,42 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
     gke-3  8187e1cd-35e8-41e1-b204-8ac5c7c7a240
     gke-2  47081e57-c326-4fa0-b808-7a7652863d32
     gke-1  90eeb089-cd16-4281-85ce-e724953249dc
+    ```
+
+
+## Multi-cluster environment (multi-cluster-services)
+
+In order to use Multi-cluster services, following steps need to be completed to enable feature after you complete "Multi-cluster environment (basic)" set up.
+
+1. Enable the CloudDNS, Traffic Director, MultiClusterServiceDiscovery APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/multi-cluster-services#before_you_begin).
+
+    ```bash
+
+    $ gcloud services enable dns.googleapis.com
+
+    $ gcloud services enable trafficdirector.googleapis.com
+
+    $ gcloud services enable cloudresourcemanager.googleapis.com
+
+    $ gcloud services enable multiclusterservicediscovery.googleapis.com
+    ```
+
+2. Now enable Multi-cluster Services.
+
+    ```bash
+    $ gcloud alpha container hub multi-cluster-services enable
+    ```
+
+3. Confirm that MCS is configured properly.
+
+    ```bash
+    $gcloud alpha container hub multi-cluster-services describe
+    ```
+
+4. Grant required Identity to MCS Importer.
+
+    ```bash
+    $gcloud projects add-iam-policy-binding ${PROJECT} \
+     --member "serviceAccount:${PROJECT}.svc.id.goog[gke-mcs/gke-mcs-importer]" \
+     --role "roles/compute.networkViewer"
     ```
