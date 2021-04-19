@@ -1,0 +1,22 @@
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: store-route-ilb
+  namespace: store
+  labels:
+    gateway: multi-cluster-gateway-ilb
+spec:
+  rules:
+  - forwardTo:
+    - backendRef: 
+        group: net.gke.io
+        kind: ServiceImport
+        name: store-v1
+      port: 8080
+      weight: 80
+    - backendRef: 
+        group: net.gke.io
+        kind: ServiceImport
+        name: store-v2
+      port: 8080
+      weight: 20
