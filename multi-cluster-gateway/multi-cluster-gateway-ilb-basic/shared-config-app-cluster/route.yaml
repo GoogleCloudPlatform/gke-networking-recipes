@@ -13,10 +13,10 @@ spec:
         kind: ServiceImport
         name: store-v1
       port: 8080
-      weight: 80
+      weight: 90
     - backendRef: 
         group: net.gke.io
         kind: ServiceImport
         name: store-v2
       port: 8080
-      weight: 20
+      weight: 10
