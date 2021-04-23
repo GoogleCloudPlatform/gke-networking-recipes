@@ -68,7 +68,7 @@ spec:
     - backendRef: 
         group: net.gke.io
         kind: ServiceImport
-        name: sample-app-blue # maps to a ServiceExport
+        name: sample-app-blue # maps to a ServiceExport (in this case, from gke-blue)
       port: 8080
       weight: 100
 ```
