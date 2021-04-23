@@ -24,7 +24,7 @@ In this example, both clusters reside in the same GCP region to demonstrate a bl
 
 Before you get hands-on, let's look at some snippets of the various Custom Resources used in this recipe to understand what you'll be building.
 
-A `Gateway` resource represents a load balancing resource and its associated configuration. The following example references the `GatewayClass` of type `gke-l7-rilb-mc`, meaning the `Gateway` is a multi-cluster [Layer 7 load balancer on GCP](https://cloud.google.com/load-balancing/docs/l7-internal):
+A `Gateway` resource represents a load balancing resource and its associated configuration. The following example references the `GatewayClass` of type `gke-l7-rilb-mc`, meaning the `Gateway` is a multi-cluster [internal Layer 7 load balancer on GCP](https://cloud.google.com/load-balancing/docs/l7-internal):
 ```YAML
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
