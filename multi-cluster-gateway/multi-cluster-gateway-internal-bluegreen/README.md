@@ -81,7 +81,7 @@ spec:
     $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
-    $ cd gke-networking-recipes/multi-cluster-gateway/multi-cluster-gateway-bluegreen
+    $ cd gke-networking-recipes/multi-cluster-gateway/multi-cluster-gateway-internal-bluegreen
     ```
 
 2. Deploy and configure your GCP project, the two clusters (`gke-blue` and `gke-green`) and your client VM (`client-vm`), as specified in [environment setup](./environment-setup.md)
