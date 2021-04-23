@@ -131,7 +131,7 @@ spec:
 7. SSH to the `client-vm` and run `curl` a few times against the private IP from step 5 to verify responses from `gke-blue`
 
     ```bash
-    $ export MCG_IP=10.128.0.27 # replace with the private IP from step 5
+    $ export MCG_IP=10.128.0.27 # replace with the private IP from step 5 - this will vary based on deployment
     $ curl $MCG_IP
     {
     "cluster_name": "gateway-test-01", 
