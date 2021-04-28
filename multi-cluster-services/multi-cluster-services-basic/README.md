@@ -222,7 +222,7 @@ Now we can demonstrate consuming this `ServiceExport` in a legacy _routes-based_
 
 Now let's demonstrate some of the limitations of routes-based clusters. Routes-based clusters can *consume* multi cluster services from other VPC-native clusters in the same Hub, but *cannot export* services. Let's try it and show how it won't work.
 
-1. Navigate to the `routes-based-cluster` folder to access another set of manifests exporting a Service named `whereami-routes` (to distinguish it from our prior service named `whereami`).
+1. Navigate to the `routes-based-cluster` folder to access another set of manifests exporting a similar Service as before, but named `whereami-routes` (to distinguish it from our prior service named `whereami`).
 
    ```bash
    $ cd ../routes-based-cluster
