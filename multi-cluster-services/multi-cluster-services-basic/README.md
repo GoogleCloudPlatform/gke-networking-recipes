@@ -190,7 +190,7 @@ Now to demonstrate how MCS can be used for cluster upgrade, let's simulate migra
 
 Now we can demonstrate consuming this `ServiceExport` in a legacy _routes-based_ cluster.  While VPC-native is the recommended type and the default for new clusters, non-VPC native clusters (also known as _routes-based clusters_) can still be configured to consume `ServiceExport`s from VPC-native clusters if you already have or need to use this cluster type. Note that non-VPC native clusters cannot export `ServiceExport`s, only consume them.
 
-1. Make a third cluster that uses routes-based networking that will consume `ServiceExport`s from `gke-1`. Making a routes-based cluster must be opted into with the flag `--no-enable-ip-alias`. Register it to your Hub the same way `gke-1` and `gke-2` were registered in cluster setup.
+1. Make a third cluster that uses routes-based networking that will consume the newly migrated `ServiceExport` from `gke-2`. Making a routes-based cluster must be opted into with the flag `--no-enable-ip-alias`. Register it to your Hub the same way `gke-1` and `gke-2` were registered in cluster setup.
 
     ```
     gcloud container clusters create gke-routes-based --zone us-east1-b --release-channel rapid --workload-pool=${PROJECT}.svc.id.goog --no-enable-ip-alias
@@ -222,7 +222,7 @@ Now we can demonstrate consuming this `ServiceExport` in a legacy _routes-based_
 
 Now let's demonstrate some of the limitations of routes-based clusters. Routes-based clusters can *consume* multi cluster services from other VPC-native clusters in the same Hub, but *cannot export* services. Let's try it and show how it won't work.
 
-1. Navigate to the `routes-based-cluster` folder to access another set of manifests exporting a Service named `whereami-routes`.
+1. Navigate to the `routes-based-cluster` folder to access another set of manifests exporting a Service named `whereami-routes` (to distinguish it from our prior service named `whereami`).
 
    ```bash
    $ cd ../routes-based-cluster
