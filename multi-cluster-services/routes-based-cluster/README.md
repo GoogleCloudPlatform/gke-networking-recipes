@@ -44,10 +44,12 @@
 
 3. Follow the steps for cluster registration with Hub in [cluster setup](../../cluster-setup.md).
 
-4. Make a third cluster that uses routes-based networking that will consume `ServiceExport`s from `gke-1`. Making a routes-based cluster must be opted into with the flag `--no-enable-ip-alias`.
+4. Make a third cluster that uses routes-based networking that will consume `ServiceExport`s from `gke-1`. Making a routes-based cluster must be opted into with the flag `--no-enable-ip-alias`. Register it to your Hub the same way gke-1 and gke-2 weer registered in step (3).
 
     ```
     gcloud container clusters create gke-routes-based --zone us-east1-b --release-channel rapid --workload-pool=${PROJECT}.svc.id.goog --no-enable-ip-alias
+
+    gcloud container hub memberships register gke-routes-based --gke-cluster us-east1-b/gke-routes-based --enable-workload-identity
     ```
 
 5. Now log into `gke-1` and deploy the `app.yaml` manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
@@ -75,7 +77,7 @@
 
     ```bash
     # you can set up the context for `gke-routes-based` like so
-    kubectl config rename-context XYXYXYXY gke-routes-based
+    kubectl config rename-context gke_${PROJECT}_us-east1-b_gke-routes-based gke-routes-based
     ```
 
     ```bash
