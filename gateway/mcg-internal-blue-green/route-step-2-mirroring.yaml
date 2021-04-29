@@ -1,0 +1,24 @@
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: sample-app-route
+  namespace: mcgi-bg
+  labels:
+    gateway: multi-cluster-gateway
+spec:
+  rules:
+  - forwardTo:
+    - backendRef: 
+        group: net.gke.io
+        kind: ServiceImport
+        name: sample-app-blue # we're only talking to the blue cluster
+      port: 8080
+      weight: 100
+    filters:
+    - type: RequestMirror # enable traffic mirroring to the green cluster
+      requestMirror:
+        backendRef: 
+          group: net.gke.io
+          kind: ServiceImport
+          name: sample-app-green
+        port: 8080

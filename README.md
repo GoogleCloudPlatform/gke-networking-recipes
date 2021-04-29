@@ -21,10 +21,9 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
 - Multi-cluster Services
   - [Basic Multi-cluster Services](./multi-cluster-services/multi-cluster-services-basic) - Deploy applications across multiple clusters. Applications is accessed across clusters via a VIP similar to accessing [ClusterIP Service](https://cloud.google.com/kubernetes-engine/docs/concepts/service#services_of_type_clusterip).
 - Gateway
-  - [Basic Gateway](./gateway) - Deploy Gateway API resources using the GKE Gateway Controller.
-- Multi-cluster Gateway
-  - [Basic Multi-cluster Gateway](./multi-cluster-gateway/multi-cluster-gateway-basic) - Deploy an internal multi-cluster Gateway to load balance across applications across multiple clusters.
-  - [Blue-Green Cluster Pattern with multi-cluster Gateway](./multi-cluster-gateway-internal-bluegreen) - Deploy an internal multi-cluster Gateway to load balance across two versions of an application in different clusters, while utilizing traffic mirroring and traffic weighting to determine readiness and canary a new version of an application.
+  - [Basic Multi-cluster Gateway](./gateway/mcg-basic) - Deploy an internal multi-cluster Gateway to load balance across applications across multiple clusters.
+  - [Blue-Green Cluster Pattern with multi-cluster Gateway](./gateway/mcg-internal-blue-green) - Deploy an internal multi-cluster Gateway to load balance across two versions of an application in different clusters, while utilizing traffic mirroring and traffic weighting to determine readiness and canary a new version of an application.
+
 ### Contributions
 
 Do you have a GKE networking recipe that would be useful for others? [Contribute it](CONTRIBUTING.md) and help build the shared knowledge of the GKE community!
