@@ -67,7 +67,7 @@ $ gcloud alpha container hub ingress enable \
 
 ## Deploy the target applications across multiple clusters
 
-Deploy the resources for the first application to `gke-1`. This includes the Namespace, Deployment, Service, and ServiceExport objects for the application.
+Deploy the resources for the first application to `gke-1`. This includes the Namespace, Deployment, and Service objects for the application.
 
 ```
 $ cat gke-1/app-v1.yaml
@@ -120,8 +120,12 @@ spec:
 ```
 $ kubectl apply -f gke-1/app-v1.yaml
 ```
+Now deploy the `ServiceExport` for this service.
+```
+$ kubectl apply -f gke-1/serviceexport-v1.yaml
+```
 
-Deploy the resources for the second application to `gke-2`. This includes the Namespace, Deployment, Service, and ServiceExport objects for the application.
+Deploy the resources for the second application to `gke-2`. This includes the Namespace, Deployment, and Service objects for the application.
 
 ```
 $ cat gke-2/app-v2.yaml
@@ -172,6 +176,10 @@ spec:
 ```
 ```
 $ kubectl apply -f gke-2/app-v2.yaml
+```
+Now deploy the `ServiceExport` for this service.
+```
+$ kubectl apply -f gke-2/serviceexport-v2.yaml
 ```
 
 ## Deploy the Gateway and HTTPRoute
