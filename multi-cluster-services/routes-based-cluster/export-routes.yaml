@@ -1,0 +1,5 @@
+apiVersion: net.gke.io/v1
+kind: ServiceExport
+metadata:
+  name: whereami-routes
+  namespace: multi-cluster-demo
