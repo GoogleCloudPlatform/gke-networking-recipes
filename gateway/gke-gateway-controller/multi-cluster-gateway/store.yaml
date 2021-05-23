@@ -1,0 +1,28 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: store
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store
+  namespace: store
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: store
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: store
+        version: v1
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.2.1
+        ports:
+          - containerPort: 8080
+
