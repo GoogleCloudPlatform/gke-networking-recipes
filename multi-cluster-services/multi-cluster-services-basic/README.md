@@ -61,7 +61,7 @@ spec:
     $ cd gke-networking-recipes/multi-cluster-services/multi-cluster-services-basic
     ```
 
-2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../cluster-setup.md)
+2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../cluster-setup.md)
 
 3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Services.
 
@@ -70,7 +70,7 @@ spec:
     - app.yaml is the manifest for the `whereami` Deployment and Service.
     - export.yaml is the manifest for the `ServiceExport`, which will be deployed to indicate exporting service.
 
-4. Now log into `gke-1` and deploy the app.yaml manifest. You can configure these contexts as shown [here](../cluster-setup.md).
+4. Now log into `gke-1` and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
 
     ```bash
     $ kubectl --context=gke-1 apply -f app.yaml
