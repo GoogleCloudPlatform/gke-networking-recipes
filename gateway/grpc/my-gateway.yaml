@@ -1,0 +1,101 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# kind: GatewayClass
+# apiVersion: networking.x-k8s.io/v1alpha1
+# metadata:
+#   name: gke-l7-rilb
+# spec:
+#   controller: networking.gke.io/gateway
+# ---
+# kind: GatewayClass
+# apiVersion: networking.x-k8s.io/v1alpha1
+# metadata:
+#   name: gke-l7-gxlb
+# spec:
+#   controller: networking.gke.io/gateway
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: gke-l7-rilb-gw
+  namespace: default
+spec:
+  gatewayClassName: gke-l7-rilb
+  listeners:  
+  - protocol: HTTPS
+    port: 443
+    routes:
+      namespaces:
+        from: All
+      selector:
+        matchLabels:
+          app: fe-route        
+      kind: HTTPRoute
+    tls:      
+      mode: Terminate
+      options:
+        networking.gke.io/pre-shared-certs: gcp-cert-grpc-us-central 
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: gke-l7-gxlb-gw
+  namespace: default
+spec:
+  gatewayClassName: gke-l7-gxlb
+  listeners:  
+  - protocol: HTTPS
+    port: 443
+    routes:
+      namespaces:
+        from: All
+      selector:
+        matchLabels:
+          app: fe-route        
+      kind: HTTPRoute
+    tls:      
+      mode: Terminate
+      options:
+        networking.gke.io/pre-shared-certs: gcp-cert-grpc-global 
+---
+apiVersion: networking.x-k8s.io/v1alpha1
+kind: HTTPRoute
+metadata:
+  name: my-route
+  namespace: default
+  labels:
+    app: fe-route  
+spec:
+  gateways:
+    allow: FromList
+    gatewayRefs: 
+    - name: gke-l7-rilb-gw
+      namespace: default
+    - name: gke-l7-gxlb-gw
+      namespace: default
+  hostnames:
+  - grpc.domain.com
+  rules:
+  - matches:
+    - path:
+        type: Prefix
+        value: /
+    filters: []
+    forwardTo:
+    - serviceName: fe-srv
+      port: 50051
+      weight: 1
+status:
+  gateways: []
