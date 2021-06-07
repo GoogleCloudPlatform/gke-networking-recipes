@@ -1,0 +1,65 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings
+data:
+  CA_crt.pem:  |
+    -----BEGIN CERTIFICATE-----
+    MIIEDTCCAvWgAwIBAgIBAjANBgkqhkiG9w0BAQUFADBQMQswCQYDVQQGEwJVUzEP
+    MA0GA1UECgwGR29vZ2xlMRMwEQYDVQQLDApFbnRlcnByaXNlMRswGQYDVQQDDBJF
+    bnRlcnByaXNlIFJvb3QgQ0EwHhcNMjAwNDI1MjIwNzE1WhcNMzAwNDI1MjIwNzE1
+    WjBXMQswCQYDVQQGEwJVUzEPMA0GA1UECgwGR29vZ2xlMRMwEQYDVQQLDApFbnRl
+    cnByaXNlMSIwIAYDVQQDDBlFbnRlcnByaXNlIFN1Ym9yZGluYXRlIENBMIIBIjAN
+    BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2FXMxoPucnmPbeaYvtC7mwqMqS/D
+    RGuGmk78f8cLLmtf4qcfQwS5t5UkEAUiHaDGTdkk8AWRVGc4Sh/nwxlsEMw7thkl
+    W3zge8cU7V+pWjGokaYiLPqayV3CJ7VpYPIbXRGqeXQrSAh3h5vPmFn2IN4TZF2E
+    46Fob8xhqjYc9CAGqh8NevCyvyNvnb2ZTzQeC2jouRStltdHh97ynK/iatyzyot0
+    +9BrhI/9CBELS1MDGxcT35g48pEJzHr1/k3Wdz2VM0+pKSIBhiJM1t4Q1LALhP7L
+    KSr6Ex3H1OzaBEW8gpIoKlkH6I1D9lOs1rSSJU4ZEsVqft+3j32SByZNmQIDAQAB
+    o4HqMIHnMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1Ud
+    DgQWBBS/4RzwIkiP/DvPXdntrohwId/dhjAfBgNVHSMEGDAWgBSaVNYZIVg6RrbU
+    rgV+gHD0OM8oDDBFBggrBgEFBQcBAQQ5MDcwNQYIKwYBBQUHMAKGKWh0dHA6Ly9w
+    a2kuZXNvZGVtb2FwcDIuY29tL2NhL3Jvb3QtY2EuY2VyMDoGA1UdHwQzMDEwL6At
+    oCuGKWh0dHA6Ly9wa2kuZXNvZGVtb2FwcDIuY29tL2NhL3Jvb3QtY2EuY3JsMA0G
+    CSqGSIb3DQEBBQUAA4IBAQCIK7eSGxf7Vy/5pKVdDGgD/sG/pjBgqP6IVocvLUN0
+    nUzT8NMkOYraJz+LySUy55WGPeFeARcRCqeFwqz+o1BetdqOUZgouf1DuXvfyX0w
+    cp1Y/IEPcFnzl+U5b1F10iOLGt5llUxMd6eo1MS53SrbF3NIvQOu6aoHBlh614qk
+    zcx2hAhLIw5C9MvK7r5UP179ilv4x7ZYfWsM7DLvhgG8dEgQTDCPB5h6cSKIM1qI
+    hHzpPkrGcGtKK/Fbidjw4OP25HADV6i/GXKkjirOhVQkoj2S3RjkiNy8JvJobCFM
+    GJSi6m9GO8OrUA+o9r9JKYkLmLEWD5PeF7hCnbGQY+Cw
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    MIIDfjCCAmagAwIBAgIBATANBgkqhkiG9w0BAQUFADBQMQswCQYDVQQGEwJVUzEP
+    MA0GA1UECgwGR29vZ2xlMRMwEQYDVQQLDApFbnRlcnByaXNlMRswGQYDVQQDDBJF
+    bnRlcnByaXNlIFJvb3QgQ0EwHhcNMjAwNDI1MjIwNDQxWhcNMzAwNDI1MjIwNDQx
+    WjBQMQswCQYDVQQGEwJVUzEPMA0GA1UECgwGR29vZ2xlMRMwEQYDVQQLDApFbnRl
+    cnByaXNlMRswGQYDVQQDDBJFbnRlcnByaXNlIFJvb3QgQ0EwggEiMA0GCSqGSIb3
+    DQEBAQUAA4IBDwAwggEKAoIBAQDxuasMnn/6NdpXZk9FnWE109YIUDXdPyN7Qiq1
+    mX54dBzoC/vZ1mlLyATGe9+DF9cgRa1apQAlid4cUsazo1Tropivf+y/gt9/6mXO
+    X0zEAZgwnw4VU6NXAVpyzMFiV8kFO18lzUlXdt92SGRiS6Bpk0oxuNZBYKx8SUDY
+    U7veKF2Gz9GcF5MXUQ5VxbUPqvFcuKGR4DRFAYUQWhB+c2XWr3Z7ibap5HxSRFJl
+    TZnE7GdeowwzV8/k2bmRWTznhJrGbnXRUykBF+Jhs29BRfqlKroJqL8MZ4VS9j+J
+    fQRIxYkG4JxfSOuL3mELJQUvZfZADMb60dPrMqJQeItBDndJAgMBAAGjYzBhMA4G
+    A1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSaVNYZIVg6
+    RrbUrgV+gHD0OM8oDDAfBgNVHSMEGDAWgBSaVNYZIVg6RrbUrgV+gHD0OM8oDDAN
+    BgkqhkiG9w0BAQUFAAOCAQEAJHWSDi4Ku1L2h1L3Xz3EvDfARTBkBpMkTylQQ/yW
+    Y14CNso7cpZMnEmHhpscZHXzfFIKQgQXhSV4UeF1qSsVau5n37Kpf93XV/i8zL33
+    EAm/1HwrMCfVdBLx8pAj6GmuigPAnO5wH9B+KMolVyp91fptilmVzznp/KdMzurl
+    BqDjlLCt8eWzZ0WTmJhc0nWfgdwhlKD5DeUe6tmpahZK3ls3j1/F62FuccwJioem
+    krx0EqCm02vc8QU/r7OAEEgenmmak+yrKz4MV3LtdzO+R0F7/OMObepAE1ppCaP4
+    3Nh6qNxO8UxfBjkfxnGEkp9VicG96HSplK/L3CHYHLvKzQ==
+    -----END CERTIFICATE-----

@@ -23,6 +23,7 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
 - Gateway
   - [Basic Multi-cluster Gateway](./gateway/mcg-basic) - Deploy an internal multi-cluster Gateway to load balance across applications across multiple clusters.
   - [Blue-Green Cluster Pattern with multi-cluster Gateway](./gateway/mcg-internal-blue-green) - Deploy an internal multi-cluster Gateway to load balance across two versions of an application in different clusters, while utilizing traffic mirroring and traffic weighting to determine readiness and canary a new version of an application.
+  - [gRPC LoadBalancing](./gateway/grpc) - Deploy gRPC application for internet facing and internal traffic.
 
 ### Contributions
 
