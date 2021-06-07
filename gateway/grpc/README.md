@@ -22,9 +22,9 @@ Create SSL Certificate
 Note, as of `5/6/21`, Gateway does not support [spec.listeners.tls.certificateRefs](https://cloud.google.com/kubernetes-engine/docs/how-to/gatewayclass-capabilities#gateway) so we have to upload a static cert to GCP.  Note we are creating two sets of certificates scoped for global and regional to account for external LB (global) and ILB (regional)
 
 ```bash
-gcloud beta compute ssl-certificates create gcp-cert-grpc-global \
+gcloud compute ssl-certificates create gcp-cert-grpc-global \
    --global --certificate server.crt --private-key server.key 
-gcloud beta compute ssl-certificates create gcp-cert-grpc-us-central \
+gcloud compute ssl-certificates create gcp-cert-grpc-us-central \
    --region=us-central1 --certificate server.crt --private-key server.key 
 ```
 
