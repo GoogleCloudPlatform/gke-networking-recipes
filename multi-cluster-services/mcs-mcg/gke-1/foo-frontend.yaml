@@ -1,0 +1,60 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: mcs-mcg
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo
+  namespace: mcs-mcg
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: foo
+      # version: v1
+  template:
+    metadata:
+      labels:
+        app: foo
+        # version: v1
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.1.3
+        ports:
+          - containerPort: 8080
+        env:
+        - name: BACKEND_ENABLED
+          value: "True"
+        - name: BACKEND_SERVICE
+          value: "backend.mcs-mcg.svc.clusterset.local"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foo-frontend-configmap
+  namespace: mcs-mcg
+data:
+  BACKEND_ENABLED: "True"
+  BACKEND_SERVICE: "backend.mcs-mcg.svc.clusterset.local"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: foo
+  namespace: mcs-mcg
+spec:
+  selector:
+    app: foo
+    # version: v1
+  ports:
+  - port: 8080
+    targetPort: 8080
+# ---
+# kind: ServiceExport
+# apiVersion: net.gke.io/v1
+# metadata:
+#   name: foo
+#   namespace: store
