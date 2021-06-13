@@ -1,0 +1,29 @@
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: internal-store-route
+  namespace: store
+  labels:
+    gateway: internal-http
+spec:
+  hostnames:
+  - "store.example.internal"
+  rules:
+# Matches for env=canary and sends it to store-west-2 ServiceImport
+  - matches:
+    - headers:
+        values:
+          env: canary
+    forwardTo:
+    - backendRef:
+        group: net.gke.io
+        kind: ServiceImport
+        name: store-west-2
+      port: 8080
+# All other traffic goes to store-west-1 ServiceImport
+  - forwardTo:
+    - backendRef:
+        group: net.gke.io
+        kind: ServiceImport
+        name: store-west-1
+      port: 8080
