@@ -1,0 +1,15 @@
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: foo-frontend-route-ilb
+  namespace: mcs-mcg
+  labels:
+    gateway: multi-cluster-gateway-ilb
+spec:
+  hostnames:
+  - "foo.example.com"
+  rules:
+  - forwardTo:
+    - serviceName: foo
+      port: 8080
+      weight: 100

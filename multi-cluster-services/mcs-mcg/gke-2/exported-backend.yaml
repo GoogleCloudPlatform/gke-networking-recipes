@@ -1,0 +1,46 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: mci-mcg
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: mci-mcg
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+      # version: v1
+  template:
+    metadata:
+      labels:
+        app: backend
+        # version: v1
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.1.3
+        ports:
+          - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: mcs-mcg
+spec:
+  selector:
+    app: backend
+    # version: v1
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+kind: ServiceExport
+apiVersion: net.gke.io/v1
+metadata:
+  name: backend
+  namespace: mcs-mcg
