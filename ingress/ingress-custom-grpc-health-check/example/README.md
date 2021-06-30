@@ -10,6 +10,14 @@ $ gcloud container  clusters create cluster-1 \
   --zone us-central1-a  --num-nodes 2 --enable-ip-alias  -q
 ```
 
+Configure a custom SSL Policy (this is optional and simply added to demonstrate custom TLS policies using `networking.gke.io/v1beta1.FrontEndConfig`)
+
+```
+gcloud compute ssl-policies create gke-ingress-ssl-policy \
+    --profile MODERN \
+    --min-tls-version 1.2 
+```
+
 Deploy application
 
 ```bash
@@ -34,9 +42,14 @@ ingress.networking.k8s.io/fe-ingress       <none>   *       34.120.140.72   80, 
 
 export XLB_IP=`kubectl get ingress.extensions/fe-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}'`
 export ILB_IP=`kubectl get ingress.extensions/fe-ilb-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}'`
+
+echo $XLB_IP
+echo $ILB_IP
 ```
 
-
+NOTE:
+- [Configuring Ingress for external load balancing](https://cloud.google.com/kubernetes-engine/docs/how-to/load-balance-ingress#creating_an_ingress)
+ >> The only supported path types for the pathType field is ImplementationSpecific.
 #### Test External
 
 Verify external loadbalancing by transmitting 10 RPCs over one channel.  The responses will show different pods that handled each request
@@ -45,9 +58,8 @@ Verify external loadbalancing by transmitting 10 RPCs over one channel.  The res
 $ docker run --add-host grpc.domain.com:$XLB_IP  \
   -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem \
-   --servername grpc.domain.com --repeat 10
+   --servername grpc.domain.com --repeat 10 -skipHealthCheck
 
-2021/01/27 12:53:08 RPC HealthChekStatus:SERVING
 2021/01/27 12:53:08 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-sztpp"
 2021/01/27 12:53:08 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-zj659"
 2021/01/27 12:53:08 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-zj659"
@@ -86,9 +98,8 @@ Rerun the test.  Notice the new pods in the response
 $ docker run --add-host grpc.domain.com:$XLB_IP \
    -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
-   --servername grpc.domain.com --repeat 10
+   --servername grpc.domain.com --repeat 10 -skipHealthCheck
 
-2021/01/27 12:54:18 RPC HealthChekStatus:SERVING
 2021/01/27 12:54:19 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-sztpp"
 2021/01/27 12:54:19 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-xc7d7"
 2021/01/27 12:54:19 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-d4rx2"
@@ -109,9 +120,8 @@ To test the internal loadbalancer, you must configure a VM from within an [alloc
  $ docker run --add-host grpc.domain.com:$XLB_IP \
      -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
      --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
-     --servername grpc.domain.com --repeat 10
+     --servername grpc.domain.com --repeat 10 -skipHealthCheck
 
-2021/01/27 12:51:45 RPC HealthChekStatus:SERVING
 2021/01/27 12:51:45 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-sztpp"
 2021/01/27 12:51:45 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-zj659"
 2021/01/27 12:51:45 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-sztpp"
@@ -122,6 +132,73 @@ To test the internal loadbalancer, you must configure a VM from within an [alloc
 2021/01/27 12:51:45 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-zj659"
 2021/01/27 12:51:45 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-sztpp"
 2021/01/27 12:51:45 RPC Response: message:"Hello unary RPC msg   from hostname fe-deployment-6c96c9648-zj659"
+```
+
+### HTTP/2 HealthChecks
+
+If you want the healthCheck proxy to use HTTP/2, you need to enable TLS termination on the proxy.  To do that, mount TLS certificates to the pod and configure the proxy to use them:
+
+e.g.
+
+```yaml
+apiVersion: v1
+data:
+  http_server_crt.pem: LS0tLS1CRUdJTiBDRVJ-redacted
+  http_server_key.pem: LS0tLS1CRUdJTiBQUkl-redacted
+kind: Secret
+metadata:
+  name: hc-secret
+  namespace: default
+type: Opaque
+---
+```
+
+- `fe-deployment.yaml`:
+
+```yaml
+    spec:
+      containers:
+      - name: hc-proxy
+        image: gcr.io/cloud-solutions-images/grpc_health_proxy:1.0.0
+        args: [
+          "--http-listen-addr=0.0.0.0:8443",
+          "--grpcaddr=localhost:50051",
+          "--service-name=echo.EchoServer",
+          "--https-listen-ca=/config/CA_crt.pem",
+          "--https-listen-cert=/certs/http_server_crt.pem",
+          "--https-listen-key=/certs/http_server_key.pem",
+          "--grpctls",        
+          "--grpc-sni-server-name=grpc.domain.com",
+          "--grpc-ca-cert=/config/CA_crt.pem",
+          "--logtostderr=1",
+          "-v=1"
+        ]
+        ports:
+        - containerPort: 8443
+        volumeMounts:
+        - name: certs-vol
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: certs-vol
+        secret:
+          secretName: hc-secret          
+```
+
+You will also need to configure the service to use HTTP/2:
+
+- `fe-srv-ingress.yaml`
+
+```yaml
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: fe-grpc-backendconfig
+spec:
+  healthCheck:
+    type: HTTP2
+    requestPath: /
+    port: 8443
 ```
 
 Source images used in this example can be found here:

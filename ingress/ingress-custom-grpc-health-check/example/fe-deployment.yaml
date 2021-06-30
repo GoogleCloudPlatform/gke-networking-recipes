@@ -35,9 +35,6 @@ spec:
           "--http-listen-addr=0.0.0.0:8443",
           "--grpcaddr=localhost:50051",
           "--service-name=echo.EchoServer",
-          "--https-listen-ca=/config/CA_crt.pem",
-          "--https-listen-cert=/certs/http_server_crt.pem",
-          "--https-listen-key=/certs/http_server_key.pem",
           "--grpctls",        
           "--grpc-sni-server-name=grpc.domain.com",
           "--grpc-ca-cert=/config/CA_crt.pem",
@@ -49,10 +46,7 @@ spec:
         volumeMounts:
         - name: config-vol
           mountPath: /config
-          readOnly: true
-        - name: certs-vol
-          mountPath: /certs
-          readOnly: true          
+          readOnly: true       
       - name: grpc-app
         image: gcr.io/cloud-solutions-images/grpc_app
         args: [
@@ -74,9 +68,6 @@ spec:
           items:
           - key: CA_crt.pem
             path: CA_crt.pem
-      - name: certs-vol
-        secret:
-          secretName: hc-secret
       - name: fe-certs-vol
         secret:
           secretName: fe-secret

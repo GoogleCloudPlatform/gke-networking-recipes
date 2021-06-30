@@ -12,18 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: fe-ingress
   annotations:
     kubernetes.io/ingress.class: "gce"
-    kubernetes.io/ingress.allow-http: "false"   
+    kubernetes.io/ingress.allow-http: "false"
+    networking.gke.io/v1beta1.FrontendConfig: "fe-frontend-config"   
 spec:
   tls:
   - hosts:
     - grpc.domain.com
     secretName: fe-secret
-  backend:
-    serviceName: fe-srv-ingress
-    servicePort: 50051
+  rules:
+  - host: "grpc.domain.com"
+    http:
+      paths:
+      - path: "/echo.EchoServer/*"
+        pathType: ImplementationSpecific        
+        backend:
+          service:
+            name: fe-srv-ingress
+            port:
+              number: 50051
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: fe-frontend-config
+spec:
+  sslPolicy: gke-ingress-ssl-policy
