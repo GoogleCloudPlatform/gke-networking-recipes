@@ -39,6 +39,6 @@ metadata:
   name: fe-grpc-backendconfig
 spec:
   healthCheck:
-    type: HTTP2
+    type: HTTP
     requestPath: /
     port: 8443
