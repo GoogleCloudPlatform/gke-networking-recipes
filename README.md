@@ -13,6 +13,7 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
   - [Basic Internal Ingress](./ingress/internal-ingress-basic) - Deploy host-based routing through a private, internal HTTP load balancer
   - [Secure Ingress](./ingress/secure-ingress) - Secure Ingress-hosted Services with HTTPS, Google-managed certificates, SSL policies, and HTTPS redirects.
 - Multi-cluster Ingress
+  - [IAP Ingress](./ingress/iap-ingress) - GKE Ingress with Identity-Aware Proxy based authentication.
   - [Basic Multi-cluster Ingress](./multi-cluster-ingress/multi-cluster-ingress-basic) - Deploy applications across different clusters and different regions but retain a single global load balancer and public IP for global traffic management.
   - [Blue/Green Multi-cluster Ingress](./multi-cluster-ingress/multi-cluster-blue-green-cluster) - Deploy applications across multiple clusters in the same region, leveraging a single global load balancer and public IP for global traffic management, to support seamless cluster upgrades without impacting client access.
 - Services
