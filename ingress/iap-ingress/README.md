@@ -9,8 +9,8 @@ accessed only by authenticated users or applications with correct
 
 ## Use cases
 
-* protect backend services with central, managed authorization layer that leverages IAM roles
-* take advantages of application-level access control model for backend services instead of
+* Protect backend services with central, managed authorization layer that leverages IAM roles
+* Take advantages of application-level access control model for backend services instead of
 relying on network-level solutions like firewalls or VPNs
 
 ## Relevant documentation
@@ -23,7 +23,7 @@ relying on network-level solutions like firewalls or VPNs
 
 * GKE version 1.10.5+ for [BackendConfig](https://cloud.google.com/kubernetes-engine/docs/concepts/backendconfig)
   support
-* tested and validated with GKE version 1.19.10 on Jun 16th 2021
+* Tested and validated with GKE version 1.19.10 on Jun 16th 2021
 
 ---
 
@@ -43,9 +43,9 @@ validate if the user is authorized to access the resource.
 
 Prerequisites:
 
-* gcloud setup *(check [Prerequisite: gcloud setup](#prerequisite-gcloud-setup))*
-* GKE cluster up and running *(check [Prerequisite: GKE setup](#prerequisite-gke-setup))*
-* IAP configured *(check [Prerequisite: IAP setup](#prerequisite-iap-setup))*
+* `gcloud` setup *(check [Prerequisite: gcloud setup](#prerequisite-gcloud-setup) below)*
+* GKE cluster up and running *(check [Prerequisite: GKE setup](#prerequisite-gke-setup) below)*
+* IAP configured *(check [Prerequisite: IAP setup](#prerequisite-iap-setup) below)*
 
 Steps:
 
@@ -111,20 +111,20 @@ Steps:
    Once backend service is created, enable IAP protection on it and update IAM policies.
    This can be done from [Google Cloud Console](https://console.cloud.google.com/).
 
-   * browse [Identity-Aware Proxy](https://console.cloud.google.com/security/iap) page
-   * locate your backend service on a resources list under *HTTPS Resources* tab
-   * **toggle IAP protection** for your backend service
-   * select checkbox next to your service so that info panel appears on the right
-   * click **Add Member** button on the right panel to add members
-   * add *Google Account* or  *Service Account* with **IAP-secured Web App User** role
+   * Browse to [Identity-Aware Proxy](https://console.cloud.google.com/security/iap) page
+   * Locate your backend service on a resources list under *HTTPS Resources* tab
+   * **Toggle IAP protection** for your backend service
+   * Select checkbox next to your service so that info panel appears on the right
+   * Click **Add Member** button on the right panel to add members
+   * Add *Google Account* or  *Service Account* with **IAP-secured Web App User** role
   
 8. Verify and enjoy
 
    Verification steps depends on Member type that was configured for a backend service in IAP configuration.
 
-   * for Google account, simply browse to your domain i.e. `https://iap-test.mydomain.com` and
+   * For Google account, simply browse to your domain i.e. `https://iap-test.mydomain.com` and
    authenticate with your user credentials (you might need to switch your browser to *incognito mode*)
-   * for service accounts, follow [IAP Programmatic authentication](https://cloud.google.com/iap/docs/authentication-howto)
+   * For service accounts, follow [IAP Programmatic authentication](https://cloud.google.com/iap/docs/authentication-howto)
     guide
 
     Once authenticated,  *whereami* service used is this recipe will return JSON data, including
@@ -187,21 +187,21 @@ IAP setup can be done from [Google Cloud Console](https://console.cloud.google.c
 
 1. Configure oAuth consent screen
 
-   * browse to [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent)
-   * select desired usage type: *Internal* or *External* and click **Create** button
-   * as minimum, fill all required fields: **app name**, **user support email**,
+   * Browse to [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent)
+   * Select desired usage type: *Internal* or *External* and click **Create** button
+   * As a minimum, fill all required fields: **app name**, **user support email**,
      **developer contact email**
-   * click **Save and Continue** button
+   * Click **Save and Continue** button
 
 2. Configure oAuth credentials
 
-   * browse to [API & Services Credentials screen](https://console.cloud.google.com/apis/credentials/)
-   * click **Create Credentials** from bottom menu and select *OAuth Client ID* from drop-down list
-   * select *Web application* as application type
-   * fill name of your oAuth client
-   * click **Create** button
-   * once client is created, select it from the list to open details page
-   * notice **Client ID** and **Client Secret**  - you will use them in later configurations.
+   * Browse to [API & Services Credentials screen](https://console.cloud.google.com/apis/credentials/)
+   * Click **Create Credentials** from bottom menu and select *OAuth Client ID* from drop-down list
+   * Select *Web application* as application type
+   * Fill name of your oAuth client
+   * Click **Create** button
+   * Once client is created, select it from the list to open details page
+   * Notice **Client ID** and **Client Secret**  - you will use them in later configurations.
     They can be also downladed in JSON format.
-   * add **Authorized redirect URI** in a format `https://iap.googleapis.com/v1/oauth/clientIds/CLIENT_ID:handleRedirect`
+   * Add **Authorized redirect URI** in a format `https://iap.googleapis.com/v1/oauth/clientIds/CLIENT_ID:handleRedirect`
     *(replace CLIENT_ID with your valid one)*
