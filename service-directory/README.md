@@ -121,8 +121,7 @@ Events:
     service in the region that your GKE cluster exists in.
 
 ```sh
-$ gcloud service-directory services resolve whereami
---namespace=service-directory-demo --location=us-west1
+$ gcloud service-directory services resolve whereami --namespace=service-directory-demo --location=us-west1
 
 service:
   endpoints:
