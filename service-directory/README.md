@@ -1,4 +1,4 @@
-# Service Directory Service
+# Service Directory GKE Integration
 
 Service Directory for GKE is a cloud-hosted controller for GKE Clusters that
 sync services to Service Directory.
