@@ -71,7 +71,7 @@ $ cd gke-networking-recipes/service-directory
 
 1.  Create a GKE Cluster and register it with your fleet following the
     instructions
-    [here](https://cloud.google.com/anthos/multicluster-management/connect/reigstering-a-cluster)
+    [here](https://cloud.google.com/anthos/multicluster-management/connect/registering-a-cluster)
 
 1.  Enable the Service Directory feature on your fleet.
 
