@@ -36,9 +36,10 @@ The ServiceDirectoryRegistrationPolicy is the Custom Resource (CR) that is
 created for each Kubernetes namespace that should be synced to Service
 Directory.
 
-The ServiceDirectoryRegistrationPolicy below will sync: * Services with the
-label `sd-import: "true"` * Annotations with the key
-`cloud.google.com/load-balancer-type`
+The ServiceDirectoryRegistrationPolicy below will sync:
+
+*   Services with the label `sd-import: "true"`
+*   Annotations with the key `cloud.google.com/load-balancer-type`
 
 ```yaml
 apiVersion: networking.gke.io/v1alpha1
