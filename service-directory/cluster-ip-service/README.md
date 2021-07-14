@@ -61,12 +61,12 @@ spec:
 
 1.  Download this repo and navigate to this folder.
 
-```sh
-$ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
-Cloning into 'gke-networking-recipes'...
+    ```sh
+    $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
+    Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/service-directory
-```
+    $ cd gke-networking-recipes/service-directory
+    ```
 
 1.  Create a GKE Cluster and register it with your fleet following the
     instructions
@@ -74,55 +74,55 @@ $ cd gke-networking-recipes/service-directory
 
 1.  Enable the Service Directory feature on your fleet.
 
-```sh
-$ gcloud alpha container hub service-directory enable
-```
+    ```sh
+    $ gcloud alpha container hub service-directory enable
+    ```
 
 1.  Deploy the Namespace, Deployment, Service, and
     ServiceDirectoryRegistrationPolicy resources in the
     [cluster-ip-service.yaml](cluster-ip-service.yaml) manifest.
 
-```sh
-$ kubectl apply -f cluster-ip-service.yaml
-namespace/service-directory-demo created
-service/whereami created
-deployment.apps/whereami created
-servicedirectoryregistrationpolicy.networking.gke.io/default created
-```
+    ```sh
+    $ kubectl apply -f cluster-ip-service.yaml
+    namespace/service-directory-demo created
+    service/whereami created
+    deployment.apps/whereami created
+    servicedirectoryregistrationpolicy.networking.gke.io/default created
+    ```
 
 1.  Insepct the ClusterIP service.
 
-```sh
-$ kubectl describe services/whereami -n service-directory-demo
-Name:              whereami
-Namespace:         service-directory-demo
-Labels:            app=whereami
-                   sd-import=true
-Annotations:       description: Describes the location of the service
-Selector:          app=whereami
-Type:              ClusterIP
-IP:                10.115.253.250
-Port:              <unset>  80/TCP
-TargetPort:        8080/TCP
-Endpoints:         10.112.0.33:8080,10.112.0.34:8080,10.112.0.35:8080
-Session Affinity:  None
-Events:            <none>
-```
+    ```sh
+    $ kubectl describe services/whereami -n service-directory-demo
+    Name:              whereami
+    Namespace:         service-directory-demo
+    Labels:            app=whereami
+                       sd-import=true
+    Annotations:       description: Describes the location of the service
+    Selector:          app=whereami
+    Type:              ClusterIP
+    IP:                10.115.253.250
+    Port:              <unset>  80/TCP
+    TargetPort:        8080/TCP
+    Endpoints:         10.112.0.33:8080,10.112.0.34:8080,10.112.0.35:8080
+    Session Affinity:  None
+    Events:            <none>
+    ```
 
 1.  Validate that the service has synced to Service Directory by resolving the
     service in the region that your GKE cluster exists in.
 
-```sh
-$ gcloud service-directory services resolve whereami --namespace=service-directory-demo --location=us-west1
-service:
-  endpoints:
-  - address: 10.115.253.250
-    annotations:
-      description: Describes the location of the service
-    name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami/endpoints/my-cluster-1267585797
-    port: 80
-  name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami
-```
+    ```sh
+    $ gcloud service-directory services resolve whereami --namespace=service-directory-demo --location=us-west1
+    service:
+      endpoints:
+      - address: 10.115.253.250
+        annotations:
+          description: Describes the location of the service
+        name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami/endpoints/my-cluster-1267585797
+        port: 80
+      name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami
+    ```
 
 ### Cleanup
 

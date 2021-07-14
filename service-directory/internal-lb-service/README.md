@@ -56,20 +56,20 @@ spec:
         matchLabels:
           sd-import: "true"
       annotationsToSync:
-      - "cloud.google.com/load-balancer-type"
-      - "description"
+      - cloud.google.com/load-balancer-type
+      - description
 ```
 
 ### Try it out
 
 1.  Download this repo and navigate to this folder.
 
-```sh
-$ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
-Cloning into 'gke-networking-recipes'...
+    ```sh
+    $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
+    Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/service-directory
-```
+    $ cd gke-networking-recipes/service-directory
+    ```
 
 1.  Create a GKE Cluster and register it with your fleet following the
     instructions
@@ -77,66 +77,66 @@ $ cd gke-networking-recipes/service-directory
 
 1.  Enable the Service Directory feature on your fleet.
 
-```sh
-$ gcloud alpha container hub service-directory enable
-```
+    ```sh
+    $ gcloud alpha container hub service-directory enable
+    ```
 
 1.  Deploy the Namespace, Deployment, Service, and
     ServiceDirectoryRegistrationPolicy resources in the
     [internal-lb-service.yaml](internal-lb-service.yaml) manifest.
 
-```sh
-$ kubectl apply -f internal-lb-service.yaml
-namespace/service-directory-demo created
-service/whereami created
-deployment.apps/whereami created
-servicedirectoryregistrationpolicy.networking.gke.io/default created
-```
+    ```sh
+    $ kubectl apply -f internal-lb-service.yaml
+    namespace/service-directory-demo created
+    service/whereami created
+    deployment.apps/whereami created
+    servicedirectoryregistrationpolicy.networking.gke.io/default created
+    ```
 
 1.  It can take a few minutes for the internal LoadBalancer IP of the Service
     resource to be ready. Insepct the LoadBalancer service.
 
-```sh
-$ kubectl describe services/whereami -n service-directory-demo
-Name:                     whereami
-Namespace:                service-directory-demo
-Labels:                   app=whereami
-                          sd-import=true
-Annotations:              cloud.google.com/load-balancer-type: Internal
-                          description: Describes the location of the service
-Selector:                 app=whereami
-Type:                     LoadBalancer
-IP:                       10.115.242.74
-LoadBalancer Ingress:     10.138.15.197
-Port:                     <unset>  80/TCP
-TargetPort:               8080/TCP
-NodePort:                 <unset>  30544/TCP
-Endpoints:                10.112.0.22:8080,10.112.0.23:8080,10.112.0.24:8080
-Session Affinity:         None
-External Traffic Policy:  Cluster
-Events:
-  Type    Reason                Age   From                Message
-  ----    ------                ----  ----                -------
-  Normal  EnsuringLoadBalancer  64s   service-controller  Ensuring load balancer
-  Normal  EnsuredLoadBalancer   2s    service-controller  Ensured load balancer
-```
+    ```sh
+    $ kubectl describe services/whereami -n service-directory-demo
+    Name:                     whereami
+    Namespace:                service-directory-demo
+    Labels:                   app=whereami
+                              sd-import=true
+    Annotations:              cloud.google.com/load-balancer-type: Internal
+                              description: Describes the location of the service
+    Selector:                 app=whereami
+    Type:                     LoadBalancer
+    IP:                       10.115.242.74
+    LoadBalancer Ingress:     10.138.15.197
+    Port:                     <unset>  80/TCP
+    TargetPort:               8080/TCP
+    NodePort:                 <unset>  30544/TCP
+    Endpoints:                10.112.0.22:8080,10.112.0.23:8080,10.112.0.24:8080
+    Session Affinity:         None
+    External Traffic Policy:  Cluster
+    Events:
+      Type    Reason                Age   From                Message
+      ----    ------                ----  ----                -------
+      Normal  EnsuringLoadBalancer  64s   service-controller  Ensuring load balancer
+      Normal  EnsuredLoadBalancer   2s    service-controller  Ensured load balancer
+    ```
 
 1.  Validate that the service has synced to Service Directory by resolving the
     service in the region that your GKE cluster exists in.
 
-```sh
-$ gcloud service-directory services resolve whereami --namespace=service-directory-demo --location=us-west1
+    ```sh
+    $ gcloud service-directory services resolve whereami --namespace=service-directory-demo --location=us-west1
 
-service:
-  endpoints:
-  - address: 10.138.15.197
-    annotations:
-      cloud.google.com/load-balancer-type: Internal
-      description: Describes the location of the service
-    name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami/endpoints/my-cluster-1762298646
-    port: 80
-  name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami
-```
+    service:
+      endpoints:
+      - address: 10.138.15.197
+        annotations:
+          cloud.google.com/load-balancer-type: Internal
+          description: Describes the location of the service
+        name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami/endpoints/my-cluster-1762298646
+        port: 80
+      name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami
+    ```
 
 ### Cleanup
 
