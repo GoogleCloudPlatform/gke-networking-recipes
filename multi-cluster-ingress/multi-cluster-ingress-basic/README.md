@@ -4,7 +4,7 @@
 
 ### Use-cases
 
-- Disaster recovery for internet traffic across clusters or regioins
+- Disaster recovery for internet traffic across clusters or regions
 - Flexible migration between clusters
 - Low-latency serving of traffic to globally distributed GKE clusters
 

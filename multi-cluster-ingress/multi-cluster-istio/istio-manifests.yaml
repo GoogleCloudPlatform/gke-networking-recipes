@@ -1,0 +1,46 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-ingressgateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  # servers:
+  # - hosts:
+  #   - '*'
+  #   port:
+  #     number: 80
+  #     name: http
+  #     protocol: HTTP
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: whereami-credentials #Must exist as a secret in the istio-system namespace
+      minProtocolVersion: TLSV1_2
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: whereami
+  namespace: default
+spec:
+  gateways:
+  - istio-ingressgateway
+  hosts:
+  - 'whereami.abdel.cloud'
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: whereami.default.svc.cluster.local
+        port:
+          number: 8080
