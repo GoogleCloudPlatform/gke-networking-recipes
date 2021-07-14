@@ -113,7 +113,7 @@ spec:
 
 1.  Inspect the Nodes in which the pods are running on
 
-    Note: The cluster used in this example only had 1 node.
+    **Note: The cluster used in this example only had 1 node.**
 
     ```sh
     $ kubectl describe nodes
