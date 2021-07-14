@@ -23,7 +23,7 @@ metadata:
   name: whereami
   namespace: service-directory-demo
   annotations:
-    cloud.google.com/load-balancer-type: "Internal"
+    description: "Describes the location of the service"
   labels:
     app: whereami
     sd-import: "true"
@@ -34,7 +34,8 @@ spec:
     protocol: TCP
   selector:
     app: whereami
-  type: LoadBalancer
+  type: ClusterIP
+  clusterIP: None
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -78,4 +79,4 @@ spec:
         matchLabels:
           sd-import: "true"
       annotationsToSync:
-      - cloud.google.com/load-balancer-type
+      - "description"
