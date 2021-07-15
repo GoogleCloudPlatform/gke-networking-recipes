@@ -1,7 +1,7 @@
 # Service Directory GKE Integration - Internal LoadBalancer Service
 
 Service Directory for GKE is a cloud-hosted controller for GKE Clusters that
-sync services to Service Directory.
+syncs Kubernetes Services to Service Directory.
 
 This example syncs an Internal Load Balancer service deployed on GKE to Service
 Directory. See the
@@ -28,12 +28,12 @@ the full deployment spec.
 
 ### Networking Manifests
 
-This recipe demonstrates deploying a LoadBalancer service and creating a
-ServiceDirectoryRegistrationPolicy that enables that service to sync to Service
+This recipe demonstrates deploying a LoadBalancer Service and creating a
+ServiceDirectoryRegistrationPolicy that enables the Service to sync to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy is the Custom Resource (CR) that is
-created for each Kubernetes namespace that should be synced to Service
+created for each Kubernetes Namespace that should be synced to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy below will sync:
@@ -94,7 +94,7 @@ spec:
     ```
 
 1.  It can take a few minutes for the internal LoadBalancer IP of the Service
-    resource to be ready. Insepct the LoadBalancer service.
+    resource to be ready. Insepct the LoadBalancer Service.
 
     ```sh
     $ kubectl describe services/whereami -n service-directory-demo

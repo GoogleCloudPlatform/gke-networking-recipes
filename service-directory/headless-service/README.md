@@ -1,7 +1,7 @@
 # Service Directory GKE Integration - Headless Service
 
 Service Directory for GKE is a cloud-hosted controller for GKE Clusters that
-sync services to Service Directory.
+syncs Kubernetes Services to Service Directory.
 
 This example syncs a Headless service deployed on GKE to Service Directory. See
 the [headless-service.yaml](headless-service.yaml) manifest for the full
@@ -27,12 +27,12 @@ deployment spec.
 
 ### Networking Manifests
 
-This recipe demonstrates deploying a Headless service and creating a
-ServiceDirectoryRegistrationPolicy that enables that service to sync to Service
+This recipe demonstrates deploying a Headless Service and creating a
+ServiceDirectoryRegistrationPolicy that enables the Service to sync to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy is the Custom Resource (CR) that is
-created for each Kubernetes namespace that should be synced to Service
+created for each Kubernetes Namespace that should be synced to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy below will sync:
@@ -134,7 +134,7 @@ spec:
       name: projects/my-project/locations/us-west1/namespaces/service-directory-demo/services/whereami
     ```
 
-1.  Scale up the deployment of the Headless service.
+1.  Scale up the deployment of the Headless Service.
 
     ```sh
     $ kubectl scale deployment.v1.apps/whereami -n service-directory-demo --replicas=5

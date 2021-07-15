@@ -1,9 +1,9 @@
 # Service Directory GKE Integration - ClusterIP Service
 
 Service Directory for GKE is a cloud-hosted controller for GKE Clusters that
-sync services to Service Directory.
+syncs Kubernetes Services to Service Directory.
 
-This example syncs a ClusterIP service deployed on GKE to Service Directory. See
+This example syncs a ClusterIP Service deployed on GKE to Service Directory. See
 the [cluster-ip-service.yaml](cluster-ip-service.yaml) manifest for the full
 deployment spec.
 
@@ -27,12 +27,12 @@ deployment spec.
 
 ### Networking Manifests
 
-This recipe demonstrates deploying a ClusterIP service and creating a
-ServiceDirectoryRegistrationPolicy that enables that service to sync to Service
+This recipe demonstrates deploying a ClusterIP Service and creating a
+ServiceDirectoryRegistrationPolicy that enables the Service to sync to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy is the Custom Resource (CR) that is
-created for each Kubernetes namespace that should be synced to Service
+created for each Kubernetes Namespace that should be synced to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy below will sync:
@@ -90,7 +90,7 @@ spec:
     servicedirectoryregistrationpolicy.networking.gke.io/default created
     ```
 
-1.  Insepct the ClusterIP service.
+1.  Insepct the ClusterIP Service.
 
     ```sh
     $ kubectl describe services/whereami -n service-directory-demo

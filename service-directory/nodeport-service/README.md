@@ -1,9 +1,9 @@
 # Service Directory GKE Integration - NodePort Service
 
 Service Directory for GKE is a cloud-hosted controller for GKE Clusters that
-sync services to Service Directory.
+syncs Kubernetes Services to Service Directory.
 
-This example syncs a NodePort service deployed on GKE to Service Directory. See
+This example syncs a NodePort Service deployed on GKE to Service Directory. See
 the [nodeport-service.yaml](nodeport-service.yaml) manifest for the full
 deployment spec.
 
@@ -27,8 +27,8 @@ deployment spec.
 
 ### Networking Manifests
 
-This recipe demonstrates deploying a NodePort service and creating a
-ServiceDirectoryRegistrationPolicy that enables that service to sync to Service
+This recipe demonstrates deploying a NodePort Service and creating a
+ServiceDirectoryRegistrationPolicy that enables the Service to sync to Service
 Directory.
 
 The ServiceDirectoryRegistrationPolicy is the Custom Resource (CR) that is
@@ -90,7 +90,7 @@ spec:
     servicedirectoryregistrationpolicy.networking.gke.io/default created
     ```
 
-1.  Insepct the NodePort service.
+1.  Insepct the NodePort Service.
 
     ```sh
     $ kubectl describe services/whereami -n service-directory-demo
@@ -111,7 +111,7 @@ spec:
     Events:                   <none>
     ```
 
-1.  Inspect the Nodes in which the pods are running on
+1.  Inspect the Nodes in which the Pods are running on
 
     **Note: The cluster used in this example only had 1 node.**
 
