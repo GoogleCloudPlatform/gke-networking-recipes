@@ -122,7 +122,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     - app.yaml is the manifest for the `default-backend` Deployment. This manifest should be deployed on both clusters.
     - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
 
-4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../cluster-setup.md).
+4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
 
     ```sh
     $ kubectl --context=gke-1 apply -f app.yaml
