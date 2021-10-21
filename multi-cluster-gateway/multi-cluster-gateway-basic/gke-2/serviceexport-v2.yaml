@@ -1,5 +1,0 @@
-kind: ServiceExport
-apiVersion: net.gke.io/v1
-metadata:
-  name: store-v2
-  namespace: store
