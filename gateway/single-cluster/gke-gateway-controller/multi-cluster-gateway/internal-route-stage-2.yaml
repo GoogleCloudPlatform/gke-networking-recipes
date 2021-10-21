@@ -1,0 +1,27 @@
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: internal-store-route
+  namespace: store
+  labels:
+    gateway: internal-http
+spec:
+  hostnames:
+  - "store.example.internal"
+  rules:
+# Sends all traffic to store-west-1 ServiceImport
+  - forwardTo:
+    - backendRef:
+        group: net.gke.io
+        kind: ServiceImport
+        name: store-west-1
+      port: 8080
+# Also mirrors all traffic to store-west-2 ServiceImport
+    filters:
+    - type: RequestMirror
+      requestMirror:
+        backendRef:
+          group: net.gke.io
+          kind: ServiceImport
+          name: store-west-2
+        port: 8080
