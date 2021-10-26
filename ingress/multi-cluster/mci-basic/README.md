@@ -4,7 +4,7 @@
 
 ### Use-cases
 
-- Disaster recovery for internet traffic across clusters or regioins
+- Disaster recovery for internet traffic across clusters or regions
 - Flexible migration between clusters
 - Low-latency serving of traffic to globally distributed GKE clusters
 
@@ -117,9 +117,17 @@ Now that you have the background knowledge and understanding of MCI, you can try
     $ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-ingress-basic
     ```
 
-2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../cluster-setup.md)
+2. Set up Environment variables
 
-3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
+    ```bash
+    export PROJECT=$(gcloud config get-value project) # or your preferred project
+    export GKE1_REGION=GCP_CLOUD_REGION # Pick a supported Region/Zone for cluster gke-1
+    export GKE2_REGIOn=GCP_CLOUD_REGION # Pick a supported Region/Zone for cluster gke-2
+    ```
+
+3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#Multi-cluster-environment-basic)
+
+4. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
 
     There are two manifests in this folder:
 
