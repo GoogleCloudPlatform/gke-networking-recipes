@@ -27,13 +27,13 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     ```bash
     gcloud container clusters create gke-1 \
-      --zone us-west1-a \
+      --zone ${GKE1_REGION}\
       --enable-ip-alias \
       --release-channel rapid \
       --workload-pool=${PROJECT}.svc.id.goog --async
 
     gcloud container clusters create gke-2 \
-      --zone us-east1-b \
+      --zone $GKE2_REGION \
       --enable-ip-alias \
       --release-channel rapid \
       --workload-pool=${PROJECT}.svc.id.goog --async
@@ -45,9 +45,9 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     ```bash
 
-    kubectl config rename-context gke_${PROJECT}_us-west1-a_gke-1 gke-1
+    kubectl config rename-context gke_${PROJECT}_${GKE1_REGION}_gke-1 gke-1
 
-    kubectl config rename-context gke_${PROJECT}_us-east1-b_gke-2 gke-2
+    kubectl config rename-context gke_${PROJECT}_${GKE2_REGION}_gke-2 gke-2
     ```
 
 3. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
@@ -69,11 +69,11 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     ```bash
     gcloud container hub memberships register gke-1
-      --gke-cluster us-west1-a/gke-1
+      --gke-cluster ${GKE1_REGION}/gke-1
       --enable-workload-identity
 
      gcloud container hub memberships register gke-2
-      --gke-cluster us-east1-b/gke-2
+      --gke-cluster ${GKE2_REGION}/gke-2
       --enable-workload-identity
     ```
 
