@@ -27,33 +27,40 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     ```bash
     gcloud container clusters create gke-1 \
-      --zone ${GKE1_REGION}\
+      --zone ${GKE1_ZONE} \
       --enable-ip-alias \
       --release-channel rapid \
       --workload-pool=${PROJECT}.svc.id.goog --async
 
     gcloud container clusters create gke-2 \
-      --zone $GKE2_REGION \
+      --zone ${GKE2_ZONE} \
       --enable-ip-alias \
       --release-channel rapid \
       --workload-pool=${PROJECT}.svc.id.goog --async
     ```
 
-2. Rename contexts
+    Clusters creation takes around 5 min to complete
+
+2. Get the clusters credentials
+
+    ```bash
+    gcloud container clusters get-credentials gke-1 --zone $GKE1_ZONE
+    gcloud container clusters get-credentials gke-2 --zone $GKE2_ZONE
+    ```
+
+3. Rename contexts
 
     The prior step will have added credentials for your new clusters to your `kubeconfig`, but let's rename the contexts to something a little shorter:
 
     ```bash
+    kubectl config rename-context gke_${PROJECT}_${GKE1_ZONE}_gke-1 gke-1
 
-    kubectl config rename-context gke_${PROJECT}_${GKE1_REGION}_gke-1 gke-1
-
-    kubectl config rename-context gke_${PROJECT}_${GKE2_REGION}_gke-2 gke-2
+    kubectl config rename-context gke_${PROJECT}_${GKE2_ZONE}_gke-2 gke-2
     ```
 
-3. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
+4. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
 
     ```bash
-
     gcloud services enable gkehub.googleapis.com
 
     gcloud services enable anthos.googleapis.com
@@ -61,23 +68,23 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     gcloud services enable multiclusteringress.googleapis.com
     ```
 
-4. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`). 
+5. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`). 
 
     There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
 
     Register the clusters with Hub.
 
     ```bash
-    gcloud container hub memberships register gke-1
-      --gke-cluster ${GKE1_REGION}/gke-1
+    gcloud container hub memberships register gke-1 \
+      --gke-cluster ${GKE1_ZONE}/gke-1 \
       --enable-workload-identity
 
-     gcloud container hub memberships register gke-2
-      --gke-cluster ${GKE2_REGION}/gke-2
+     gcloud container hub memberships register gke-2 \
+      --gke-cluster ${GKE2_ZONE}/gke-2 \
       --enable-workload-identity
     ```
 
-    Confirm that they are registered with Hub.
+    Confirm that they are registered with Hub. Your EXTERNAL_ID values might be different.
 
     ```bash
     $ gcloud container hub memberships list
@@ -86,33 +93,43 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
     ```
 
-5. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
+6. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
 
     ```bash
     gcloud container hub ingress enable \
       --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
     ```
 
-6. Confirm that MCI is configured properly.
+7. Confirm that MCI is configured properly.
 
     ```bash
     gcloud container hub ingress describe
-    createTime: '2020-08-16T05:15:32.127012063Z'
-    featureState:
-      details:
+
+    createTime: '2021-01-14T09:09:57.475070502Z'
+    membershipStates:
+      projects/349736299228/locations/global/memberships/gke-1:
+        state:
+          code: OK
+          updateTime: '2021-10-27T15:10:44.499214418Z'
+      projects/349736299228/locations/global/memberships/gke-2:
+        state:
+          code: OK
+          updateTime: '2021-10-27T15:10:44.499215578Z'
+    name: projects/gke-net-recipes/locations/global/features/multiclusteringress
+    resourceState:
+      state: ACTIVE
+    spec:
+      multiclusteringress:
+        configMembership: projects/gke-net-recipes/locations/global/memberships/gke-1
+    state:
+      state:
         code: OK
         description: Ready to use
-      detailsByMembership:
-        projects/1050705688268/locations/global/memberships/gke-1:
-          code: OK
-      hasResources: true
-      lifecycleState: ENABLED
-    multiclusteringressFeatureSpec:
-      configMembership: projects/alexmattson-ifa-081520-0404/locations/global/memberships/i4a-us-central1-01
-    name: projects/alexmattson-ifa-081520-0404/locations/global/features/multiclusteringress
-    updateTime: '2020-08-16T05:15:33.464612511Z'
+        updateTime: '2021-10-27T15:09:33.451139409Z'
+    updateTime: '2021-01-14T09:09:59.186872460Z'
     ```
-
+  8. At this stage your clusters for MCI are ready, you can return to the tutorial you started with.
+  
 ## Multi-cluster environment blue/green
 
 To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE cluster in the same region as `gke-1`. This section builds on the [previous section](#multi-cluster-environment-basic), and assumes you still have those clusters up and running.
