@@ -155,14 +155,16 @@ Now that you have the background knowledge and understanding of MCI, you can try
     cd gke-networking-recipes/ingress/multi-cluster-ingress/mci-frontend-config
     ```
 
-2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#multi-cluster-environment-basic)
+2. Set up Environment variables
 
-3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
+    ```bash
+    export PROJECT=$(gcloud config get-value project) # or your preferred project
+    export GKE1_ZONE=GCP_CLOUD_ZONE # Pick a supported Zone for cluster gke-1
+    export GKE2_ZONE=GCP_CLOUD_ZONE # Pick a supported Zone for cluster gke-2
+    ```
+  NB: This tutorial uses Zonal Clusters, you can also use Regional Clusters. Replace a Zone with a region and use the ```--region``` flag instead of ```--zone``` in the next steps
 
-    There are two manifests in this folder:
-
-    - app.yaml is the manifest for the foo and bar Deployments. This manifest should be deployed on both clusters.
-    - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
+3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#multi-cluster-environment-basic). Once done, come back to the next step.
 
 4. Create a Static IP for the LoadBalancer and register it to DNS
     
@@ -181,6 +183,8 @@ Now that you have the background knowledge and understanding of MCI, you can try
     ```
 
     Copy the IP address (not the name the actual IP in the form x.x.x.x). You will need to register it as an A record with your DNS Server for every host you intend to configure the LoadBalancer for. In this example you will need the IP address to be mapped to ```bar.$DOMAIN``` and ```foo.$DOMAIN```. Replace ```$DOMAIN``` with your own domain, Exp: ```mycompany.com```.
+
+    Save the IP address for later.
 
 5. Provision Google-Managed Certificates
 
@@ -204,7 +208,15 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
     The MANAGED_STATUS will indicate ```PROVISIONNING```. This is normal, the certificates will be provisionned when you deploy the MCI
 
-6.Log in to each cluster and deploy the app.yaml manifest.
+6. Create the SSL Policy.
+
+    Create an [SSL policy](https://cloud.google.com/load-balancing/docs/use-ssl-policies#creating_an_ssl_policy_with_a_google-managed_profile) with Min TLS version 1.2 and a RESTRICTED profile. This is just for demo purposes. Later we will try to connect to the Loadbalancer with TLS v1.1 and see that the connection will rejected.
+
+    ```bash
+    gcloud compute ssl-policies create ssl-policy --profile RESTRICTED --min-tls-version 1.2 
+    ```
+
+7. Log in to each cluster and deploy the app.yaml manifest.
 
     ```sh
     kubectl --context=gke-1 apply -f app.yaml
@@ -220,6 +232,12 @@ Now that you have the background knowledge and understanding of MCI, you can try
     deployment.apps/default-backend created
 
     # Shows that all pods are running and happy
+    kubectl --context=gke-1 get deploy -n multi-cluster-demo
+    NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+    bar               2/2     2            2           44m
+    default-backend   1/1     1            1           44m
+    foo               2/2     2            2           44m
+    
     kubectl --context=gke-2 get deploy -n multi-cluster-demo
     NAME              READY   UP-TO-DATE   AVAILABLE   AGE
     bar               2/2     2            2           44m
@@ -227,9 +245,12 @@ Now that you have the background knowledge and understanding of MCI, you can try
     foo               2/2     2            2           44m
     ```
 
+8. Edit the ingress.yaml file and update:
 
-5. Now log into `gke-1` and deploy the ingress.yaml manifest.
+- ```networking.gke.io/static-ip``` value with the IP address you reserved earlier.
+- ```$DOMAIN``` with your own domain.
 
+9. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
     ```bash
     kubectl --context=gke-1 apply -f ingress.yaml
@@ -240,7 +261,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     backendconfig.cloud.google.com/backend-health-check created
     ```
 
-6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
+10. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
 
     ```bash
     kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
@@ -307,83 +328,141 @@ Now that you have the background knowledge and understanding of MCI, you can try
       Normal  UPDATE  49m (x2 over 50m)  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
     ```
 
-    ```bash
-    # capture the IP address for the MCI resource
-    export MCI_ENDPOINT=$(kubectl --context=gke-1 get mci -n multi-cluster-demo -o yaml | grep "VIP" | awk 'END{ print $2}')
-    ```
-
-7. Now use the IP address from the MCI output to reach the load balancer. Try hitting the load balancer on the different host rules to confirm that traffic is being routed correctly. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
+11. Now use the hosts defined in the MCI to reach the load balancer. Start by checking HTTP to HTTPS redirect works (you can also check in your browser). We use curl with the -v for verbose and -L to tell curl to follow the returns HTTPS link flags
 
     ```bash
     # Hitting the default backend
-    $ curl -s ${MCI_ENDPOINT} | jq -r '.zone, .cluster_name, .pod_name'
-    us-west1-a
-    gke-1
-    default-backend-6b9bd45db8-gzdjc
-
-    # Hitting the foo Service
-    $ curl -s -H "host: foo.example.com" ${MCI_ENDPOINT}  | jq -r '.zone, .cluster_name, .pod_name'
-    us-west1-a
-    gke-1
-    foo-7b994cdbd5-wxgpk
-
-    # Hitting the bar Service
-    $ curl -s -H "host: bar.example.com" ${MCI_ENDPOINT}  | jq -r '.zone, .cluster_name, .pod_name'
-    us-west1-a
-    gke-1
-    bar-5bdf58646c-rbbdn
+    $ curl -v -L foo.${DOMAIN} 
+    *   Trying x.x.x.x...
+    * TCP_NODELAY set
+    * Connected to foo.$DOMAIN (x.x.x.x) port 80 (#0)
+    > GET / HTTP/1.1
+    > Host: foo.$DOMAIN
+    > User-Agent: curl/7.64.1
+    > Accept: */*
+    > 
+    < HTTP/1.1 302 Found
+    < Cache-Control: private
+    < Content-Type: text/html; charset=UTF-8
+    < Referrer-Policy: no-referrer
+    < Location: https://foo.$DOMAIN/
+    < Content-Length: 221
+    < Date: Wed, 27 Oct 2021 15:46:31 GMT
+    < 
+    * Ignoring the response-body
+    * Connection #0 to host foo.$DOMAIN left intact
+    * Issue another request to this URL: 'https://foo.$DOMAIN/'
+    *   Trying x.x.x.x...
+    * TCP_NODELAY set
+    * Connected to foo.$DOMAIN (x.x.x.x) port 443 (#1)
+    * ALPN, offering h2
+    * ALPN, offering http/1.1
+    * successfully set certificate verify locations:
+    *   CAfile: /etc/ssl/cert.pem
+      CApath: none
+    * TLSv1.2 (OUT), TLS handshake, Client hello (1):
+    * TLSv1.2 (IN), TLS handshake, Server hello (2):
+    * TLSv1.2 (IN), TLS handshake, Certificate (11):
+    * TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+    * TLSv1.2 (IN), TLS handshake, Server finished (14):
+    * TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+    * TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+    * TLSv1.2 (OUT), TLS handshake, Finished (20):
+    * TLSv1.2 (IN), TLS change cipher, Change cipher spec (1):
+    * TLSv1.2 (IN), TLS handshake, Finished (20):
+    * SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+    * ALPN, server accepted to use h2
+    * Server certificate:
+    *  subject: CN=foo.$DOMAIN
+    *  start date: Oct 27 14:17:45 2021 GMT
+    *  expire date: Jan 25 14:17:44 2022 GMT
+    *  subjectAltName: host "foo.$DOMAIN" matched cert's "foo.$DOMAIN"
+    *  issuer: C=US; O=Google Trust Services LLC; CN=GTS CA 1D4
+    *  SSL certificate verify ok.
+    * Using HTTP2, server supports multi-use
+    * Connection state changed (HTTP/2 confirmed)
+    * Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+    * Using Stream ID: 1 (easy handle 0x7fe198808200)
+    > GET / HTTP/2
+    > Host: foo.$DOMAIN
+    > User-Agent: curl/7.64.1
+    > Accept: */*
+    > 
+    * Connection state changed (MAX_CONCURRENT_STREAMS == 100)!
+    < HTTP/2 200 
+    < content-type: application/json
+    < content-length: 357
+    < access-control-allow-origin: *
+    < server: Werkzeug/2.0.1 Python/3.8.11
+    < date: Wed, 27 Oct 2021 15:46:31 GMT
+    < via: 1.1 google
+    < alt-svc: clear
+    < 
+    {
+      "cluster_name": "gke-2", 
+      "host_header": "foo.$DOMAIN", 
+      "metadata": "foo", 
+      "node_name": "gke-gke-2-default-pool-68298253-q0mx.c.gke-net-recipes.internal", 
+      "pod_name": "foo-5db8bcc6ff-j2cf6", 
+      "pod_name_emoji": "🦹🏿‍♀️", 
+      "project_id": "gke-net-recipes", 
+      "timestamp": "2021-10-27T15:46:31", 
+      "zone": "europe-west6-a"
+    }
+    * Connection #1 to host foo.$DOMAIN left intact
+    * Closing connection 0
+    * Closing connection 1
     ```
 
-8. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service. 
+The LoadBalancer returns ```302 FOUND``` with an HTTPS URL. curl reconnected to that new URL, negociated TLS and returned the output of the app. This proofs HTTP to HTTPS redirect works
+
+12. Now Let's try to connect with a TLS version < 1.2. 
 
     ```bash
-    $ while true; do curl -s -H "host: foo.example.com" ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
+    curl --TLSV1.1 --tls-max 1.1 -L -v http://foo.$DOMAIN
+    *   Trying x.x.x.x...
+    * TCP_NODELAY set
+    * Connected to foo.$DOMAIN (x.x.x.x) port 80 (#0)
+    > GET / HTTP/1.1
+    > Host: foo.$DOMAIN
+    > User-Agent: curl/7.64.1
+    > Accept: */*
+    > 
+    < HTTP/1.1 302 Found
+    < Cache-Control: private
+    < Content-Type: text/html; charset=UTF-8
+    < Referrer-Policy: no-referrer
+    < Location: https://foo.$DOMAIN/
+    < Content-Length: 221
+    < Date: Wed, 27 Oct 2021 15:51:30 GMT
+    < 
+    * Ignoring the response-body
+    * Connection #0 to host foo.$DOMAIN left intact
+    * Issue another request to this URL: 'https://foo.$DOMAIN/'
+    *   Trying x.x.x.x...
+    * TCP_NODELAY set
+    * Connected to foo.$DOMAIN (x.x.x.x) port 443 (#1)
+    * ALPN, offering h2
+    * ALPN, offering http/1.1
+    * successfully set certificate verify locations:
+    *   CAfile: /etc/ssl/cert.pem
+      CApath: none
+    * TLSv1.1 (OUT), TLS handshake, Client hello (1):
+    * TLSv1.1 (IN), TLS alert, protocol version (582):
+    * error:1400442E:SSL routines:CONNECT_CR_SRVR_HELLO:tlsv1 alert protocol version
+    * Closing connection 1
 
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-    ...
     ```
 
-**Note:** Traffic will be load balanced to the closest cluster to the client. If you are curling from your laptop then your traffic will be directed to the closest GKE cluster to you. Whichever cluster is recieving traffic in this step will be the closest one to you so fail pods in that cluster in the next step and watch traffic failover to the other cluster.
-
-9. Open up a second shell to scale the replicas down to zero. 
-
-    ```bash
-    # Do this in the same cluster where the response came from in the previous step
-    $ kubectl --context=gke-1 scale --replicas=0 deploy foo -n multi-cluster-demo
-    deployment.apps/foo scaled
-
-    $ kubectl get deploy -n multi-cluster-demo foo
-    NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-    foo    0/0     0            0           63m
-    ```
-
-7. Watch how traffic switches from one cluster to another as the Pods dissappear from `gke-1`. Because the `foo` Pods from both clusters are active-active backends to the load balancer, there is no traffic interuption or delay when switching over traffic from one cluster to the other. Traffic is seamllessly routed to the available backends in the other cluster.
-
-    ```bash
-    ...
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-p2n59"}
-    {"cluster":"gke-1","pod":"foo-7b994cdbd5-2jnks"}
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"} # <----- cutover happens here
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-97wmt"}
-    {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
-    ...
-    ```
-
-
+  The LoadBalancer returns ```302 FOUND``` with an HTTPS URL. curl tried to reconnect with TLSv1.1 but got a ```error:1400442E:SSL routines:CONNECT_CR_SRVR_HELLO:tlsv1 alert protocol version``` error
 
 ### Cleanup
 
-```sh
-
+```bash
+kubectl --context=gke-1 delete -f ingress.yaml
 kubectl --context=gke-1 delete -f app.yaml
-kubectl --context=gke-1 delete -f ingress.yaml # this is unnecessary as the namespace hosting these CRDs has already been deleted in the previous step
 kubectl --context=gke-2 delete -f app.yaml
+gcloud compute addresses delete mci-address --global --quiet
+gcloud compute ssl-certificates delete mci-certs --quiet
+gcloud compute ssl-policies delete ssl-policy --quiet
 ```

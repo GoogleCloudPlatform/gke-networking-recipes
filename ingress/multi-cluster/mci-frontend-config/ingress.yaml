@@ -5,7 +5,7 @@ metadata:
   namespace: multi-cluster-demo
   annotations:
     networking.gke.io/frontend-config: "frontend-config"
-    networking.gke.io/static-ip: 34.117.81.208
+    networking.gke.io/static-ip: x.x.x.x
     networking.gke.io/pre-shared-certs: "mci-certs"
 spec:
   template:
@@ -14,13 +14,13 @@ spec:
         serviceName: default-backend
         servicePort: 8080
       rules:
-      - host: foo.abdel.cloud
+      - host: foo.$DOMAIN
         http:
           paths:
             - backend:
                 serviceName: foo
                 servicePort: 8080
-      - host: bar.abdel.cloud
+      - host: bar.foo.$DOMAIN
         http:
           paths:
             - backend:
