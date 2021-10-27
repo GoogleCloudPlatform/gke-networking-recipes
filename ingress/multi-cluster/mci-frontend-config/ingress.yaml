@@ -6,7 +6,7 @@ metadata:
   annotations:
     networking.gke.io/frontend-config: "frontend-config"
     networking.gke.io/static-ip: 34.117.81.208
-    networking.gke.io/pre-shared-certs: "mci-abdel-cloud-certs"
+    networking.gke.io/pre-shared-certs: "mci-certs"
 spec:
   template:
     spec:
