@@ -12,10 +12,10 @@ $ export PROJECT=$(gcloud config get-value project) # or your preferred project
 The single-cluster examples use the following GKE setup for deploying the manifests.
 
 ```bash
-$ gcloud container clusters create gke-1 \
-	--zone us-west1-a \
-	--enable-ip-alias \
-  	--release-channel rapid 
+  gcloud container clusters create gke-1 \
+    --zone us-west1-a \
+    --enable-ip-alias \
+      --release-channel rapid 
 ```
 
 
@@ -87,10 +87,11 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     Confirm that they are registered with Hub. Your EXTERNAL_ID values might be different.
 
     ```bash
-    $ gcloud container hub memberships list
-    NAME   EXTERNAL_ID
-    gke-1  50468ae8-29a3-4ea1-b7ff-0e216533619a
-    gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
+       gcloud container hub memberships list
+
+       NAME   EXTERNAL_ID
+       gke-1  50468ae8-29a3-4ea1-b7ff-0e216533619a
+       gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
     ```
 
 6. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
@@ -146,7 +147,7 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
 2. Rename context
 
     ```bash
-    $ kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
+       kubectl config rename-context gke_${PROJECT}_us-west1-b_gke-3 gke-3
     ```
 
 3. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) `gke-3`, following the same steps used previously.
@@ -154,16 +155,17 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
     Again, figuring out the `gke-uri` of a given cluster can be tricky, so use:
 
     ```bash
-    $ gcloud container clusters list --uri
+       gcloud container clusters list --uri
     ```
 
     Confirm registration of your clusters.
-    ```
-    $ gcloud container hub memberships list
-    NAME   EXTERNAL_ID
-    gke-3  8187e1cd-35e8-41e1-b204-8ac5c7c7a240
-    gke-2  47081e57-c326-4fa0-b808-7a7652863d32
-    gke-1  90eeb089-cd16-4281-85ce-e724953249dc
+    ```bash
+      gcloud container hub memberships list
+      
+      NAME   EXTERNAL_ID
+      gke-3  8187e1cd-35e8-41e1-b204-8ac5c7c7a240
+      gke-2  47081e57-c326-4fa0-b808-7a7652863d32
+      gke-1  90eeb089-cd16-4281-85ce-e724953249dc
     ```
 
 
@@ -174,32 +176,31 @@ In order to use Multi-cluster services, following steps need to be completed to 
 1. Enable the CloudDNS, Traffic Director, MultiClusterServiceDiscovery APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/multi-cluster-services#before_you_begin).
 
     ```bash
+      gcloud services enable dns.googleapis.com
 
-    $ gcloud services enable dns.googleapis.com
+      gcloud services enable trafficdirector.googleapis.com
 
-    $ gcloud services enable trafficdirector.googleapis.com
+      gcloud services enable cloudresourcemanager.googleapis.com
 
-    $ gcloud services enable cloudresourcemanager.googleapis.com
-
-    $ gcloud services enable multiclusterservicediscovery.googleapis.com
+      gcloud services enable multiclusterservicediscovery.googleapis.com
     ```
 
 2. Now enable Multi-cluster Services.
 
     ```bash
-    $ gcloud alpha container hub multi-cluster-services enable
+       gcloud alpha container hub multi-cluster-services enable
     ```
 
 3. Confirm that MCS is configured properly.
 
     ```bash
-    $gcloud alpha container hub multi-cluster-services describe
+       gcloud alpha container hub multi-cluster-services describe
     ```
 
 4. Grant required Identity to MCS Importer.
 
     ```bash
-    $gcloud projects add-iam-policy-binding ${PROJECT} \
-     --member "serviceAccount:${PROJECT}.svc.id.goog[gke-mcs/gke-mcs-importer]" \
-     --role "roles/compute.networkViewer"
+       gcloud projects add-iam-policy-binding ${PROJECT} \
+        --member "serviceAccount:${PROJECT}.svc.id.goog[gke-mcs/gke-mcs-importer]" \
+        --role "roles/compute.networkViewer"
     ```

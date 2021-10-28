@@ -148,7 +148,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 1. Download this repo and navigate to this folder
 
-    ```sh
+    ```bash
     git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
@@ -218,7 +218,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 7. Log in to each cluster and deploy the app.yaml manifest.
 
-    ```sh
+    ```bash
     kubectl --context=gke-1 apply -f app.yaml
     namespace/multi-cluster-demo created
     deployment.apps/foo created
