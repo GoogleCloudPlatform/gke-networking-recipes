@@ -1,20 +1,20 @@
 # Multi-cluster Ingress for External Load Balancing and FrontendConfig
 
-[Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions. 
+[Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions.
 
 [FrontendConfig](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#configuring_ingress_features_through_frontendconfig_parameters) is a Google developed [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (Custom Resource Definition) for GKE that allows to:
+
 - Implement HTTP to HTTPS redirect
 - Customize the LoadBalancer [SSL policies](https://cloud.google.com/load-balancing/docs/use-ssl-policies#creating_an_ssl_policy_with_a_google-managed_profile)
 
-### Use-cases
+## Use-cases
 
 - HTTP to HTTPS Redirection
 - Customizing SSL policies with Min TLS versions and TLS features
 - Disaster recovery for internet traffic across clusters or regions
 - Low-latency serving of traffic to globally distributed GKE clusters
 
-
-### Relevant documentation
+## Relevant documentation
 
 - [Multi-cluster Ingress Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos)
 - [Setting Up Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup)
@@ -23,7 +23,7 @@
 - [SSL policies](https://cloud.google.com/load-balancing/docs/use-ssl-policies#creating_an_ssl_policy_with_a_google-managed_profile)
 - [FrontendConfig CRD](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#configuring_ingress_features_through_frontendconfig_parameters)
 
-#### Versions
+## Versions
 
 - GKE clusters on GCP
 - All versions of GKE supported
@@ -34,6 +34,7 @@
 This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose two different Services hosted across both clusters. The cluster `gke-1` is in `REGION#1` and `gke-2` is hosted in `REGION#2`, demonstrating multi-regional load balancing across clusters. All Services will share the same MultiClusterIngress and load balancer IP, but the load balancer will match traffic and send it to the right region, cluster, and Service depending on the request.
 
 This Recipes also demonstrates the following:
+
 - How to enable HTTPS on Multi-cluster Ingress
 - How to Configure HTTP to HTTPS redirect
 - How to Customize the LoadBalancer Min TLS version and Features via [SSL policies](https://cloud.google.com/load-balancing/docs/use-ssl-policies#creating_an_ssl_policy_with_a_google-managed_profile).
@@ -45,7 +46,7 @@ The two clusters in this example can be backends to MCI only if they are registe
 <!-- Fix Me -->
 ![basic external ingress](../../../images/multi-cluster-frontendconfig.png)
 
-There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior. Similar to an Ingress resource, it can specify host and path matching with Services. This MCI specifies two host rules and a default backend which will receive all traffic that does not have a match. The `serviceName` field in this MCI specifies the name of an MCS resource. 
+There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior. Similar to an Ingress resource, it can specify host and path matching with Services. This MCI specifies two host rules and a default backend which will receive all traffic that does not have a match. The `serviceName` field in this MCI specifies the name of an MCS resource.
 
 The MCI below also defines via annotations:
 
@@ -144,7 +145,7 @@ spec:
 
 Now that you have the background knowledge and understanding of MCI, you can try it out yourself.
 
-### Try it out
+## Try it out
 
 1. Download this repo and navigate to this folder
 
@@ -158,16 +159,18 @@ Now that you have the background knowledge and understanding of MCI, you can try
 2. Set up Environment variables
 
     ```bash
+
     export PROJECT=$(gcloud config get-value project) # or your preferred project
     export GKE1_ZONE=GCP_CLOUD_ZONE # Pick a supported Zone for cluster gke-1
     export GKE2_ZONE=GCP_CLOUD_ZONE # Pick a supported Zone for cluster gke-2
     ```
-  NB: This tutorial uses Zonal Clusters, you can also use Regional Clusters. Replace a Zone with a region and use the ```--region``` flag instead of ```--zone``` in the next steps
+
+    NB: This tutorial uses Zonal Clusters, you can also use Regional Clusters. Replace a Zone with a region and use the ```--region``` flag instead of ```--zone``` in the next steps
 
 3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#multi-cluster-environment-basic). Once done, come back to the next step.
 
 4. Create a Static IP for the LoadBalancer and register it to DNS
-    
+
     In order to use Google-Managed Certificated, a static IP needs to be reserved and registered with your DNS Server.
 
     Start by creating a public Static IP.
@@ -189,7 +192,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 5. Provision Google-Managed Certificates
 
     Export you domain suffix as an environment variable
-    
+
     ```bash
     export DOMAIN=mycompany.com
     ```
@@ -247,8 +250,8 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 8. Edit the ingress.yaml file and update:
 
-- ```networking.gke.io/static-ip``` value with the IP address you reserved earlier.
-- ```$DOMAIN``` with your own domain.
+    ```networking.gke.io/static-ip``` value with the IP address you reserved earlier.
+    ```$DOMAIN``` with your own domain.
 
 9. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
@@ -414,9 +417,9 @@ Now that you have the background knowledge and understanding of MCI, you can try
     * Closing connection 1
     ```
 
-The LoadBalancer returns ```302 FOUND``` with an HTTPS URL. curl reconnected to that new URL, negociated TLS and returned the output of the app. This proofs HTTP to HTTPS redirect works
+    The LoadBalancer returns ```302 FOUND``` with an HTTPS URL. curl reconnected to that new URL, negociated TLS and returned the output of the app. This proofs HTTP to HTTPS redirect works
 
-12. Now Let's try to connect with a TLS version < 1.2. 
+12. Now Let's try to connect with a TLS version < 1.2.
 
     ```bash
     curl --TLSV1.1 --tls-max 1.1 -L -v http://foo.$DOMAIN
