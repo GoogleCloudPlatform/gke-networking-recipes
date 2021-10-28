@@ -1,21 +1,21 @@
 # Multi-cluster Ingress for External Load Balancing
 
-[Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions. 
+[Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions.
 
-### Use-cases
+## Use-cases
 
 - Disaster recovery for internet traffic across clusters or regions
 - Flexible migration between clusters
 - Low-latency serving of traffic to globally distributed GKE clusters
 
-### Relevant documentation
+## Relevant documentation
 
 - [Multi-cluster Ingress Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos)
 - [Setting Up Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup)
 - [Deploying Ingress Across Clusters](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos)
 - [Google Cloud External HTTP(S) Load Balancing](https://cloud.google.com/load-balancing/docs/https)
 
-#### Versions
+## Versions
 
 - GKE clusters on GCP
 - All versions of GKE supported
@@ -29,10 +29,9 @@ There are two applications in this example, foo and bar. Each is deployed on bot
 
 The two clusters in this example can be backends to MCI only if they are registered through Hub. Hub is a central registry of clusters that determines which clusters MCI can function across. A cluster must first be registered to Hub before it can be used with MCI.
 
-
 ![basic external ingress](../../images/multi-cluster-ingress-external.png)
 
-There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior. Similar to an Ingress resource, it can specify host and path matching with Services. This MCI specifies two host rules and a default backend which will recieve all traffic that does not have a match. The `serviceName` field in this MCI specifies the name of an MCS resource. 
+There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior. Similar to an Ingress resource, it can specify host and path matching with Services. This MCI specifies two host rules and a default backend which will recieve all traffic that does not have a match. The `serviceName` field in this MCI specifies the name of an MCS resource.
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -134,7 +133,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     - app.yaml is the manifest for the foo and bar Deployments. This manifest should be deployed on both clusters.
     - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
 
-5. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
+5. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
 
     ```sh
     $ kubectl --context=gke-1 apply -f app.yaml
@@ -157,9 +156,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     foo               2/2     2            2           44m
     ```
 
-
-5. Now log into `gke-1` and deploy the ingress.yaml manifest.
-
+6. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
     ```bash
     $ kubectl --context=gke-1 apply -f ingress.yaml
@@ -170,7 +167,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     backendconfig.cloud.google.com/backend-health-check created
     ```
 
-6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
+7. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
 
     ```sh
     $ kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
@@ -242,7 +239,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     $ export MCI_ENDPOINT=$(kubectl --context=gke-1 get mci -n multi-cluster-demo -o yaml | grep "VIP" | awk 'END{ print $2}')
     ```
 
-7. Now use the IP address from the MCI output to reach the load balancer. Try hitting the load balancer on the different host rules to confirm that traffic is being routed correctly. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
+8. Now use the IP address from the MCI output to reach the load balancer. Try hitting the load balancer on the different host rules to confirm that traffic is being routed correctly. We use `jq` to filter the output to make it easier to read but you could drop the `jq` portion of the command to see the full output.
 
     ```bash
     # Hitting the default backend
@@ -264,7 +261,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     bar-5bdf58646c-rbbdn
     ```
 
-8. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service. 
+9. Now to demonstrate the health checking and failover ability of MCI, let's crash the pods in `gke-1` for one of the Services. We'll update the replicas of the `foo` Deployment to zero so that there won't be any available backends in that cluster. To confirm that traffic is not dropped, we can set a continuous curl to watch as traffic fails over. In one shell, start a continous curl against the `foo` Service.
 
     ```bash
     $ while true; do curl -s -H "host: foo.example.com" ${MCI_ENDPOINT} | jq -c '{cluster: .cluster_name, pod: .pod_name}'; sleep 2; done
@@ -276,9 +273,9 @@ Now that you have the background knowledge and understanding of MCI, you can try
     ...
     ```
 
-**Note:** Traffic will be load balanced to the closest cluster to the client. If you are curling from your laptop then your traffic will be directed to the closest GKE cluster to you. Whichever cluster is recieving traffic in this step will be the closest one to you so fail pods in that cluster in the next step and watch traffic failover to the other cluster.
+    **Note:** Traffic will be load balanced to the closest cluster to the client. If you are curling from your laptop then your traffic will be directed to the closest GKE cluster to you. Whichever cluster is recieving traffic in this step will be the closest one to you so fail pods in that cluster in the next step and watch traffic failover to the other cluster.
 
-9. Open up a second shell to scale the replicas down to zero. 
+10. Open up a second shell to scale the replicas down to zero.
 
     ```bash
     # Do this in the same cluster where the response came from in the previous step
@@ -290,7 +287,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     foo    0/0     0            0           63m
     ```
 
-7. Watch how traffic switches from one cluster to another as the Pods dissappear from `gke-1`. Because the `foo` Pods from both clusters are active-active backends to the load balancer, there is no traffic interuption or delay when switching over traffic from one cluster to the other. Traffic is seamllessly routed to the available backends in the other cluster.
+11. Watch how traffic switches from one cluster to another as the Pods dissappear from `gke-1`. Because the `foo` Pods from both clusters are active-active backends to the load balancer, there is no traffic interuption or delay when switching over traffic from one cluster to the other. Traffic is seamllessly routed to the available backends in the other cluster.
 
     ```bash
     ...
@@ -306,8 +303,6 @@ Now that you have the background knowledge and understanding of MCI, you can try
     {"cluster":"gke-2","pod":"foo-7b994cdbd5-hnfsv"}
     ...
     ```
-
-
 
 ### Cleanup
 

@@ -1,11 +1,10 @@
-## Set up environment variable
+# Set up environment variable
 
 This will be referenced in upcoming command line examples.
 
 ```bash
-$ export PROJECT=$(gcloud config get-value project) # or your preferred project
+  export PROJECT=$(gcloud config get-value project) # or your preferred project
 ```
-
 
 ## Single-cluster environment
 
@@ -18,10 +17,9 @@ The single-cluster examples use the following GKE setup for deploying the manife
       --release-channel rapid 
 ```
 
-
 ## Multi-cluster environment basic
 
-The multi-cluster examples use the following GKE setup for deploying the manifests. If you've already created `gke-1` in the [single-cluster section](#), you can reuse that cluster.
+The multi-cluster examples use the following GKE setup for deploying the manifests. If you've already created `gke-1` in the [single Cluster Section](#single-cluster-environment), you can reuse that cluster.
 
 1. Deploy two GKE clusters within your Google Cloud project.
 
@@ -68,9 +66,9 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     gcloud services enable multiclusteringress.googleapis.com
     ```
 
-5. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`). 
+5. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`).
 
-    There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters. 
+    There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters.
 
     Register the clusters with Hub.
 
@@ -129,7 +127,8 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
         updateTime: '2021-10-27T15:09:33.451139409Z'
     updateTime: '2021-01-14T09:09:59.186872460Z'
     ```
-  8. At this stage your clusters for MCI are ready, you can return to the tutorial you started with.
+  
+8. At this stage your clusters for MCI are ready, you can return to the tutorial you started with.
   
 ## Multi-cluster environment blue/green
 
@@ -159,6 +158,7 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
     ```
 
     Confirm registration of your clusters.
+
     ```bash
       gcloud container hub memberships list
       
@@ -167,7 +167,6 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
       gke-2  47081e57-c326-4fa0-b808-7a7652863d32
       gke-1  90eeb089-cd16-4281-85ce-e724953249dc
     ```
-
 
 ## Multi-cluster environment (multi-cluster-services)
 
