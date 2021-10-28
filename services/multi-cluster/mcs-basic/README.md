@@ -58,7 +58,7 @@ spec:
     $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
-    $ cd gke-networking-recipes/multi-cluster-services/multi-cluster-services-basic
+    $ cd gke-networking-recipes/services/multi-cluster/mcs-basic
     ```
 
 2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../cluster-setup.md)
