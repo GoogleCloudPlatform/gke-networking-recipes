@@ -17,22 +17,22 @@ The goal for GKE Networking Recipes is to provide a bite-sized, easy to consume,
 - There should be clear ownership of a recipe. Each recipe has one owner. If you contributed it then you own it until someone else has agreed to be the owner. If functionality changes and your recipe is no longer valid or no longer makes sense, it is your responsibility to update over time.
 - Each recipe should be listed as a bullet point with a brief description on the [primary README page](./README.md).
 
-
 ### README guidelines
+
 Each recipe's README should consist of the following sections. In general the README should be concise and should not try to replicate the docs or be a solutions guide. Keep it bite sized.
 
 - Summary
-	- A brief description of what this recipe accomplishes
-	- Any references to specific GKE features or GCP load balancers should be appropriately linked
-	- The use-cases that this recipe accomplishes should be listed
-	- A diagram [of this format](https://docs.google.com/presentation/d/1Wngda7LN4GcMpASvdnG-laLUDOt3hzmPeUuVvMdSXA0/edit?usp=sharing) should be used to describe the networking flow, example, or architecture wherever it makes sense. Images should go into the [`/images`](./images) folder.
+  - A brief description of what this recipe accomplishes
+    - Any references to specific GKE features or GCP load balancers should be appropriately linked
+    - The use-cases that this recipe accomplishes should be listed
+    - A diagram [of this format](https://docs.google.com/presentation/d/1Wngda7LN4GcMpASvdnG-laLUDOt3hzmPeUuVvMdSXA0/edit?usp=sharing) should be used to describe the networking flow, example, or architecture wherever it makes sense. Images should go into the [`/images`](./images) folder.
 - Network manifests
-	- This section describes the primary capabilities and configuration format for the features that are highlighted in this recipe
-	- This section should only focus on the networking-related manifests but not show or describe all the manifests (such as app deployment)
+  - This section describes the primary capabilities and configuration format for the features that are highlighted in this recipe
+  - This section should only focus on the networking-related manifests but not show or describe all the manifests (such as app deployment)
 - Try it out
-	- This section should describe in a few steps how to deploy the networking manifests to achieve the use-case
-	- Do not try and recreate an entire tutorial. Try to demonstrate this in as few steps as necessary and put most of the description and detail in the Network Manifests section
-	- Demonstrate that the use-case works and display the output that validates it (whether that be a succesful ping or a specific expected response)
+  - This section should describe in a few steps how to deploy the networking manifests to achieve the use-case
+  - Do not try and recreate an entire tutorial. Try to demonstrate this in as few steps as necessary and put most of the description and detail in the Network Manifests section
+  - Demonstrate that the use-case works and display the output that validates it (whether that be a succesful ping or a specific expected response)
 - Summary
   - Use this section if it's necessary to add closing comments or add any detail to the example for explanation.
 - Cleanup
@@ -57,8 +57,6 @@ Each recipe's README should consist of the following sections. In general the RE
 | [Basic Multi-cluster Gateway](../gateway/multi-cluster/mcg-internal-basic)  |  |
 | [Blue-Green Cluster Pattern with multi-cluster Gateway](../gateway/multi-cluster/mcg-internal-blue-green)  |  |
 | [gRPC LoadBalancing](../gateway/grpc)  |  |
-
-
 
 ## Contributor License Agreement
 

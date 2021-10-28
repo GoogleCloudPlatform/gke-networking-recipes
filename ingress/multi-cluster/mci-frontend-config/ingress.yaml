@@ -1,0 +1,102 @@
+apiVersion: networking.gke.io/v1
+kind: MultiClusterIngress
+metadata:
+  name: foobar-ingress
+  namespace: multi-cluster-demo
+  annotations:
+    networking.gke.io/frontend-config: "frontend-config"
+    networking.gke.io/static-ip: x.x.x.x
+    networking.gke.io/pre-shared-certs: "mci-certs"
+spec:
+  template:
+    spec:
+      backend:
+        serviceName: default-backend
+        servicePort: 8080
+      rules:
+      - host: foo.$DOMAIN
+        http:
+          paths:
+            - backend:
+                serviceName: foo
+                servicePort: 8080
+      - host: bar.foo.$DOMAIN
+        http:
+          paths:
+            - backend:
+                serviceName: bar
+                servicePort: 8080
+---
+apiVersion: networking.gke.io/v1
+kind: MultiClusterService
+metadata:
+  name: foo
+  namespace: multi-cluster-demo
+spec:
+  template:
+    spec:
+      selector:
+        app: foo
+      ports:
+      - name: http
+        protocol: TCP
+        port: 8080
+        targetPort: 8080
+---
+apiVersion: networking.gke.io/v1
+kind: MultiClusterService
+metadata:
+  name: bar
+  namespace: multi-cluster-demo
+  annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"8080":"backend-health-check"}}'
+spec:
+  template:
+    spec:
+      selector:
+        app: bar
+      ports:
+      - name: http
+        protocol: TCP
+        port: 8080
+        targetPort: 8080
+---
+apiVersion: networking.gke.io/v1
+kind: MultiClusterService
+metadata:
+  name: default-backend
+  namespace: multi-cluster-demo
+  annotations:
+    beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
+spec:
+  template:
+    spec:
+      selector:
+        app: default-backend
+      ports:
+      - name: http
+        protocol: TCP
+        port: 8080
+        targetPort: 8080
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: backend-health-check
+  namespace: multi-cluster-demo
+spec:
+  healthCheck:
+    requestPath: /healthz
+    port: 8080
+    type: HTTP
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: frontend-config
+  namespace: multi-cluster-demo
+spec:
+  sslPolicy: ssl-policy
+  redirectToHttps:
+    enabled: true
+    responseCodeName: FOUND
