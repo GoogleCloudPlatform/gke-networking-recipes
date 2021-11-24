@@ -1,4 +1,4 @@
-# MultiCluster Ingress with https end to end
+# MultiCluster Ingress with end to end https
 
 [Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions.
 
@@ -6,7 +6,7 @@
 
 ## Use-cases
 
-- Encrypted traffic between both clients and GKE Ingress and GKE Ingress and Backend services
+- Encrypted traffic between both clients and HTTPS Load Balancer and Load Balancer and Backend services
 - Disaster recovery for internet traffic across clusters or regions
 - Low-latency serving of traffic to globally distributed GKE clusters
 
@@ -133,7 +133,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
-    cd gke-networking-recipes/ingress/multi-cluster-ingress/mci-https-backend
+    cd gke-networking-recipes/ingress/multi-cluster/mci-https-backend
     ```
 
 2. Set up Environment variables
@@ -197,7 +197,6 @@ Now that you have the background knowledge and understanding of MCI, you can try
 8. Create self-signed certificate for backends using openssl
 
     ```bash
-    cd haproxy
     openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
     ```
 
@@ -208,46 +207,114 @@ Now that you have the background knowledge and understanding of MCI, you can try
    rm certificate.pem key.pem
    ```
 
-9.  Log in to each cluster and create config map for HA Proxy sidecar
+9. Log in to each cluster and create namespace
+
+  ```bash
+  kubectl --context=gke-1 create namespace multi-cluster-demo
+  kubectl --context=gke-2 create namespace multi-cluster-demo
+  ```
+
+10. Log in to each cluster and create secret for self-signed certificate
+    
+   ```bash
+   kubectl --context=gke-1 create secret generic haproxy-cert --from-file=mycert.pem -n multi-cluster-demo
+   kubectl --context=gke-2 create secret generic haproxy-cert --from-file=mycert.pem -n multi-cluster-demo
+   ```
+
+11. Log in to each cluster and create config map for HA Proxy sidecar
 
     ```bash
-    cd ..
-    kubectl --context=gke-1 create configmap haproxy-config --from-file=haproxy/ -n multi-cluster-demo
-    kubectl --context=gke-2 create configmap haproxy-config --from-file=haproxy/ -n multi-cluster-demo
+    kubectl --context=gke-1 create configmap haproxy-config --from-file=haproxy.cfg -n multi-cluster-demo
+    kubectl --context=gke-2 create configmap haproxy-config --from-file=haproxy.cfg -n multi-cluster-demo
     ```
 
-10. Log in to each cluster and deploy the app.yaml manifest.
+12. Log in to each cluster and deploy the app.yaml manifest.
 
     ```bash
     kubectl --context=gke-1 apply -f app.yaml
     kubectl --context=gke-2 apply -f app.yaml
     ```
 
-11. Edit the ingress.yaml file and update:
+13. Edit the ingress.yaml file and update:
 
     ```networking.gke.io/static-ip``` value with the IP address you reserved earlier.
     ```$DOMAIN``` with your own domain.
 
-12. The multi-cluster service resource should have `networking.gke.io/app-protocols` annotation for HTTPS backends.
+14. The multi-cluster service resource should have `networking.gke.io/app-protocols` annotation for HTTPS backends.
     
-13. Now log into `gke-1` and deploy the ingress.yaml manifest.
+15. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
     ```bash
     kubectl --context=gke-1 apply -f ingress.yaml
     ```
 
-14. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
+16. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
 
     ```bash
     kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
     Name:         foobar-ingress
     Namespace:    multi-cluster-demo
     Labels:       <none>
-    Annotations:  
+    Annotations:  networking.gke.io/last-reconcile-time: Wednesday, 24-Nov-21 11:41:25 UTC
                   networking.gke.io/pre-shared-certs: mci-certs
                   networking.gke.io/static-ip: x.x.x.x
     API Version:  networking.gke.io/v1
     Kind:         MultiClusterIngress
+    Metadata:
+      Creation Timestamp:  2021-11-24T11:36:33Z
+      Finalizers:
+        mci.finalizer.networking.gke.io
+      Generation:  2
+      Managed Fields:
+        API Version:  networking.gke.io/v1
+        Fields Type:  FieldsV1
+        fieldsV1:
+          f:metadata:
+            f:annotations:
+              .:
+              f:kubectl.kubernetes.io/last-applied-configuration:
+              f:networking.gke.io/pre-shared-certs:
+              f:networking.gke.io/static-ip:
+          f:spec:
+            .:
+            f:template:
+              .:
+              f:spec:
+                .:
+                f:backend:
+                  .:
+                  f:serviceName:
+                  f:servicePort:
+                f:rules:
+        Manager:      kubectl-client-side-apply
+        Operation:    Update
+        Time:         2021-11-24T11:36:33Z
+        API Version:  networking.gke.io/v1beta1
+        Fields Type:  FieldsV1
+        fieldsV1:
+          f:metadata:
+            f:annotations:
+              f:networking.gke.io/last-reconcile-time:
+            f:finalizers:
+              .:
+              v:"mci.finalizer.networking.gke.io":
+          f:status:
+            .:
+            f:CloudResources:
+              .:
+              f:BackendServices:
+              f:Firewalls:
+              f:ForwardingRules:
+              f:HealthChecks:
+              f:NetworkEndpointGroups:
+              f:TargetProxies:
+              f:UrlMap:
+            f:VIP:
+        Manager:         Google-Multi-Cluster-Ingress
+        Operation:       Update
+        Time:            2021-11-24T11:37:51Z
+      Resource Version:  172580
+      UID:               922c094b-1548-435d-bf9a-68e59e1dc4b8
     Spec:
       Template:
         Spec:
@@ -283,42 +350,33 @@ Now that you have the background knowledge and understanding of MCI, you can try
           mci-epwpes-443-multi-cluster-demo-default-backend
           mci-epwpes-443-multi-cluster-demo-foo
         Network Endpoint Groups:
-          zones/europe-west1-b/networkEndpointGroups/k8s1-bb582ad4-multi-cluste-mci-default-backend-svc-p-4-c3e9cbd5
-          zones/europe-west1-b/networkEndpointGroups/k8s1-bb582ad4-multi-cluster--mci-bar-svc-067a3lzs8o-44-9a3cad67
-          zones/europe-west1-b/networkEndpointGroups/k8s1-bb582ad4-multi-cluster--mci-foo-svc-820zw3izxb-44-f20db289
-          zones/europe-west1-c/networkEndpointGroups/k8s1-bb582ad4-multi-cluste-mci-default-backend-svc-p-4-c3e9cbd5
-          zones/europe-west1-c/networkEndpointGroups/k8s1-bb582ad4-multi-cluster--mci-bar-svc-067a3lzs8o-44-9a3cad67
-          zones/europe-west1-c/networkEndpointGroups/k8s1-bb582ad4-multi-cluster--mci-foo-svc-820zw3izxb-44-f20db289
-          zones/europe-west1-d/networkEndpointGroups/k8s1-bb582ad4-multi-cluste-mci-default-backend-svc-p-4-c3e9cbd5
-          zones/europe-west1-d/networkEndpointGroups/k8s1-bb582ad4-multi-cluster--mci-bar-svc-067a3lzs8o-44-9a3cad67
-          zones/europe-west1-d/networkEndpointGroups/k8s1-bb582ad4-multi-cluster--mci-foo-svc-820zw3izxb-44-f20db289
-          zones/us-central1-a/networkEndpointGroups/k8s1-081e33c8-multi-cluste-mci-default-backend-svc-p-4-6c5871f2
-          zones/us-central1-a/networkEndpointGroups/k8s1-081e33c8-multi-cluster--mci-bar-svc-067a3lzs8o-44-b172c934
-          zones/us-central1-a/networkEndpointGroups/k8s1-081e33c8-multi-cluster--mci-foo-svc-820zw3izxb-44-b08d9ede
-          zones/us-central1-c/networkEndpointGroups/k8s1-081e33c8-multi-cluste-mci-default-backend-svc-p-4-6c5871f2
-          zones/us-central1-c/networkEndpointGroups/k8s1-081e33c8-multi-cluster--mci-bar-svc-067a3lzs8o-44-b172c934
-          zones/us-central1-c/networkEndpointGroups/k8s1-081e33c8-multi-cluster--mci-foo-svc-820zw3izxb-44-b08d9ede
-          zones/us-central1-f/networkEndpointGroups/k8s1-081e33c8-multi-cluste-mci-default-backend-svc-p-4-6c5871f2
-          zones/us-central1-f/networkEndpointGroups/k8s1-081e33c8-multi-cluster--mci-bar-svc-067a3lzs8o-44-b172c934
-          zones/us-central1-f/networkEndpointGroups/k8s1-081e33c8-multi-cluster--mci-foo-svc-820zw3izxb-44-b08d9ede
+          zones/us-central1-b/networkEndpointGroups/k8s1-0568199c-multi-cluste-mci-default-backend-svc-p-4-37f174c8
+          zones/us-central1-b/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-bar-svc-067a3lzs8o-44-89690c8a
+          zones/us-central1-b/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-foo-svc-820zw3izxb-44-8442a44d
+          zones/us-central1-c/networkEndpointGroups/k8s1-0568199c-multi-cluste-mci-default-backend-svc-p-4-37f174c8
+          zones/us-central1-c/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-bar-svc-067a3lzs8o-44-89690c8a
+          zones/us-central1-c/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-foo-svc-820zw3izxb-44-8442a44d
+          zones/us-central1-f/networkEndpointGroups/k8s1-0568199c-multi-cluste-mci-default-backend-svc-p-4-37f174c8
+          zones/us-central1-f/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-bar-svc-067a3lzs8o-44-89690c8a
+          zones/us-central1-f/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-foo-svc-820zw3izxb-44-8442a44d
         Target Proxies:
           mci-epwpes-multi-cluster-demo-foobar-ingress
           mci-epwpes-multi-cluster-demo-foobar-ingress
-        URL Map:  mci-epwpes-rm-multi-cluster-demo-foobar-ingress
+        URL Map:  mci-epwpes-multi-cluster-demo-foobar-ingress
       VIP:        x.x.x.x
     Events:
-      Type    Reason  Age                   From                              Message
-      ----    ------  ----                  ----                              -------
-      Normal  ADD     3m28s                 multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
-      Normal  UPDATE  2m5s (x2 over 3m28s)  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+      Type    Reason  Age                    From                              Message
+      ----    ------  ----                   ----                              -------
+      Normal  ADD     6m12s                  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+      Normal  UPDATE  4m54s (x2 over 6m12s)  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
     ```
 
-15. Now use the hosts defined in the MCI to reach the load balancer.
+17. Now use the hosts defined in the MCI to reach the load balancer.
 
     ```bash
     curl -v -L https://foo.$DOMAIN
-    *   Trying 35.186.236.7:443...
-    * Connected to foo.$DOMAIN (35.186.236.7) port 443 (#0)
+    *   Trying x.x.x.x:443...
+    * Connected to foo.$DOMAIN (x.x.x.x) port 443 (#0)
     * ALPN, offering h2
     * ALPN, offering http/1.1
     * successfully set certificate verify locations:
@@ -346,7 +404,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     * Using HTTP2, server supports multi-use
     * Connection state changed (HTTP/2 confirmed)
     * Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
-    * Using Stream ID: 1 (easy handle 0x7fb0a6810600)
+    * Using Stream ID: 1 (easy handle 0x7f9198810600)
     > GET / HTTP/2
     > Host: foo.$DOMAIN
     > user-agent: curl/7.77.0
@@ -354,10 +412,10 @@ Now that you have the background knowledge and understanding of MCI, you can try
     > 
     < HTTP/2 200 
     < content-type: application/json
-    < content-length: 391
+    < content-length: 377
     < access-control-allow-origin: *
     < server: Werkzeug/2.0.1 Python/3.8.11
-    < date: Tue, 23 Nov 2021 05:35:49 GMT
+    < date: Wed, 24 Nov 2021 11:44:25 GMT
     < via: 1.1 google
     < alt-svc: clear
     < 
@@ -365,12 +423,12 @@ Now that you have the background knowledge and understanding of MCI, you can try
       "cluster_name": "gke-1", 
       "host_header": "foo.$DOMAIN", 
       "metadata": "foo", 
-      "node_name": "gke-gke-1-default-pool-60c6651a-141b.us-central1-a.c.$PROJECT_ID.internal", 
-      "pod_name": "foo-7b66656c8b-4j4qk", 
-      "pod_name_emoji": "🇸🇴", 
-      "project_id": "$PROJECT_ID", 
-      "timestamp": "2021-11-23T05:35:49", 
-      "zone": "us-central1-a"
+      "node_name": "gke-gke-1-default-pool-a72997f0-dmb7.us-central1-c.c.ravidalal-xyz-project-01.internal", 
+      "pod_name": "foo-64fc448c5b-qvrbf", 
+      "pod_name_emoji": "🧁", 
+      "project_id": "ravidalal-xyz-project-01", 
+      "timestamp": "2021-11-24T11:44:25", 
+      "zone": "us-central1-c"
     }
     ```
 
