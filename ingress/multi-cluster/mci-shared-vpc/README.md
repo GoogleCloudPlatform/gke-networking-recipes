@@ -9,12 +9,16 @@ export GKE_REGION2=europe-west2
 
 ```bash
 gcloud services enable compute.googleapis.com \
+  container.googleapis.com \
   --project $HOST_PROJECT_ID
 ```
 
 ```bash
 gcloud services enable compute.googleapis.com \
   container.googleapis.com \
+  anthos.googleapis.com \
+  multiclusteringress.googleapis.com \
+  gkehub.googleapis.com \
   --project $SVC_PROJECT_ID
 ```
 
@@ -47,28 +51,174 @@ gcloud compute networks subnets create $GKE_REGION2 --network shared-vpc --regio
 
 ```bash
 gcloud compute networks subnets get-iam-policy $GKE_REGION1 --project $HOST_PROJECT_ID --region $GKE_REGION1
+gcloud compute networks subnets get-iam-policy $GKE_REGION2 --project $HOST_PROJECT_ID --region $GKE_REGION2
 ```
 
-Take note of the etah string
+Take note of the etag strings for both subnets
 
 ```bash
 gcloud projects list | grep $SVC_PROJECT_ID
 ```
 
-Take note of the project number
+Take note of the project number. export it as a variable
 
-```file
+export SERVICE_PROJECT_NUM=301580941939
+
+```file iam-policy.yaml. Replace SERVICE_PROJECT_NUM with the value noted in the step before
 bindings:
 - members:
-  - serviceAccount:SERVICE_PROJECT_1_NUM@cloudservices.gserviceaccount.com
-  - serviceAccount:service-SERVICE_PROJECT_1_NUM@container-engine-robot.iam.gserviceaccount.com
+  - serviceAccount:SERVICE_PROJECT_NUM@cloudservices.gserviceaccount.com
+  - serviceAccount:service-SERVICE_PROJECT_NUM@container-engine-robot.iam.gserviceaccount.com
   role: roles/compute.networkUser
 etag: ETAG_STRING
 ```
 
+Apply policy to subnet $GKE_REGION1
 
+```bash
+gcloud compute networks subnets set-iam-policy $GKE_REGION1 iam-policy.yaml --project $HOST_PROJECT_ID --region $GKE_REGION1
+```
 
-# MultiCluster Ingress with end to end https
+Edit the ETAG_STRING for $GKE_REGION1 in the iam-policy.yaml file and apply the policy to $GKE_REGION1
+
+```bash
+gcloud compute networks subnets set-iam-policy $GKE_REGION2 iam-policy.yaml --project $HOST_PROJECT_ID --region $GKE_REGION2
+```
+
+Check policies have been applied
+
+```bash
+gcloud compute networks subnets get-iam-policy $GKE_REGION1 --project $HOST_PROJECT_ID --region $GKE_REGION1
+gcloud compute networks subnets get-iam-policy $GKE_REGION2 --project $HOST_PROJECT_ID --region $GKE_REGION2
+```
+
+Grant the GKE container engine robot account security admin permissions on the host project so it can edit firewall rules
+
+```bash
+gcloud projects add-iam-policy-binding $HOST_PROJECT_ID \
+    --member=serviceAccount:service-$SERVICE_PROJECT_NUM@container-engine-robot.iam.gserviceaccount.com \
+    --role=roles/compute.securityAdmin
+```
+
+Grant the container engine robot account hostServiceAgentUser on the Host project
+
+```bash
+gcloud projects add-iam-policy-binding $HOST_PROJECT_ID \
+    --member serviceAccount:service-$SERVICE_PROJECT_NUM@container-engine-robot.iam.gserviceaccount.com \
+    --role roles/container.hostServiceAgentUser
+```
+
+Verify you configured Permissions properly
+
+```bash
+gcloud container subnets list-usable \                   
+    --project $SVC_PROJECT_ID \                                                                          
+    --network-project $HOST_PROJECT_ID
+```
+
+The output should look like
+
+```output
+PROJECT               REGION        NETWORK     SUBNET        RANGE
+gke-net-recipes-host  europe-west2  shared-vpc  europe-west2  192.168.2.0/24
+    ┌──────────────────────┬───────────────┬─────────────────────────────┐
+    │ SECONDARY_RANGE_NAME │ IP_CIDR_RANGE │            STATUS           │
+    ├──────────────────────┼───────────────┼─────────────────────────────┤
+    │ pods                 │ 10.1.0.0/16   │ usable for pods or services │
+    │ svc                  │ 172.16.1.0/24 │ usable for pods or services │
+    └──────────────────────┴───────────────┴─────────────────────────────┘
+gke-net-recipes-host  europe-west1  shared-vpc  europe-west1  192.168.1.0/24
+    ┌──────────────────────┬───────────────┬─────────────────────────────┐
+    │ SECONDARY_RANGE_NAME │ IP_CIDR_RANGE │            STATUS           │
+    ├──────────────────────┼───────────────┼─────────────────────────────┤
+    │ pods                 │ 10.0.0.0/16   │ usable for pods or services │
+    │ svc                  │ 172.16.0.0/24 │ usable for pods or services │
+    └──────────────────────┴───────────────┴─────────────────────────────┘
+```
+
+If you don't see this output, or you see an error, either of thos haven't been configured properly
+
+- The service project's Kubernetes Engine service account does not have the Host Service Agent User role to the host project.
+- The Kubernetes Engine service account in the host project does not exist (for example, if you've deleted that account accidentally).
+- The Kubernetes Engine API is not enabled in the host project, which implies the Kubernetes Engine service account in the host project is missing.
+
+Create the first cluster in $GKE_REGION1
+
+```bash
+gcloud container clusters create gke1 \
+    --project $SVC_PROJECT_ID \
+    --zone=$GKE_REGION1 \
+    --enable-ip-alias \
+    --network projects/$HOST_PROJECT_ID/global/networks/shared-vpc \
+    --subnetwork projects/$HOST_PROJECT_ID/regions/$GKE_REGION1/subnetworks/$GKE_REGION1 \
+    --workload-pool=$SVC_PROJECT_ID.svc.id.goog \
+    --cluster-secondary-range-name pods \
+    --services-secondary-range-name svc --async
+```
+
+Create the first cluster in $GKE_REGION2
+
+```bash
+gcloud container clusters create gke2 \
+    --project $SVC_PROJECT_ID \
+    --zone=$GKE_REGION2 \
+    --enable-ip-alias \
+    --network projects/$HOST_PROJECT_ID/global/networks/shared-vpc \
+    --subnetwork projects/$HOST_PROJECT_ID/regions/$GKE_REGION2/subnetworks/$GKE_REGION2 \
+    --workload-pool=$SVC_PROJECT_ID.svc.id.goog \
+    --cluster-secondary-range-name pods \
+    --services-secondary-range-name svc --async
+```
+
+Check both clusters are running
+
+```bash
+gcloud container clusters list --project $SVC_PROJECT_ID
+```
+
+Fetch credentials
+
+```bash
+gcloud container clusters get-credentials gke1 --region $GKE_REGION1 --project $SVC_PROJECT_ID
+gcloud container clusters get-credentials gke2 --region $GKE_REGION2 --project $SVC_PROJECT_ID
+```
+
+Rename context to make our life easier going forward
+
+```bash
+kubectl config rename-context gke_${SVC_PROJECT_ID}_${GKE_REGION1}_gke1 gke1
+kubectl config rename-context gke_${SVC_PROJECT_ID}_${GKE_REGION2}_gke2 gke2
+```
+
+## Confire MultiClusterIngress
+
+Register clusters to GKE HUB
+
+```bash
+gcloud container hub memberships register gke1 \
+    --gke-cluster ${GKE_REGION1}/gke1 \
+    --enable-workload-identity \
+    --project=${SVC_PROJECT_ID}
+
+gcloud container hub memberships register gke2 \
+    --gke-cluster ${GKE_REGION2}/gke2 \
+    --enable-workload-identity \
+    --project=${SVC_PROJECT_ID}   
+```
+
+Verify the HUB membership
+
+```bash
+gcloud container hub memberships list --project=${SVC_PROJECT_ID}
+```
+
+Enable MCI on the ```gke1``` cluster. This is going to be our config Cluster
+
+```bash
+gcloud container hub ingress enable --config-membership=gke1 --project=${SVC_PROJECT_ID}
+```
+
+## MultiCluster Ingress with end to end https
 
 [Multi-cluster Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-for-anthos) for GKE is a cloud-hosted Ingress controller for GKE clusters. It's a Google-hosted service that supports deploying shared load balancing resources across clusters and across regions.
 
