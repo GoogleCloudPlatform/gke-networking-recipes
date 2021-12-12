@@ -1,11 +1,11 @@
 # Single-cluster Gateway with Regional L7 Internal Load Balancing
 
-This recipe provides a basic walk through for setting up Single-cluster Gateway with the `gke-l7-rilb` GatewayClass, provisioning an regional internal HTTP/S Load Balancer.
+This recipe provides a basic walk-through for setting up Single-cluster Gateway with the `gke-l7-rilb` GatewayClass, provisioning a regional internal HTTP/S Load Balancer.
 
 To achieve this, we will:
 
-- Deploy v1 of a sample application into the GKE cluster named `gke-1`, as well as its ServiceExport.
-- Deploy a Gateway using the `gke-l7-rilb` single-cluster GatewayClass to the GKE cluster named `gke-1`, serving as this example's config cluster.
+- Deploy sample application with two different deployments, and two different labels, into the GKE cluster named `gke-1`
+- Deploy a Gateway using the `gke-l7-rilb` single-cluster GatewayClass to the GKE cluster named `gke-1`
 - Deploy an HTTPRoute to route external traffic between v1 of the sample application and v2 of the sample application to achieve traffic splitting.
 
 ### Relevant documentation
@@ -39,15 +39,7 @@ gcloud compute networks subnets create SUBNET_NAME \
     --range=CIDR_RANGE
 ```
 
-Create one GKE cluster.
-```
-$ gcloud container clusters create gke-1 \
-  --zone=europe-west2 \
-  --enable-ip-alias \
-  --workload-pool=$PROJECT_ID.svc.id.goog \
-  --release-channel=rapid \
-  --cluster-version=1.21
-```
+[Create one GKE cluster](https://github.com/GoogleCloudPlatform/gke-networking-recipes/blob/master/cluster-setup.md#single-cluster-environment) if one is not running yet.
 
 ## Deploy the target applications to the cluster
 
@@ -110,11 +102,6 @@ Deploy the resources for the second application to the cluster. This includes th
 ```
 $ cat app-v2.yaml
 
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: store
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
