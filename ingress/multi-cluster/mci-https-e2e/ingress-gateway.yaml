@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+    name: asm-ingressgateway
+    namespace: asm-ingress
+spec:
+  selector:
+    asm: ingressgateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "*" # IMPORTANT: Must use wildcard here when using SSL
+    tls:
+      mode: SIMPLE
+      credentialName: edge2mesh-credential
