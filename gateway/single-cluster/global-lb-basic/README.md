@@ -30,7 +30,7 @@ The cluster `gke-1` is a regional cluster. The Gateway is hosted in default name
 
 This Recipe also demonstrates how to enable HTTPS on Gateway Load Balancer using Google-managed certificate.
 
-This exmaple is using two applications; foo and bar. The *foo* applicaion is deployed in `NAMESPACE#1` and *bar* application is deployed in `NAMESPACE#2`. The External HTTPS Load Balancer is designed to route traffic to the services based on the request host name header. 
+This example is using two applications; foo and bar. The *foo* applicaion is deployed in `NAMESPACE#1` and *bar* application is deployed in `NAMESPACE#2`. The External HTTPS Load Balancer is designed to route traffic to the services based on the request host name header. 
 
 The Gateway below also uses:
 
