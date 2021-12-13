@@ -6,9 +6,15 @@ This will be referenced in upcoming command line examples.
   export PROJECT=$(gcloud config get-value project) # or your preferred project
 ```
 
+## Enable the Kubernetes Engine API for your GCP project
+
+  ```sh
+  gcloud services enable container.googleapis.com
+  ```
+
 ## Single-cluster environment
 
-The single-cluster examples use the following GKE setup for deploying the manifests.
+The single-cluster examples use the following GKE setup for deploying the manifests.  
 
 ```bash
   gcloud container clusters create gke-1 \
@@ -21,7 +27,9 @@ The single-cluster examples use the following GKE setup for deploying the manife
 
 The multi-cluster examples use the following GKE setup for deploying the manifests. If you've already created `gke-1` in the [single Cluster Section](#single-cluster-environment), you can reuse that cluster.
 
-1. Deploy two GKE clusters within your Google Cloud project.
+1. Deploy two GKE clusters within your Google Cloud project.  
+Note: Anthos Servish Mash has [some minumum requirements](https://cloud.google.com/service-mesh/v1.7/docs/scripted-install/gke-asm-onboard-1-7#requirements) for GKE.
+  Execute below command to create cluster if you don't need to install Anthos Service Mesh in your cluster later.
 
     ```bash
     gcloud container clusters create gke-1 \
@@ -37,16 +45,50 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
       --workload-pool=${PROJECT}.svc.id.goog --async
     ```
 
+    Execute below command to create cluster if you will need to install Anthos Service Mesh in your cluster later.
+
+    ```sh
+    gcloud container clusters create gke-1 \
+    --machine-type=e2-standard-4 \
+    --num-nodes=4 \
+    --zone ${GKE1_ZONE} \
+    --enable-ip-alias \
+    --release-channel rapid \
+    --workload-pool=${PROJECT}.svc.id.goog --async
+
+    gcloud container clusters create gke-2 \
+    --machine-type=e2-standard-4 \
+    --num-nodes=4 \
+    --zone ${GKE2_ZONE} \
+    --enable-ip-alias \
+    --release-channel rapid \
+    --workload-pool=${PROJECT}.svc.id.goog --async
+    ```
+
     Clusters creation takes around 5 min to complete
 
-2. Get the clusters credentials
+2. Ensure that the cluster is running:
+
+    ```sh
+    gcloud container clusters list
+    ```
+
+    The output is similar to the following:
+
+    ```sh
+    NAME   LOCATION       MASTER_VERSION   MASTER_IP      MACHINE_TYPE   NODE_VERSION     NUM_NODES  STATUS
+    gke-1  us-central1-a  1.21.5-gke.1802  34.136.74.24   e2-standard-4  1.21.5-gke.1802  4          RUNNING
+    gke-2  us-west1-b     1.21.5-gke.1802  35.233.255.33  e2-standard-4  1.21.5-gke.1802  4          RUNNING
+    ```
+
+3. Get the clusters credentials
 
     ```bash
     gcloud container clusters get-credentials gke-1 --zone $GKE1_ZONE
     gcloud container clusters get-credentials gke-2 --zone $GKE2_ZONE
     ```
 
-3. Rename contexts
+4. Rename contexts
 
     The prior step will have added credentials for your new clusters to your `kubeconfig`, but let's rename the contexts to something a little shorter:
 
@@ -56,7 +98,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     kubectl config rename-context gke_${PROJECT}_${GKE2_ZONE}_gke-2 gke-2
     ```
 
-4. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
+5. Enable the Hub, Anthos, and MultiClusterIngress APIs for your GCP project as described [here](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#before_you_begin).
 
     ```bash
     gcloud services enable gkehub.googleapis.com
@@ -66,7 +108,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     gcloud services enable multiclusteringress.googleapis.com
     ```
 
-5. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`).
+6. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`).
 
     There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters.
 
@@ -86,24 +128,32 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     ```bash
        gcloud container hub memberships list
+    ```
 
+    The output is similar to the following:
+
+    ```bash
        NAME   EXTERNAL_ID
        gke-1  50468ae8-29a3-4ea1-b7ff-0e216533619a
        gke-2  6c2704d2-e499-465d-99d6-3ca1f3d8170b
     ```
 
-6. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
+7. Now enable Multi-cluster Ingress and specify `gke-1` as your config cluster.
 
     ```bash
     gcloud container hub ingress enable \
       --config-membership=projects/${PROJECT}/locations/global/memberships/gke-1
     ```
 
-7. Confirm that MCI is configured properly.
+8. Confirm that MCI is configured properly.
 
     ```bash
     gcloud container hub ingress describe
+    ```
 
+    The output is similar to the following:
+
+    ```bash
     createTime: '2021-01-14T09:09:57.475070502Z'
     membershipStates:
       projects/349736299228/locations/global/memberships/gke-1:
@@ -128,7 +178,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
     updateTime: '2021-01-14T09:09:59.186872460Z'
     ```
   
-8. At this stage your clusters for MCI are ready, you can return to the tutorial you started with.
+9. At this stage your clusters for MCI are ready, you can return to the tutorial you started with.
   
 ## Multi-cluster environment blue/green
 
@@ -161,7 +211,11 @@ To implement the `multi-cluster-blue-green-cluster` pattern, we need another GKE
 
     ```bash
       gcloud container hub memberships list
-      
+    ```
+
+    The output is similar to the following:
+
+    ```bash
       NAME   EXTERNAL_ID
       gke-3  8187e1cd-35e8-41e1-b204-8ac5c7c7a240
       gke-2  47081e57-c326-4fa0-b808-7a7652863d32

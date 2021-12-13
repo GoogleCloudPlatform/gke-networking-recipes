@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: foo-ingress
+  namespace: asm-ingress  
+spec:
+  hosts:
+  - "foo.endpoints.$PROJECT-ID.cloud.goog"
+  gateways:
+  - asm-ingress/asm-ingressgateway
+  http:
+  - route:
+    - destination:
+        host: foo
+        port:
+          number: 80
