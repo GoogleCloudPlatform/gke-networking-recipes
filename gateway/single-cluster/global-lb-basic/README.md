@@ -109,14 +109,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
 
     NB: This tutorial uses Regional Clusters, you can also use Zonal Clusters. Replace a region with a zone and use the ```--zone``` flag instead of ```--region``` in the next steps.
 
-3. Deploy the cluster
-
-    ```bash
-    gcloud container clusters create gke-1 \
-    --region $GKE_REGION \
-    --enable-ip-alias \
-    --release-channel rapid 
-    ```
+3. Deploy the cluster as mentioned in [cluster setup](../../../cluster-setup.md#single-cluster-environment). Once done, come back to the next step.
 
 4. Get the clusters credentials
 
