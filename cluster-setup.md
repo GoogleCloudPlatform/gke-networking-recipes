@@ -28,24 +28,8 @@ The single-cluster examples use the following GKE setup for deploying the manife
 The multi-cluster examples use the following GKE setup for deploying the manifests. If you've already created `gke-1` in the [single Cluster Section](#single-cluster-environment), you can reuse that cluster.
 
 1. Deploy two GKE clusters within your Google Cloud project.  
-Note: Anthos Servish Mash has [some minumum requirements](https://cloud.google.com/service-mesh/v1.7/docs/scripted-install/gke-asm-onboard-1-7#requirements) for GKE.
-  Execute below command to create cluster if you don't need to install Anthos Service Mesh in your cluster later.
 
-    ```bash
-    gcloud container clusters create gke-1 \
-      --zone ${GKE1_ZONE} \
-      --enable-ip-alias \
-      --release-channel rapid \
-      --workload-pool=${PROJECT}.svc.id.goog --async
-
-    gcloud container clusters create gke-2 \
-      --zone ${GKE2_ZONE} \
-      --enable-ip-alias \
-      --release-channel rapid \
-      --workload-pool=${PROJECT}.svc.id.goog --async
-    ```
-
-    Execute below command to create cluster if you will need to install Anthos Service Mesh in your cluster later.
+    Note: ```machine-type=e2-standard-4``` and ```num-nodes=4``` are used to support Anthos Servish Mash (ASM) deployment. You can use smaller machine-type and less number of nodes if ASM is not required. For more information about ASM minumum requirements for GKE, please [click here](https://cloud.google.com/service-mesh/v1.7/docs/scripted-install/gke-asm-onboard-1-7#requirements).
 
     ```sh
     gcloud container clusters create gke-1 \
