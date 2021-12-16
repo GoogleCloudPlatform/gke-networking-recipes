@@ -1,0 +1,15 @@
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: single-cluster-gateway-rilb
+  namespace: store
+spec:
+  gatewayClassName: gke-l7-rilb
+  listeners:
+  - protocol: HTTP
+    port: 80
+    routes:
+      kind: HTTPRoute
+      selector:
+        matchLabels:
+          gateway: single-cluster-gateway-rilb
