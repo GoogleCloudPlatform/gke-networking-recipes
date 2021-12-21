@@ -114,7 +114,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
 4. Get the clusters credentials
 
     ```bash
-    gcloud container clusters get-credentials gke-1
+    gcloud container clusters get-credentials gke-1 --region=us-central1
     ```
 
 5. Create a Static IP for the LoadBalancer and register it to DNS.
@@ -202,15 +202,19 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     service/bar created
     ```
 
-10. Log in to the cluster and deploy the gateway.yaml manifest.
+10. Edit the gateway-httproutes.yaml manifest to replace `$DOMAIN` with your domain.
+ 
+11. Log in to the cluster and deploy the gateway-httproutes.yaml manifest.
 
     ```bash
-    kubectl apply -f gateway.yaml
+    kubectl apply -f gateway-httproutes.yaml
 
     gateway.networking.x-k8s.io/external-http created
+    httproute.networking.x-k8s.io/foo created
+    httproute.networking.x-k8s.io/bar created
     ```
 
-11. It can take a few minutes for the load balancer to deploy fully. Validate the Gateway. Once the Gateway is created successfully, the *Addresses.Value* will show the static IP address. 
+12. It can take a few minutes for the load balancer to deploy fully. Validate the Gateway. Once the Gateway is created successfully, the *Addresses.Value* will show the static IP address. 
 
     ```bash
     kubectl describe gateway external-http
@@ -312,18 +316,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
         
     ```
 
-12. Edit the httproutes.yaml manifest to replace `$DOMAIN` with your domain.
-
-13. Log in to the cluster and deploy the httproutes.yaml manifest.
-    
-    ```bash
-    kubectl apply -f httproutes.yaml
-
-    httproute.networking.x-k8s.io/foo created
-    httproute.networking.x-k8s.io/bar created
-    ```
-
-14. Validate the HTTP route. The output should look similar to this.
+13. Validate the HTTP route. The output should look similar to this.
     
     ```bash
     kubectl describe httproute foo -n gxlb-demo-ns1
@@ -408,7 +401,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
       Normal  SYNC    22s   sc-gateway-controller  Reconciliation of HTTPRoute "gxlb-demo-ns1/foo" bound to Gateway "default/external-http" was a success
     ```
 
-15. Now use the hostnames from the HTTPRoute resources to reach the load balancer.
+14. Now use the hostnames from the HTTPRoute resources to reach the load balancer.
 
     ```bash
     curl -v -L https://foo.$DOMAIN

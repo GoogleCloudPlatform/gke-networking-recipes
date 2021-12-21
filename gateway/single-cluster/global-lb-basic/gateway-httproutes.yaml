@@ -1,3 +1,24 @@
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: external-http
+spec:
+  gatewayClassName: gke-l7-gxlb
+  listeners:
+  - protocol: HTTPS
+    port: 443
+    routes:
+      kind: HTTPRoute
+      namespaces:
+        from: "All"
+    tls:
+      mode: Terminate
+      options:
+        networking.gke.io/pre-shared-certs: gxlb-cert
+  addresses:
+  - type: NamedAddress
+    value: gke-gxlb-ip
+---
 kind: HTTPRoute
 apiVersion: networking.x-k8s.io/v1alpha1
 metadata:
@@ -10,7 +31,7 @@ spec:
     - name: external-http
       namespace: default
   hostnames:
-  - "foo.$DOMAIN"
+  - "foo.ravidalal.xyz"
   rules:
   - forwardTo:
     - serviceName: foo
@@ -28,7 +49,7 @@ spec:
     - name: external-http
       namespace: default
   hostnames:
-  - "bar.$DOMAIN"
+  - "bar.ravidalal.xyz"
   rules:
   - forwardTo:
     - serviceName: bar
