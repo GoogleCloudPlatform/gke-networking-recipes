@@ -189,32 +189,24 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     gke-l7-gxlb   networking.gke.io/gateway
     ```
 
-9. Log in to the cluster and deploy the app.yaml manifest.
+9.  Edit the single-cluster-global-l7-xlb-recipe.yaml manifest to replace `$DOMAIN` with your domain.
+ 
+10. Log in to the cluster and deploy the single-cluster-global-l7-xlb-recipe.yaml manifest.
 
     ```bash
-    kubectl apply -f app.yaml
-
+    kubectl apply -f single-cluster-global-l7-xlb-recipe.yaml
     namespace/gxlb-demo-ns1 created
     namespace/gxlb-demo-ns2 created
     deployment.apps/foo created
     service/foo created
     deployment.apps/bar created
     service/bar created
-    ```
-
-10. Edit the gateway-httproutes.yaml manifest to replace `$DOMAIN` with your domain.
- 
-11. Log in to the cluster and deploy the gateway-httproutes.yaml manifest.
-
-    ```bash
-    kubectl apply -f gateway-httproutes.yaml
-
     gateway.networking.x-k8s.io/external-http created
     httproute.networking.x-k8s.io/foo created
     httproute.networking.x-k8s.io/bar created
     ```
 
-12. It can take a few minutes for the load balancer to deploy fully. Validate the Gateway. Once the Gateway is created successfully, the *Addresses.Value* will show the static IP address. 
+11. It can take a few minutes for the load balancer to deploy fully. Validate the Gateway. Once the Gateway is created successfully, the *Addresses.Value* will show the static IP address. 
 
     ```bash
     kubectl describe gateway external-http
@@ -316,7 +308,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
         
     ```
 
-13. Validate the HTTP route. The output should look similar to this.
+12. Validate the HTTP route. The output should look similar to this.
     
     ```bash
     kubectl describe httproute foo -n gxlb-demo-ns1
@@ -401,7 +393,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
       Normal  SYNC    22s   sc-gateway-controller  Reconciliation of HTTPRoute "gxlb-demo-ns1/foo" bound to Gateway "default/external-http" was a success
     ```
 
-14. Now use the hostnames from the HTTPRoute resources to reach the load balancer.
+13. Now use the hostnames from the HTTPRoute resources to reach the load balancer.
 
     ```bash
     curl -v -L https://foo.$DOMAIN
@@ -528,9 +520,7 @@ The successful response from both URLs confirm that the Gateway is routing the t
 ### Cleanup
 
   ```bash
-  kubectl delete -f httproutes.yaml
-  kubectl delete -f gateway.yaml
-  kubectl delete -f app.yaml
+  kubectl delete -f single-cluster-global-l7-xlb-recipe.yaml
   gcloud compute addresses delete gke-gxlb-ip --global --quiet
   gcloud compute ssl-certificates delete gxlb-cert --quiet
   ```
