@@ -24,6 +24,8 @@ Deploy application
 kubectl apply -f .
 ```
 
+> Please note the deployments here use the health_check proxy and sample gRPC applications hosted on `docker.io/`.  You can build and deploy these images into your own repository as well.
+
 Wait ~8mins and note down the external and ILB addresses
 
 ```bash
@@ -56,7 +58,7 @@ Verify external loadbalancing by transmitting 10 RPCs over one channel.  The res
 
 ```log
 $ docker run --add-host grpc.domain.com:$XLB_IP  \
-  -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
+  -t docker.io/salrashid123/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem \
    --servername grpc.domain.com --repeat 10 -skipHealthCheck
 
@@ -96,7 +98,7 @@ fe-deployment-6c96c9648-zj659   2/2     Running   0          4m39s
 Rerun the test.  Notice the new pods in the response 
 ```log
 $ docker run --add-host grpc.domain.com:$XLB_IP \
-   -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
+   -t docker.io/salrashid123/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
    --servername grpc.domain.com --repeat 10 -skipHealthCheck
 
@@ -118,7 +120,7 @@ To test the internal loadbalancer, you must configure a VM from within an [alloc
 
 ```log
  $ docker run --add-host grpc.domain.com:$XLB_IP \
-     -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
+     -t docker.io/salrashid123/grpc_app /grpc_client \
      --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
      --servername grpc.domain.com --repeat 10 -skipHealthCheck
 
@@ -159,7 +161,7 @@ type: Opaque
     spec:
       containers:
       - name: hc-proxy
-        image: gcr.io/cloud-solutions-images/grpc_health_proxy:1.0.0
+        image: docker.io/salrashid123/grpc_health_proxy:1.0.0
         args: [
           "--http-listen-addr=0.0.0.0:8443",
           "--grpcaddr=localhost:50051",
@@ -185,7 +187,7 @@ type: Opaque
           secretName: hc-secret          
 ```
 
-You will also need to configure the service to use HTTP/2:
+You will also need to configure the service to use HTTP/2,  please make sure the healthproxy listens over TLS
 
 - `fe-srv-ingress.yaml`
 
@@ -202,5 +204,5 @@ spec:
 ```
 
 Source images used in this example can be found here:
-  - [gcr.io/cloud-solutions-images/grpc_health_proxy](https://github.com/salrashid123/grpc_health_proxy)
-  - [gcr.io/cloud-solutions-images/grpc_app](https://github.com/salrashid123/grpc_health_proxy/tree/master/example)
+  - [docker.io/salrashid123/grpc_health_proxy](https://github.com/salrashid123/grpc_health_proxy)
+  - [docker.io/salrashid123/grpc_app](https://github.com/salrashid123/grpc_health_proxy/tree/master/example)

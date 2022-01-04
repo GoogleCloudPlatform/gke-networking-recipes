@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
       - name: hc-proxy
-        image: docker.io/salrashid123/grpc_health_proxy
+        image: docker.io/salrashid123/grpc_health_proxy:1.0.0
         args: [
           "--http-listen-addr=localhost:8081",
           "--grpc-addr=localhost:8080",
