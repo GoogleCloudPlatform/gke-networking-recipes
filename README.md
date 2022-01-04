@@ -16,6 +16,7 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
   - [Secure Ingress](./ingress/single-cluster/ingress-https) - Secure Ingress-hosted Services with HTTPS, Google-managed certificates, SSL policies, and HTTPS redirects.
   - [IAP Ingress](./ingress/single-cluster/ingress-iap) - GKE Ingress with Identity-Aware Proxy based authentication.
   - [CloudArmor Ingress](./ingress/single-cluster/ingress-cloudarmor) - GKE Ingress with Google CloudArmor policy protection.
+  - [Nginx Ingress](./ingress/single-cluster/ingress-nginx) - Deploy an internet-facing HTTP load balancer with Nginx Ingress. 
   - [Custom HTTP health check Ingress](./ingress/single-cluster/ingress-custom-http-health-check) - GKE Ingress with custom HTTP based health check.
   - [Custom gRPC health check Ingress](./ingress/single-cluster/ingress-custom-grpc-health-check) - GKE Ingress with custom gRPC based health check.
 
