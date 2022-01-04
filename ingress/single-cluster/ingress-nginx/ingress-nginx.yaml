@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion:  networking.k8s.io/v1beta1 
+apiVersion:  networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: foo-external
@@ -23,17 +23,18 @@ spec:
   - host: foo.example.com
     http:
       paths:
-      - path: "/foo"
+      - path: /foo
+        pathType: Prefix
         backend:
-          serviceName: foo
-          servicePort: 8080
+          service:
+            name: foo
+            port:
+              number: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: foo
-  annotations:
-    cloud.google.com/neg: '{"ingress": true}'
 spec:
   ports:
   - port: 8080
