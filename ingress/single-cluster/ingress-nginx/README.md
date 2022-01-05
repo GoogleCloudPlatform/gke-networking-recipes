@@ -54,8 +54,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: foo
-  annotations:
-    cloud.google.com/neg: '{"ingress": true}'
 spec:
   ports:
   - port: 80
