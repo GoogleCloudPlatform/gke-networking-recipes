@@ -128,7 +128,7 @@ spec:
     - name: external-http
       namespace: default
   hostnames:
-  - "foo.ravidalal.xyz"
+  - "foo.$DOMAIN"
   rules:
   - forwardTo:
     - serviceName: foo
@@ -146,7 +146,7 @@ spec:
     - name: external-http
       namespace: default
   hostnames:
-  - "bar.ravidalal.xyz"
+  - "bar.$DOMAIN"
   rules:
   - forwardTo:
     - serviceName: bar
