@@ -1,0 +1,36 @@
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: foo
+  namespace: gxlb-demo-ns1
+spec:
+  gateways:
+    allow: FromList
+    gatewayRefs:
+    - name: external-http
+      namespace: default
+  hostnames:
+  - "foo.$DOMAIN"
+  rules:
+  - forwardTo:
+    - serviceName: foo
+      port: 8080
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: bar
+  namespace: gxlb-demo-ns2
+spec:
+  gateways:
+    allow: FromList
+    gatewayRefs:
+    - name: external-http
+      namespace: default
+  hostnames:
+  - "bar.$DOMAIN"
+  rules:
+  - forwardTo:
+    - serviceName: bar
+      port: 8080
