@@ -97,7 +97,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
-    cd gke-networking-recipes/gateway/single-cluster/global-lb-basic
+    cd gke-networking-recipes/gateway/single-cluster/global-l7-xlb
     ```
 
 2. Set up Environment variables
