@@ -1,0 +1,39 @@
+##################################################
+# Referenced by https://cloud.google.com/kubernetes-engine/docs/how-to/deploying-multi-cluster-gateways#blue-green
+##################################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: store
+  namespace: store
+spec:
+  selector:
+    app: store
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+kind: ServiceExport
+apiVersion: net.gke.io/v1
+metadata:
+  name: store
+  namespace: store
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-west-2
+  namespace: store
+spec:
+  selector:
+    app: store
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+kind: ServiceExport
+apiVersion: net.gke.io/v1
+metadata:
+  name: store-west-2
+  namespace: store
