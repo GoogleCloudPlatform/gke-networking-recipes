@@ -222,6 +222,7 @@ Now that the basics should be clear just try it out.
 
 1. Create self-signed certificate for backends using openssl.
     This certificate will never be exposed to the end user this is just used for encryption between the LB and your deployment.
+    You don't need to worry about the correct Comon Name just put anything there. This is not validated by the Load Balancer.
 
     ```bash
     openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
@@ -234,14 +235,14 @@ Now that the basics should be clear just try it out.
     rm certificate.pem key.pem
 ```
 
-1. Log in to each cluster and create namespace (in order to place the certificate there already in advance)
+1. Create the namespace in the cluster (in order to place the certificate there already in advance)
 
   ```bash
   kubectl create namespace gxlb-demo-ns1
   kubectl create namespace gxlb-demo-ns2
   ```
 
-1. Log in to each cluster and create secret for self-signed certificate
+1. Create the secrets for the self-signed certificate in each namespace
 
    ```bash
    kubectl create secret generic haproxy-cert --from-file=mycert.pem -n gxlb-demo-ns1
@@ -467,6 +468,7 @@ Now that the basics should be clear just try it out.
     ```
 
 1. Now use the hostnames from the HTTPRoute resources to reach the load balancer.
+   Make sure to have the DNS for `foo.$DOMAIN` and `bar.$DOMAIN` set to the IP address of your Load Balancer.
 
     ```bash
     $ curl https://foo.$DOMAIN
@@ -528,6 +530,7 @@ Now that the basics should be clear just try it out.
     ```
 
     Ass soon as you see the certificate part and your domains are `ACTIVE` it will only take a short time until you app is accessible.
+    If you don't see your certificate becoming ready make sure that your DNS entries for `foo.$DOMAIN` and `bar.$DOMAIN` are set to the Load Balancer IP address.
 
 ### Cleanup
 
