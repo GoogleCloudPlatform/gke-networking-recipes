@@ -1,0 +1,287 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+  namespace: gxlb-demo-ns1
+data:
+  haproxy.cfg: |
+    global
+      stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+      log stdout format raw local0 debug
+
+    defaults
+      mode http
+      timeout client 660s
+      timeout connect 60s
+      timeout server 60s
+      timeout http-request 660s
+      timeout http-keep-alive 660s
+      log global
+      maxconn 20000
+
+    frontend health-check
+        bind *:9000
+        http-request return status 200 content-type "text/plain" lf-string "OK" 
+        mode http
+
+    frontend demo-frontend
+        bind *:8443 ssl crt /usr/local/etc/haproxy-cert/mycert.pem
+        default_backend web-servers
+        mode http
+
+    backend web-servers
+      mode http
+      server s1 127.0.0.1:8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo
+  namespace: gxlb-demo-ns1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: foo
+  template:
+    metadata:
+      labels:
+        app: foo
+        version: v1
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.2.1
+        env:
+        - name: METADATA
+          value: "foo"
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+      - name: haproxy
+        image: haproxytech/haproxy-alpine:2.4
+        ports:
+          - name: https
+            containerPort: 8443
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTP
+        volumeMounts:
+        - name: haproxy-volume
+          mountPath: /usr/local/etc/haproxy
+        - name: cert-volume
+          mountPath: /usr/local/etc/haproxy-cert
+      volumes:
+      - name: haproxy-volume
+        configMap:
+          name: haproxy-config
+      - name: cert-volume
+        secret:
+          secretName: haproxy-cert
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: backend-health-check
+  namespace: gxlb-demo-ns1
+spec:
+  healthCheck:
+    requestPath: /healthz
+    port: 8443
+    type: HTTPS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: foo
+  namespace: gxlb-demo-ns1
+  annotations:
+    networking.gke.io/app-protocols: '{"https-port":"HTTPS"}'
+    beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
+spec:
+  selector:
+    app: foo
+  ports:
+  - name: https-port
+    port: 8443
+    targetPort: 8443
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+  namespace: gxlb-demo-ns2
+data:
+  haproxy.cfg: |
+    global
+      stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+      log stdout format raw local0 debug
+
+    defaults
+      mode http
+      timeout client 660s
+      timeout connect 60s
+      timeout server 60s
+      timeout http-request 660s
+      timeout http-keep-alive 660s
+      log global
+      maxconn 20000
+
+    frontend health-check
+        bind *:9000
+        http-request return status 200 content-type "text/plain" lf-string "OK" 
+        mode http
+
+    frontend demo-frontend
+        bind *:8443 ssl crt /usr/local/etc/haproxy-cert/mycert.pem
+        default_backend web-servers
+        mode http
+
+    backend web-servers
+      mode http
+      server s1 127.0.0.1:8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bar
+  namespace: gxlb-demo-ns2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bar
+  template:
+    metadata:
+      labels:
+        app: bar
+        version: v1
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.2.1
+        env:
+        - name: METADATA
+          value: "bar"
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+      - name: haproxy
+        image: haproxytech/haproxy-alpine:2.4
+        ports:
+          - name: https
+            containerPort: 8443
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTP
+        volumeMounts:
+        - name: haproxy-volume
+          mountPath: /usr/local/etc/haproxy
+        - name: cert-volume
+          mountPath: /usr/local/etc/haproxy-cert
+      volumes:
+      - name: haproxy-volume
+        configMap:
+          name: haproxy-config
+      - name: cert-volume
+        secret:
+          secretName: haproxy-cert
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: backend-health-check
+  namespace: gxlb-demo-ns2
+spec:
+  healthCheck:
+    requestPath: /healthz
+    port: 8443
+    type: HTTPS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bar
+  namespace: gxlb-demo-ns2
+  annotations:
+    networking.gke.io/app-protocols: '{"https-port":"HTTPS"}'
+    beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
+spec:
+  selector:
+    app: bar
+  ports:
+  - name: https-port
+    port: 8443
+    targetPort: 8443
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: external-http
+spec:
+  gatewayClassName: gke-l7-gxlb
+  listeners:
+  - protocol: HTTPS
+    port: 443
+    routes:
+      kind: HTTPRoute
+      namespaces:
+        from: "All"
+    tls:
+      mode: Terminate
+      options:
+        networking.gke.io/pre-shared-certs: gxlb-cert
+  addresses:
+  - type: NamedAddress
+    value: gke-gxlb-ip
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: foo
+  namespace: gxlb-demo-ns1
+spec:
+  gateways:
+    allow: FromList
+    gatewayRefs:
+    - name: external-http
+      namespace: default
+  hostnames:
+  - "foo.$DOMAIN"
+  rules:
+  - forwardTo:
+    - serviceName: foo
+      port: 8443
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: bar
+  namespace: gxlb-demo-ns2
+spec:
+  gateways:
+    allow: FromList
+    gatewayRefs:
+    - name: external-http
+      namespace: default
+  hostnames:
+  - "bar.$DOMAIN"
+  rules:
+  - forwardTo:
+    - serviceName: bar
+      port: 8443
