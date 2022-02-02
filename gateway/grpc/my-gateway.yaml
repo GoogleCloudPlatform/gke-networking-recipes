@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# kind: GatewayClass
-# apiVersion: networking.x-k8s.io/v1alpha1
-# metadata:
-#   name: gke-l7-rilb
-# spec:
-#   controller: networking.gke.io/gateway
-# ---
-# kind: GatewayClass
-# apiVersion: networking.x-k8s.io/v1alpha1
-# metadata:
-#   name: gke-l7-gxlb
-# spec:
-#   controller: networking.gke.io/gateway
 ---
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
@@ -46,7 +33,11 @@ spec:
     tls:      
       mode: Terminate
       options:
-        networking.gke.io/pre-shared-certs: gcp-cert-grpc-us-central 
+        networking.gke.io/pre-shared-certs: gcp-cert-grpc-us-central
+      # certificateRefs:
+      # - kind: Secret
+      #   group: ""
+      #   name: fe-secret
 ---
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
@@ -68,7 +59,11 @@ spec:
     tls:      
       mode: Terminate
       options:
-        networking.gke.io/pre-shared-certs: gcp-cert-grpc-global 
+        networking.gke.io/pre-shared-certs: gcp-cert-grpc-global
+      # certificateRefs:
+      # - kind: Secret
+      #   group: ""
+      #   name: fe-secret
 ---
 apiVersion: networking.x-k8s.io/v1alpha1
 kind: HTTPRoute

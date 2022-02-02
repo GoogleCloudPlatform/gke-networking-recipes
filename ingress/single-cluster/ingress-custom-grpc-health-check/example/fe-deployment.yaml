@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: hc-proxy
-        image: gcr.io/cloud-solutions-images/grpc_health_proxy:1.0.0
+        image: docker.io/salrashid123/grpc_health_proxy:1.0.0
         args: [
           "--http-listen-addr=0.0.0.0:8443",
           "--grpcaddr=localhost:50051",
@@ -48,7 +48,7 @@ spec:
           mountPath: /config
           readOnly: true       
       - name: grpc-app
-        image: gcr.io/cloud-solutions-images/grpc_app
+        image: docker.io/salrashid123/grpc_app
         args: [
           "/grpc_server",
           "--grpcport=0.0.0.0:50051",

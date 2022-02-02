@@ -16,25 +16,35 @@ gcloud container  clusters create cluster-1 --machine-type "n1-standard-2" \
  --cluster-version "1.20"  -q
 ```
 
+Install Gateway CRDs
 
-Create SSL Certificate
+```
+kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v0.3.0" \
+| kubectl apply -f -
+```
 
-Note, as of `5/6/21`, Gateway does not support [spec.listeners.tls.certificateRefs](https://cloud.google.com/kubernetes-engine/docs/how-to/gatewayclass-capabilities#gateway) so we have to upload a static cert to GCP.  Note we are creating two sets of certificates scoped for global and regional to account for external LB (global) and ILB (regional)
+
+optionally create SSL Certificate for use with statically defined certificates (`networking.gke.io/pre-shared-certs`)
 
 ```bash
 gcloud compute ssl-certificates create gcp-cert-grpc-global \
    --global --certificate server.crt --private-key server.key 
+
 gcloud compute ssl-certificates create gcp-cert-grpc-us-central \
    --region=us-central1 --certificate server.crt --private-key server.key 
 ```
 
-Wait maybe 2 mins for the Gateway controllers to get initialized.
+or use the default `spec.listeners.tls.certificateRef`.   For reference see [GatewayClass capabilities](https://cloud.google.com/kubernetes-engine/docs/how-to/gatewayclass-capabilities#gateway)
+
+Wait maybe 10 mins for the Gateway controllers to get initialized.
 
 Deploy application
 
 ```bash
 kubectl apply -f .
 ```
+
+> Please note the deployments here use the health_check proxy and sample gRPC applications hosted on `docker.io/`.  You can build and deploy these images into your own repository as well.
 
 Wait another 8mins for the IP address for the loadbalancers to get initialized
 
@@ -69,7 +79,7 @@ Verify external loadbalancing by transmitting 10 RPCs over one channel.  The res
 
 ```bash
 $ docker run --add-host grpc.domain.com:$GW_XLB_VIP  \
-  -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
+  -t docker.io/salrashid123/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem \
    --servername grpc.domain.com --repeat 10
 
@@ -109,7 +119,7 @@ Rerun the test. Notice the new pods in the response
 
 ```bash
 $ docker run --add-host grpc.domain.com:$GW_XLB_VIP  \
-  -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
+  -t docker.io/salrashid123/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem \
    --servername grpc.domain.com --repeat 10
 
@@ -133,7 +143,7 @@ To test the internal loadbalancer, you must configure a VM from within an [alloc
 ```bash
 $ docker run --add-host grpc.domain.com:$GW_ILB_VIP \
    -v `pwd`:/certs/ \
-   -t gcr.io/cloud-solutions-images/grpc_app /grpc_client \
+   -t docker.io/salrashid123/grpc_app /grpc_client \
    --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
    --servername grpc.domain.com --repeat 10
 
@@ -153,6 +163,6 @@ I0605 12:49:51.522513       1 grpc_client.go:112] RPC Response: message:"Hello u
 ---
 
 Source images used in this example can be found here:
-  - [gcr.io/cloud-solutions-images/grpc_health_proxy](https://github.com/salrashid123/grpc_health_proxy)
-  - [gcr.io/cloud-solutions-images/grpc_app](https://github.com/salrashid123/grpc_health_proxy/tree/master/example)
+  - [docker.io/salrashid123/grpc_health_proxy](https://github.com/salrashid123/grpc_health_proxy)
+  - [docker.io/salrashid123/grpc_app](https://github.com/salrashid123/grpc_health_proxy/tree/master/example)
 

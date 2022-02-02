@@ -6,7 +6,7 @@ This is a guide for how to implement proper load balancer health checking for gR
 
 The BackendConfig CRD now supports customizing HealthCheck resources. Below are the fields supported in the specification:
 
-```
+```yaml
 apiVersion: cloud.google.com/v1
 kind: BackendConfig
 metadata:
@@ -42,7 +42,7 @@ Below is an example Deployment specification when using a health check proxy. Yo
     spec:
       containers:
       - name: hc-proxy
-        image: gcr.io/cloud-solutions-images/grpc_health_proxy:1.0.0
+        image: docker.io/salrashid123/grpc_health_proxy:1.0.0
         args: [
           "--http-listen-addr=0.0.0.0:8080",
           "--grpcaddr=localhost:50051",
@@ -64,6 +64,8 @@ Below is an example Deployment specification when using a health check proxy. Yo
         - containerPort: 50051        
 ```
 
+> Please note the deployments here use the health_check proxy and sample gRPC applications hosted on `docker.io/`.  You can build and deploy these images into your own repository as well.
+
 Remember that your gRPC application must implement the gRPC health protocol
 (grpc.health.v1.Health).
 
@@ -75,7 +77,7 @@ For InstanceGroup backends, the port used for the health check must be exposed i
 
 For NEG backends, exposing the health check port in the Service is not required.
 
-```
+```yaml
 type: Service
 spec:
   type: NodePort
@@ -98,7 +100,7 @@ For a full end-to-end example, see the `example/` folder.
 
 ### Non-proxied Health Check
 
-```
+```yaml
 spec:
  containers:
  - name: esp
@@ -113,7 +115,7 @@ spec:
 
 #### Service & BackendConfig
 
-```
+```yaml
 type: Service
 spec:
   type: NodePort
