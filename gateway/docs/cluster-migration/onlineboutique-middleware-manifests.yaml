@@ -101,15 +101,15 @@ spec:
           - name: PORT
             value: "5050"
           - name: PRODUCT_CATALOG_SERVICE_ADDR
-            value: "productcatalogservice:3550"
+            value: "productcatalogservice.onlineboutique.svc.cluster.local:3550"
           - name: SHIPPING_SERVICE_ADDR
-            value: "shippingservice:50051"
+            value: "shippingservice.onlineboutique.svc.cluster.local:50051"
           - name: PAYMENT_SERVICE_ADDR
-            value: "paymentservice:50051"
+            value: "paymentservice.onlineboutique.svc.cluster.local:50051"
           - name: EMAIL_SERVICE_ADDR
-            value: "emailservice:5000"
+            value: "emailservice.onlineboutique.svc.cluster.local:5000"
           - name: CURRENCY_SERVICE_ADDR
-            value: "currencyservice:7000"
+            value: "currencyservice.onlineboutique.svc.cluster.local:7000"
           - name: CART_SERVICE_ADDR
             value: "cartservice.onlineboutique.svc.clusterset.local:7070"
           - name: DISABLE_STATS
@@ -173,7 +173,7 @@ spec:
         - name: PORT
           value: "8080"
         - name: PRODUCT_CATALOG_SERVICE_ADDR
-          value: "productcatalogservice:3550"
+          value: "productcatalogservice.onlineboutique.svc.cluster.local:3550"
         - name: DISABLE_TRACING
           value: "1"
         - name: DISABLE_PROFILER
