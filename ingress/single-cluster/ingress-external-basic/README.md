@@ -17,7 +17,7 @@ External Ingress on GKE deploys a global External HTTP(S) Load Balancer for publ
 - All supported GKE versions
 
 
-![basic external ingress](../../images/external-ingress-basic.png)
+![basic external ingress](../../../images/external-ingress-basic.png)
 
 
 
