@@ -24,18 +24,22 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
   - [Basic Multi-cluster Ingress](./ingress/multi-cluster/mci-basic) - Deploy applications across different clusters and different regions but retain a single global load balancer and public IP for global traffic management.
   - [Blue/Green Multi-cluster Ingress Cluster Migration](./ingress/multi-cluster/mci-blue-green-cluster) - Deploy applications across multiple clusters in the same region, leveraging a single global load balancer and public IP for global traffic management, to support seamless cluster upgrades without impacting client access.
   - [Blue/Green Multi-cluster Ingress App Migration](./ingress/multi-cluster/mci-blue-green-app) - Deploy applications across multiple clusters in the same region, leveraging a single global load balancer and public IP for global traffic management, to support seamless app upgrade without impacting client access.
+  - [Multi-Cluster w/ FrontendConfig](./ingress/multi-cluster/mci-frontend-config) - Deploy applications across multiple clusters and use the [FrontendConfig CRD](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#configuring_ingress_features_through_frontendconfig_parameters) to configure HTTP to HTTPS redirect and customize the TLS configuration.
+  - [Multi-Cluster E2E HTTPS](./ingress/multi-cluster/mci-https-e2e) - Deploy applications across different clusters with End to End HTTPS (Client -> (https) -> LoadBalancer -> (https) -> workload).
+  - [Multi-Cluster Anthos Service Mesh E2E HTTPS](./ingress/multi-cluster/mci-asm-https-e2e) - Deploy applications across different clusters with Anthos Service Mesh and End to End HTTPS (Client -> (https) -> LoadBalancer -> (https) -> Istio Ingress Gateway -> (mTLS) -> Workload).
 
 - Services
   - [Basic External LoadBalancer Service](./services/single-cluster/external-lb-service) - Deploy an internet-facing TCP/UDP network load balancer.
   - [Basic Internal LoadBalancer Service](./services/single-cluster/internal-lb-service) - Deploy an internal TCP/UDP load balancer.
-
-- Multi-cluster Services
   - [Basic Multi-Cluster Service](./services/multi-cluster/mcs-basic) - Deploy applications across multiple clusters. Applications is accessed across clusters via a VIP similar to accessing [ClusterIP Service](https://cloud.google.com/kubernetes-engine/docs/concepts/service#services_of_type_clusterip).
 
 - Gateway
   - [Basic Multi-cluster Gateway](./gateway/multi-cluster/mcg-internal-basic) - Deploy an internal multi-cluster Gateway to load balance across applications across multiple clusters.
   - [Blue-Green Cluster Pattern with multi-cluster Gateway](./gateway/multi-cluster/mcg-internal-blue-green) - Deploy an internal multi-cluster Gateway to load balance across two versions of an application in different clusters, while utilizing traffic mirroring and traffic weighting to determine readiness and canary a new version of an application.
   - [gRPC LoadBalancing](./gateway/grpc) - Deploy gRPC application for internet facing and internal traffic.
+  - [Single Cluster Global LoadBalancer](./gateway/single-cluster/global-l7-xlb) - Deploy an application and expose it with the Gateway API using the GatewayClass gke-l7-xlb.
+  - [Single Cluster Global LoadBalancer HTTPS between the GCLB and the Backend app](./gateway/single-cluster/global-l7-xlb-https-backend) - Deploy an app behind a Global LoadBalancer with the GatewayClass gke-l7-xlb and encrypt traffic between the LB and the backend app using HAProxy.
+  - [Single Cluster Regional Internal LoadBalancer](./gateway/single-cluster/regional-l7-ilb) - Deploy an application and expose it with the Gateway API using the GatewayClass gke-l7-rilb.
 
 ### Contributions
 
