@@ -58,6 +58,5 @@ metadata:
 spec:
   rules:
   - forwardTo:
-    - backendRef:
-        name: store-autoscale
+    - serviceName: store-autoscale
       port: 8080
