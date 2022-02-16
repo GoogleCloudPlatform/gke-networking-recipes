@@ -42,7 +42,7 @@ apiVersion: networking.x-k8s.io/v1alpha1
 metadata:
   name: store-autoscale
 spec:
-  gatewayClassName: gke-l7-rilb
+  gatewayClassName: gke-l7-gxlb
   listeners:
   - protocol: HTTP
     port: 80
