@@ -27,7 +27,7 @@ relying on network-level solutions like firewalls or VPNs
 
 ---
 
-![iap-ingress](../../images/iap-ingress.png)
+![iap-ingress](../../../images/iap-ingress.png)
 
 IAP is integrated through ingress for GKE by leveraging [BackendConfig CRD](https://github.com/kubernetes/ingress-gce/tree/master/pkg/apis/backendconfig).
 This object is associated with a given service and allows to specify configuration for HTTPs Load Balancer

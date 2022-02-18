@@ -25,7 +25,7 @@ This recipe exposes two Services hosted on GKE to the internet through an Ingres
 In addition to encrpting the traffic, additional security policies are used to more granularly control the HTTPS behavior. [SSL policies](https://cloud.google.com/load-balancing/docs/ssl-policies-concepts) give the administrator the ability to define what kind of SSL and TLS negotiations that are permitted with this Ingress resource. Lastly, [HTTPS redirects](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#https_redirect) are also specified on the Ingress, which redirects all 80/HTTP traffic to 443/HTTPS. This provides a more user-friendly method of redirecting clients to negotiate HTTPS than outright blocking port 80. When using HTTPS redirects, no traffic (besides the redirect) is capable of being transmitted unencrypted on port 80.
 
 
-![secure ingress](../../images/secure-ingress.png)
+![secure ingress](../../../images/secure-ingress.png)
 
 ### Networking Manifests
 

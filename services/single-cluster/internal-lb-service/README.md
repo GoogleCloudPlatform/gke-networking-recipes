@@ -18,7 +18,7 @@ Internal Load Balancing on GKE deploys an internal TCP/UDP load balancer for pri
 - All supported GKE versions
 
 
-![internal LoadBalancer service](../../images/internal-lb-service.png)
+![internal LoadBalancer service](../../../images/internal-lb-service.png)
 
 ### Networking Manifests
 
