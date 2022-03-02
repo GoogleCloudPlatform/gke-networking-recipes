@@ -24,7 +24,7 @@ accessible in a cluster.
 
 This recipe demonstrates deploying Multi-cluster Services in a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`). The exported Services can be accessed via DNS name `$svc.$ns.svc.clusterset.local` or a VIP called `ClusterSetIP`. In later steps, it also demonstrates app migration to a new cluster (`gke-2`) by exporting the same Service from `gke-2`.
 
-![basic multi-cluster services](../../images/multi-cluster-services-basic.png)
+![basic multi-cluster services](../../../images/multi-cluster-services-basic.png)
 
 A Custom Resources (CRs) called `ServiceExport` is used to indicate a Service should be exported. When this CR is created, the Service with the same namespace and name in the cluster will be exported other clusters.
 

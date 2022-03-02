@@ -17,7 +17,7 @@ Internal Ingress on GKE deploys a regional Internal HTTP(S) Load Balancer for pr
 - 1.16.5-gke.1 and later.
 
 
-![basic internal ingress](../../images/internal-ingress-basic.png)
+![basic internal ingress](../../../images/internal-ingress-basic.png)
 
 ### Networking Manifests
 

@@ -16,7 +16,7 @@ External Network Load Balancing on GKE deploys a regional TCP/UDP load balancer 
 
 - All suppported GKE versions
 
-![external loadbalancer service](../../images/external-lb-service.png)
+![external loadbalancer service](../../../images/external-lb-service.png)
 
 ### Networking Manifests
 

@@ -23,7 +23,7 @@ It is recommended practice to configure health check parameters explicitly for G
 
 ---
 
-![iap-ingress](../../images/healthcheck-ingress.png)
+![iap-ingress](../../../images/healthcheck-ingress.png)
 
 GKE creates [Google Cloud health check](https://cloud.google.com/load-balancing/docs/health-check-concepts)
 for each Ingress backend service in one of a following ways:

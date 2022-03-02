@@ -29,7 +29,7 @@ There are two applications in this example, foo and bar. Each is deployed on bot
 
 The two clusters in this example can be backends to MCI only if they are registered through Hub. Hub is a central registry of clusters that determines which clusters MCI can function across. A cluster must first be registered to Hub before it can be used with MCI.
 
-![basic external ingress](../../images/multi-cluster-ingress-external.png)
+![basic external ingress](../../../images/multi-cluster-ingress-external.png)
 
 There are two Custom Resources (CRs) that control multi-cluster load balancing - the MultiClusterIngress (MCI) and the MultiClusterService (MCS). The MCI below describes the desired traffic matching and routing behavior. Similar to an Ingress resource, it can specify host and path matching with Services. This MCI specifies two host rules and a default backend which will recieve all traffic that does not have a match. The `serviceName` field in this MCI specifies the name of an MCS resource.
 

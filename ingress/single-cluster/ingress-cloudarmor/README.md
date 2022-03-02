@@ -30,7 +30,7 @@ Armor security policy is configured, it can be used to protect services associat
 
 ---
 
-![cloudarmor-ingress](../../images/cloudarmor-ingress.png)
+![cloudarmor-ingress](../../../images/cloudarmor-ingress.png)
 
 Google Cloud Armor protection is integrated with ingress for GKE by leveraging [BackendConfig CRD](https://github.com/kubernetes/ingress-gce/tree/master/pkg/apis/backendconfig).
 This object is associated with a given service and allows to specify configuration for HTTPs Load Balancer
