@@ -1,0 +1,3 @@
+resources
+- stable/mesh.yaml
+- stable/grpcroute.yaml
