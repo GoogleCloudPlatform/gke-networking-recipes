@@ -61,7 +61,7 @@ spec:
     $ cd gke-networking-recipes/services/multi-cluster/mcs-basic
     ```
 
-2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../cluster-setup.md)
+2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md)
 
 3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Services.
 
@@ -70,7 +70,7 @@ spec:
     - app.yaml is the manifest for the `whereami` Deployment and Service.
     - export.yaml is the manifest for the `ServiceExport`, which will be deployed to indicate exporting service.
 
-4. Now log into `gke-1` and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
+4. Now log into `gke-1` and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
 
     ```bash
     $ kubectl --context=gke-1 apply -f app.yaml
@@ -120,7 +120,7 @@ spec:
 
 Now to demonstrate how MCS can be used for cluster upgrade, let's simulate migration scenario. Assuming `gke-2` is the new cluster, you can deploy and export the same service from `gke-2` together from `gke-1`.
 
-![merged multi-cluster services](../../images/multi-cluster-services-merged.png)
+![merged multi-cluster services](../../../images/multi-cluster-services-merged.png)
 
 1. Deploy and export the same service in `gke-2`.
 
