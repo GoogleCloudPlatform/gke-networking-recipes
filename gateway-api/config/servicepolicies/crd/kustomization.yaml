@@ -1,0 +1,8 @@
+resources:
+- stable/cdnpolicy.yaml
+- stable/iappolicy.yaml
+- stable/grpcrouteretrypolicy.yaml
+- stable/httprouteretrypolicy.yaml
+- stable/lbpolicy.yaml
+- stable/lbsecuritypolicy.yaml
+- stable/outlierdetectionpolicy.yaml
