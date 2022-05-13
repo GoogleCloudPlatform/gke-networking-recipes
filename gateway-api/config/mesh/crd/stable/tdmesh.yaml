@@ -4,20 +4,21 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: meshes.net.gke.io
+  name: tdmeshes.net.gke.io
 spec:
   group: net.gke.io
   names:
-    kind: Mesh
-    listKind: MeshList
-    plural: meshes
-    singular: mesh
+    kind: TDMesh
+    listKind: TDMeshList
+    plural: tdmeshes
+    singular: tdmesh
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Mesh represents an instantiation of a service mesh.
+        description: TDMesh represents an instantiation of a Traffic Director service
+          mesh.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -40,7 +41,7 @@ spec:
                   - kind: HTTPRoute
                   - kind: TCPRoute
                   - group: net.gke.io
-                    kind: GRPCRoute
+                    kind: TDGRPCRoute
                   namespaces:
                     from: All
                 description: MeshAllowedRoutes defines which Routes may be attached
@@ -51,7 +52,7 @@ spec:
                     - kind: HTTPRoute
                     - kind: TCPRoute
                     - group: net.gke.io
-                      kind: GRPCRoute
+                      kind: TDGRPCRoute
                     description: Kinds specifies the groups and kinds of Routes that
                       are allowed to bind to this Mesh. When unspecified or empty,
                       the kinds of Routes selected are HTTPRoute, TCPRoute, and GRPCRoute.
@@ -176,8 +177,8 @@ spec:
                     foo's current state.     // Known .status.conditions.type are:
                     \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
                     \    // +patchStrategy=merge     // +listType=map     // +listMapKey=type
-                    \    Conditions []Condition `json:\"conditions,omitempty\" patchStrategy:\"merge\"
-                    patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
+                    \    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
                     \n     // other fields }"
                   properties:
                     lastTransitionTime:

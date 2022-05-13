@@ -4,20 +4,21 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: grpcroutes.net.gke.io
+  name: tdgrpcroutes.net.gke.io
 spec:
   group: net.gke.io
   names:
-    kind: GRPCRoute
-    listKind: GRPCRouteList
-    plural: grpcroutes
-    singular: grpcroute
+    kind: TDGRPCRoute
+    listKind: TDGRPCRouteList
+    plural: tdgrpcroutes
+    singular: tdgrpcroute
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: GRPCRoute is the Schema for the GRPCRoute resource.
+        description: TDGRPCRoute is the Schema for the Traffic Director GRPCRoute
+          resource.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -56,6 +57,20 @@ spec:
                   if    the grpc host header is to equal to the suffix    (removing
                   the first label) of the wildcard rule. \n Support: Core"
                 items:
+                  description: "Hostname is the fully qualified domain name of a network
+                    host. This matches the RFC 1123 definition of a hostname with
+                    2 notable exceptions: \n 1. IPs are not allowed. 2. A hostname
+                    may be prefixed with a wildcard label (`*.`). The wildcard    label
+                    must appear by itself as the first label. \n Hostname can be \"precise\"
+                    which is a domain name without the terminating dot of a network
+                    host (e.g. \"foo.example.com\") or \"wildcard\", which is a domain
+                    name prefixed with a single wildcard label (e.g. `*.example.com`).
+                    \n Note that as per RFC1035 and RFC1123, a *label* must consist
+                    of lower case alphanumeric characters or '-', and must start and
+                    end with an alphanumeric character. No other punctuation is allowed."
+                  maxLength: 253
+                  minLength: 1
+                  pattern: ^(\*\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
                   type: string
                 maxItems: 16
                 type: array
@@ -76,16 +91,16 @@ spec:
                   is the case, the list of routes attached to those resources should
                   also be merged."
                 items:
-                  description: "ParentRef identifies an API object (usually a Gateway)
-                    that can be considered a parent of this resource (usually a route).
-                    The only kind of parent resource with \"Core\" support is Gateway.
-                    This API may be extended in the future to support additional kinds
-                    of parent resources, such as HTTPRoute. \n The API object must
-                    be valid in the cluster; the Group and Kind must be registered
-                    in the cluster for this reference to be valid. \n References to
-                    objects with invalid Group and Kind are not valid, and must be
-                    rejected by the implementation, with appropriate Conditions set
-                    on the containing object."
+                  description: "ParentReference identifies an API object (usually
+                    a Gateway) that can be considered a parent of this resource (usually
+                    a route). The only kind of parent resource with \"Core\" support
+                    is Gateway. This API may be extended in the future to support
+                    additional kinds of parent resources, such as HTTPRoute. \n The
+                    API object must be valid in the cluster; the Group and Kind must
+                    be registered in the cluster for this reference to be valid. \n
+                    References to objects with invalid Group and Kind are not valid,
+                    and must be rejected by the implementation, with appropriate Conditions
+                    set on the containing object."
                   properties:
                     group:
                       default: gateway.networking.k8s.io
@@ -116,23 +131,51 @@ spec:
                       minLength: 1
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                       type: string
+                    port:
+                      description: "Port is the network port this Route targets. It
+                        can be interpreted differently based on the type of parent
+                        resource: \n * Gateway: All listeners listening on the specified
+                        port that also support this kind of Route(and select this
+                        Route). It's not recommended to set `Port` unless the networking
+                        behaviors specified in a Route must apply to a specific port
+                        as opposed to a listener(s) whose port(s) may be changed.
+                        When both Port and SectionName are specified, the name and
+                        port of the selected listener must match both specified values.
+                        \n Implementations MAY choose to support other parent resources.
+                        Implementations supporting other types of parent resources
+                        MUST clearly document how/if Port is interpreted. \n For the
+                        purpose of status, an attachment is considered successful
+                        as long as the parent resource accepts it partially. For example,
+                        Gateway listeners can restrict which Routes can attach to
+                        them by Route kind, namespace, or hostname. If 1 of 2 Gateway
+                        listeners accept attachment from the referencing Route, the
+                        Route MUST be considered successfully attached. If no Gateway
+                        listeners accept attachment from this Route, the Route MUST
+                        be considered detached from the Gateway. \n Support: Extended
+                        \n <gateway:experimental>"
+                      format: int32
+                      maximum: 65535
+                      minimum: 1
+                      type: integer
                     sectionName:
                       description: "SectionName is the name of a section within the
                         target resource. In the following resources, SectionName is
-                        interpreted as the following: \n * Gateway: Listener Name
-                        \n Implementations MAY choose to support attaching Routes
-                        to other resources. If that is the case, they MUST clearly
-                        document how SectionName is interpreted. \n When unspecified
-                        (empty string), this will reference the entire resource. For
-                        the purpose of status, an attachment is considered successful
-                        if at least one section in the parent resource accepts it.
-                        For example, Gateway listeners can restrict which Routes can
-                        attach to them by Route kind, namespace, or hostname. If 1
-                        of 2 Gateway listeners accept attachment from the referencing
-                        Route, the Route MUST be considered successfully attached.
-                        If no Gateway listeners accept attachment from this Route,
-                        the Route MUST be considered detached from the Gateway. \n
-                        Support: Core"
+                        interpreted as the following: \n * Gateway: Listener Name.
+                        When both Port (experimental) and SectionName are specified,
+                        the name and port of the selected listener must match both
+                        specified values. \n Implementations MAY choose to support
+                        attaching Routes to other resources. If that is the case,
+                        they MUST clearly document how SectionName is interpreted.
+                        \n When unspecified (empty string), this will reference the
+                        entire resource. For the purpose of status, an attachment
+                        is considered successful if at least one section in the parent
+                        resource accepts it. For example, Gateway listeners can restrict
+                        which Routes can attach to them by Route kind, namespace,
+                        or hostname. If 1 of 2 Gateway listeners accept attachment
+                        from the referencing Route, the Route MUST be considered successfully
+                        attached. If no Gateway listeners accept attachment from this
+                        Route, the Route MUST be considered detached from the Gateway.
+                        \n Support: Core"
                       maxLength: 253
                       minLength: 1
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
@@ -370,7 +413,7 @@ spec:
                           \    // Known .status.conditions.type are: \"Available\",
                           \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
                           \    // +patchStrategy=merge     // +listType=map     //
-                          +listMapKey=type     Conditions []Condition `json:\"conditions,omitempty\"
+                          +listMapKey=type     Conditions []metav1.Condition `json:\"conditions,omitempty\"
                           patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
                           \n     // other fields }"
                         properties:
@@ -482,23 +525,53 @@ spec:
                           minLength: 1
                           pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                           type: string
+                        port:
+                          description: "Port is the network port this Route targets.
+                            It can be interpreted differently based on the type of
+                            parent resource: \n * Gateway: All listeners listening
+                            on the specified port that also support this kind of Route(and
+                            select this Route). It's not recommended to set `Port`
+                            unless the networking behaviors specified in a Route must
+                            apply to a specific port as opposed to a listener(s) whose
+                            port(s) may be changed. When both Port and SectionName
+                            are specified, the name and port of the selected listener
+                            must match both specified values. \n Implementations MAY
+                            choose to support other parent resources. Implementations
+                            supporting other types of parent resources MUST clearly
+                            document how/if Port is interpreted. \n For the purpose
+                            of status, an attachment is considered successful as long
+                            as the parent resource accepts it partially. For example,
+                            Gateway listeners can restrict which Routes can attach
+                            to them by Route kind, namespace, or hostname. If 1 of
+                            2 Gateway listeners accept attachment from the referencing
+                            Route, the Route MUST be considered successfully attached.
+                            If no Gateway listeners accept attachment from this Route,
+                            the Route MUST be considered detached from the Gateway.
+                            \n Support: Extended \n <gateway:experimental>"
+                          format: int32
+                          maximum: 65535
+                          minimum: 1
+                          type: integer
                         sectionName:
                           description: "SectionName is the name of a section within
                             the target resource. In the following resources, SectionName
                             is interpreted as the following: \n * Gateway: Listener
-                            Name \n Implementations MAY choose to support attaching
-                            Routes to other resources. If that is the case, they MUST
-                            clearly document how SectionName is interpreted. \n When
-                            unspecified (empty string), this will reference the entire
-                            resource. For the purpose of status, an attachment is
-                            considered successful if at least one section in the parent
-                            resource accepts it. For example, Gateway listeners can
-                            restrict which Routes can attach to them by Route kind,
-                            namespace, or hostname. If 1 of 2 Gateway listeners accept
-                            attachment from the referencing Route, the Route MUST
-                            be considered successfully attached. If no Gateway listeners
-                            accept attachment from this Route, the Route MUST be considered
-                            detached from the Gateway. \n Support: Core"
+                            Name. When both Port (experimental) and SectionName are
+                            specified, the name and port of the selected listener
+                            must match both specified values. \n Implementations MAY
+                            choose to support attaching Routes to other resources.
+                            If that is the case, they MUST clearly document how SectionName
+                            is interpreted. \n When unspecified (empty string), this
+                            will reference the entire resource. For the purpose of
+                            status, an attachment is considered successful if at least
+                            one section in the parent resource accepts it. For example,
+                            Gateway listeners can restrict which Routes can attach
+                            to them by Route kind, namespace, or hostname. If 1 of
+                            2 Gateway listeners accept attachment from the referencing
+                            Route, the Route MUST be considered successfully attached.
+                            If no Gateway listeners accept attachment from this Route,
+                            the Route MUST be considered detached from the Gateway.
+                            \n Support: Core"
                           maxLength: 253
                           minLength: 1
                           pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
