@@ -29,7 +29,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 1. Deploy two GKE clusters within your Google Cloud project.  
 
-    Note: ```machine-type=e2-standard-4``` and ```num-nodes=4``` are used to support Anthos Servish Mash (ASM) deployment. You can use smaller machine-type and less number of nodes if ASM is not required. For more information about ASM minumum requirements for GKE, please [click here](https://cloud.google.com/service-mesh/v1.7/docs/scripted-install/gke-asm-onboard-1-7#requirements).
+    Note: ```machine-type=e2-standard-4``` and ```num-nodes=4``` are used to support Anthos Service Mesh (ASM) deployment. You can use smaller machine-type and less number of nodes if ASM is not required. For more information about ASM minumum requirements for GKE, please [click here](https://cloud.google.com/service-mesh/v1.7/docs/scripted-install/gke-asm-onboard-1-7#requirements).
 
     ```sh
     gcloud container clusters create gke-1 \
