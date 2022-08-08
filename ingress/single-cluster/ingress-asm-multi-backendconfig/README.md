@@ -5,6 +5,7 @@ This can be used to e.g. protect some content behind the IAP (Like Montoring Too
 
 In order to use Backend Configs Istio Ingress Gateway needs to be exposed as a Layer7 (HTTP/HTTPS) Load Balancer, not as Layer 4 TCP Load balancer as it is by default.
 This means other TCP based protocols can't be exposed via the same Ingress/External IP Address.
+Replacing the default Kubernetes `LoadBalancer` service with an Ingress resource to get traffic to an Istio Ingress Gateway generally allows you to combine the features of Istio Ingress Gateways resource with the features of a [External HTTP(S) load balancer](https://cloud.google.com/load-balancing/docs/https) and [GKE ingress](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features): besides Backend Configs, this also allows for example to use global load balancing or FrontendConfigs (such as for HTTP-to-HTTPS redirect).
 
 In this example we will create 2 backend services: foo.example.com and bar.example.com.
 While both services are served to the user via the Anthos Service Mesh ingress, we will protect bar.example.com with [Identity-Aware Proxy](https://cloud.google.com/iap)
@@ -80,9 +81,12 @@ While both services are served to the user via the Anthos Service Mesh ingress, 
     * Service `istio-ingressgateway`: In comparison to the default Service [shipped in the examples](https://github.com/GoogleCloudPlatform/anthos-service-mesh-packages/blob/main/samples/gateways/istio-ingressgateway/service.yaml) this service is of type `ClusterIP`.
         This in combination with the annotation `cloud.google.com/neg: '{"ingress": true}'` creates an HTTP/HTTPS Loadbalancer with [Container Native Load Balancing](https://cloud.google.com/kubernetes-engine/docs/how-to/container-native-load-balancing). \
         The Istio Ingress Gateway is exposed via 3 different Ports:
-            * Port 15021 is used for the ingressgatweay health ckeck and maps to the target port 15021.
-            * In contrast to that port 15022 (`http2`) and 15023 (`custom-backendconfig-port`) are both mapped to port 80 of the `istio-ingressgateway` which serves the normal user-facing traffic. \
-            While both ports (15022 und 15023) basically serve the same traffic now the annotation `cloud.google.com/backend-config: '{"ports": {"http2":""ingressgateway-default","custom-backendconfig-port":"custom-backendconfig"}}'` tells the GKE Ingress controller to apply the `ingressgateway-default`to port 15022(`http2`) and BackendConfig `custom-backendconfig` to port 15023(`custom-backendconfig-port`).
+        * Port 15021 is used for the ingressgatweay health check and maps to the target port 15021.
+        * In contrast to that, port 15022 (`http2`) and 15023 (`custom-backendconfig-port`) are both mapped to port 80 of the `istio-ingressgateway` which serves the normal user-facing traffic.
+
+        While both ports (15022 und 15023) basically serve the same traffic now the annotation `cloud.google.com/backend-config: '{"ports": {"http2":""ingressgateway-default","custom-backendconfig-port":"custom-backendconfig"}}'` tells the GKE Ingress controller to apply the `ingressgateway-default`to port 15022(`http2`) and BackendConfig `custom-backendconfig` to port 15023(`custom-backendconfig-port`).
+      > **Note**
+      > The number of combinations of additional ports and BackendConfigs is arbitrarily extensible
     * Ingress `ingressgateway`: The Ingress has defined the `istio-ingressgateway` port 15022, which is associated with the BackendConfig `ingressgateway-default`, as the default.
         The more specific Host rule for `bar.example.com` is mapped to port 15023 of the `istio-ingressgateway`, which is associated with the BackendConfig `custom-backendconfig` and therefor requires IAP Authentication.
         This results in all traffic to `bar.example.com` is requiring IAP Authentication while all other traffic is not requiring IAP Authentication.
