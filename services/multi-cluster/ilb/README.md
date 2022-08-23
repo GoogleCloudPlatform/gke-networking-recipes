@@ -1,16 +1,10 @@
-# Multi-cluster Services
+# Multi cluster service communication within same network
 
-[Multi-cluster Services](https://cloud.google.com/kubernetes-engine/docs/concepts/multi-cluster-services) for GKE enables existing Services to be discoverable and accessible across clusters with a virtual IP, matching the behavior of a [ClusterIP Service](https://cloud.google.com/kubernetes-engine/docs/concepts/service#services_of_type_clusterip)
-accessible in a cluster.
-
-### Use-cases
-
-- High availability by running the same service across clusters
-- Flexible migration between clusters
+[Shared VPC](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc#managing_firewall_resources) Shared VPC enables multiple GKE clusters residing across different projects to be part of the same network. This enables different teams to manage their individual projects and communicate using the same shared VPC network centrally managed in the host project. Here we will look at how services residing across different clusters can communicate across cluster boundaries which are part of the same network 
 
 ### Relevant documentation
 
-- [Multi-cluster Services Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/multi-cluster-services)
+- [Shared VPC Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/multi-cluster-services)
 - [Setting Up Multi-cluster Services](https://cloud.google.com/kubernetes-engine/docs/how-to/multi-cluster-services)
 - [OSS Multi-cluster Services API](https://github.com/kubernetes/enhancements/tree/master/keps/sig-multicluster/1645-multi-cluster-services-api)
 
@@ -18,11 +12,11 @@ accessible in a cluster.
 
 - GKE clusters on GCP
 - 1.17 and later versions of GKE supported
-- Tested and validated with 1.18.10-gke.1500 on Feb 15th 2021
+- Tested and validated with v1.23.8-gke.1900 on Aug 23rd 2022
 
 ### Networking Manifests
 
-This recipe demonstrates deploying Multi-cluster Services in a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`). The exported Services can be accessed via DNS name `$svc.$ns.svc.clusterset.local` or a VIP called `ClusterSetIP`. In later steps, it also demonstrates app migration to a new cluster (`gke-2`) by exporting the same Service from `gke-2`.
+This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`). The Services in gke-1 are exposed via an Internal Load Balancer via a private IP address in the network. The pods in gke-2 will be able to communicate with gke-1 services via the internal ip address as they belong to the same network.
 
 ![basic multi-cluster services](../../../images/multi-cluster-services-basic.png)
 
