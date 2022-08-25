@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: gcr.io/google-samples/whereami:v1.2.1
+        image: gcr.io/google-samples/whereami:v1.2.10
         ports:
           - containerPort: 8080
 
