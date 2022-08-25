@@ -24,6 +24,9 @@ This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to
 
 ### Try it out
 
+![Communication across clusters via ILB](../../../images/ilb-service-communication.png)
+
+
 1. Download this repo and navigate to this folder
 
     ```sh
