@@ -1,6 +1,6 @@
 # GKE Gateway in Single Cluster
 
-[GKE Gateway](https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api) is the GKE implementation of the Kubernetes Gateway API. The Gateway API is an open source standard for service networking and is currently in the v1Alpha1 stage. At this time it is recommended for testing and evaluation only.
+[GKE Gateway](https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api) is the GKE implementation of the Kubernetes Gateway API. The Gateway API is an open source standard for service networking and is currently in the v1Beta1 stage. At this time it is recommended for testing and evaluation only.
 
 This recipe provides a walkthrough of GKE Gateway using **gke-l7-gxlb** (Global external HTTP(S) load balancers built on External HTTP(S) Load Balancing) GKE [GatewayClass](https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api#gatewayclass).
 
@@ -20,26 +20,26 @@ This recipe provides a walkthrough of GKE Gateway using **gke-l7-gxlb** (Global 
 
 - GKE clusters on GCP
 - GKE version 1.20 or later
-- Tested and validated with 1.21.5-gke.1302 on Dec 4th 2021
+- Tested and validated with 1.21.5-gke.1302 on Aug 30th 2022 (TODO: Update this version to the one that was used.)
 
 ### Networking Manifests
 
 This recipe demonstrates deploying [Gateway](https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api#gateway) and [HTTPRoute](https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api#httproute) in a single GKE cluster. One Gateway resource to expose two different services hosted in two different namespaces.
 
-The cluster `gke-1` is a regional cluster. The Gateway is hosted in default namespace. Two services in two different namespaces (other than default namespace). The Gateway (GKE load balancer) will match the traffic and send it to the right service depending on the request.
+The cluster `gke-1` is a regional cluster. The Gateway is hosted in the default namespace. Two services are hosted in two different namespaces (other than default namespace). The Gateway (GKE load balancer) will match the traffic and send it to the right service depending on the request.
 
-This Recipe also demonstrates how to enable HTTPS on Gateway Load Balancer using Google-managed certificate.
+This Recipe also demonstrates how to enable HTTPS on Gateway Load Balancer using a [Google-Managed Certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/deploying-gateways#tls_between_client_and_gateway).
 
-This example is using two applications; foo and bar. The *foo* applicaion is deployed in `NAMESPACE#1` and *bar* application is deployed in `NAMESPACE#2`. The External HTTPS Load Balancer is designed to route traffic to the services based on the request host name header. 
+This example is using two applications: `foo` and `bar`. The `foo` applicaion is deployed in `NAMESPACE#1` and `bar` application is deployed in `NAMESPACE#2`. The External HTTPS Load Balancer is designed to route traffic to the services based on the request host name header. 
 
 The Gateway below also uses:
 
 - A [Google-Managed Certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/deploying-gateways#tls_between_client_and_gateway)
-- A public [Static IP](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-external-ip-address) used as Gateway address
+- A public [Static IP](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-external-ip-address) used as the Gateway address
 
 ```yaml
 kind: Gateway
-apiVersion: networking.x-k8s.io/v1alpha1
+apiVersion: networking.x-k8s.io/v1beta1
 metadata:
   name: external-http
 spec:
@@ -60,14 +60,14 @@ spec:
     value: gke-gxlb-ip
 ```
 
-The *spec.listeners.routes* in Gateway defines which routes can bind to the Gateway. In this example, routes from all namespaces are allowed. We can also use `selector` to restrict the routes binding to specific namespaces or services.
+The `spec.listeners.routes` in Gateway defines which routes can bind to the Gateway. In this example, routes from all namespaces are allowed. We can also use `selector` to restrict the routes binding to specific namespaces or services.
 
 The HTTPRoute resource defines how HTTP and HTTPS requests received by a Gateway are directed to Services. Application developers create HTTPRoutes to expose their applications through Gateways.
 
 
 ```yaml
 kind: HTTPRoute
-apiVersion: networking.x-k8s.io/v1alpha1
+apiVersion: networking.x-k8s.io/v1beta1
 metadata:
   name: foo
   namespace: gxlb-demo-ns1
@@ -85,7 +85,7 @@ spec:
       port: 8080
 ```
 
-The HTTPRoutes resources for two services (foo and bar) define which Gateway it can route traffic from (external-http in default namespace), which Services to route to (foo/bar), and rules that define what traffic the HTTPRoute matches (request host name is foo/bar.$DOMAIN). 
+The `HTTPRoute`s resources for two services (`foo` and `bar`) define which `Gateway` it can route traffic from (`external-http` in `default` namespace), which Services to route to (`foo`/`bar`), and rules that define what traffic the `HTTPRoute` matches (request host name is `foo.$DOMAIN`/`bar.$DOMAIN`). 
 
 Now that you have the background knowledge and understanding of GKE Gateway, you can try it out yourself.
 
@@ -100,16 +100,18 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     cd gke-networking-recipes/gateway/single-cluster/global-l7-xlb
     ```
 
-2. Set up Environment variables
+2. Deploy the cluster as mentioned in [cluster setup](../../../cluster-setup.md#single-cluster-environment). Once done, come back to the next step.
+
+3. Set up Environment variables
+
+    TODO: Add a disclaimer for those who may not have a current project? Or call this out in the beginning of the documentation that they will need to create one?
 
     ```bash
     export PROJECT_ID=$(gcloud config get-value project) # or your preferred project
-    export GKE_REGION=GCP_CLOUD_REGION # Pick a supported Zone for cluster
+    export GKE_REGION=GCP_CLOUD_REGION # Pick a supported Zone for cluster (TODO: add an example of a region. Is there a way gcloud can recommend one for me?)
     ```
 
-    NB: This tutorial uses Regional Clusters, you can also use Zonal Clusters. Replace a region with a zone and use the ```--zone``` flag instead of ```--region``` in the next steps.
-
-3. Deploy the cluster as mentioned in [cluster setup](../../../cluster-setup.md#single-cluster-environment). Once done, come back to the next step.
+    > Note: This tutorial uses Regional Clusters, you can also use Zonal Clusters. Replace a region with a zone and use the `--zone` flag instead of `--region` in the next steps.
 
 4. Get the clusters credentials
 
@@ -117,9 +119,11 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     gcloud container clusters get-credentials gke-1 --region=us-central1
     ```
 
+    TODO: Should we have hard-coded `us-central1` if we are letting the learner set the value?
+
 5. Create a Static IP for the LoadBalancer and register it to DNS.
 
-    In order to use Google-Managed Certificated, a static IP needs to be reserved and registered with your DNS Server.
+    In order to use Google-Managed Certificate, a static IP needs to be reserved and registered with your DNS Server.
 
     Start by creating a public Static IP.
 
@@ -133,11 +137,15 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     gcloud compute addresses list
     ```
 
-    Copy the IP address (not the name the actual IP in the form x.x.x.x). You will need to register it as an A record with your DNS Server for every host you intend to configure the LoadBalancer for. In this example you will need the IP address to be mapped to ```bar.$DOMAIN``` and ```foo.$DOMAIN```. Replace ```$DOMAIN``` with your own domain, Exp: ```mycompany.com```.
+    TODO: Should we have any reference to cost of running through this recipe? Something like this? https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/01-prerequisites.md
+
+    Copy the IP address (not the name the actual IP in the form x.x.x.x). You will need to register it as an A record with your DNS Server for every host you intend to configure the LoadBalancer for. In this example you will need the IP address to be mapped to `bar.$DOMAIN` and `foo.$DOMAIN`. Replace `$DOMAIN` with your own domain, Exp: `mycompany.com`.
+    
+    TODO: Do I need to have a custom domain to go through this process? I suppose that make sense if I'm doing it for real and not just as a tutorial? If they don't have one, can we provide one? Or show them how to purchase it through https://cloud.google.com/domains/docs/register-domain#gcloud
 
 6. Provision Google-Managed Certificates
 
-    Export you domain suffix as an environment variable
+    Export your domain suffix as an environment variable
 
     ```bash
     export DOMAIN=mycompany.com
@@ -149,19 +157,37 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     gcloud compute ssl-certificates create gxlb-cert --domains=foo.${DOMAIN},bar.${DOMAIN} --global
     ```
 
+    TODO: How does it know to use `httproutes.yaml`? Is that a convention? A default? I don't see the file being refenced anywhere.
+
     Check that the certificates have been created
 
     ```bash
     gcloud compute ssl-certificates list
     ```
 
-    The MANAGED_STATUS will indicate ```PROVISIONNING```. This is normal, the certificates will be provisioned when you deploy the Gateway.
+    The MANAGED_STATUS will indicate `PROVISIONNING`. This is normal, the certificates will be provisioned when you deploy the Gateway.
 
 7. Install Gateway API CRDs
    
     ```bash
     kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v0.3.0" | kubectl apply -f -
     ```
+
+    TODO: I received this error message:
+
+    ```
+    W0830 16:06:00.669289   38254 gcp.go:120] WARNING: the gcp auth plugin is deprecated in v1.22+, unavailable in v1.25+; use gcloud instead.
+    To learn more, consult https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+    customresourcedefinition.apiextensions.k8s.io/backendpolicies.networking.x-k8s.io created
+    customresourcedefinition.apiextensions.k8s.io/gatewayclasses.networking.x-k8s.io created
+    customresourcedefinition.apiextensions.k8s.io/gateways.networking.x-k8s.io created
+    customresourcedefinition.apiextensions.k8s.io/httproutes.networking.x-k8s.io created
+    customresourcedefinition.apiextensions.k8s.io/tcproutes.networking.x-k8s.io created
+    customresourcedefinition.apiextensions.k8s.io/tlsroutes.networking.x-k8s.io created
+    customresourcedefinition.apiextensions.k8s.io/udproutes.networking.x-k8s.io created
+    ```
+
+    Should we convert to the `gcloud` command instead?
 
     The following CRDs are installed:
 
@@ -181,6 +207,8 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     kubectl get gatewayclass
     ```
 
+    TODO: Update the kubectl command based on the warning `WARNING: the gcp auth plugin is deprecated in v1.22+, unavailable in v1.25+; use gcloud instead. To learn more, consult https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke`
+
     This output confirms that the GKE GatewayClasses are ready to use in your cluster:
 
     ```
@@ -190,11 +218,19 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     ```
 
 9.  Edit the single-cluster-global-l7-xlb-recipe.yaml manifest to replace `$DOMAIN` with your domain.
+
+TODO: Why? Why didn't I need to do that to the `httproutes.yaml` file?
  
 10. Log in to the cluster and deploy the single-cluster-global-l7-xlb-recipe.yaml manifest.
 
     ```bash
     kubectl apply -f single-cluster-global-l7-xlb-recipe.yaml
+    ```
+
+    TODO: Update the kubectl command based on the warning `WARNING: the gcp auth plugin is deprecated in v1.22+, unavailable in v1.25+; use gcloud instead. To learn more, consult https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke`
+
+    This output confirms the LoadBalancer has been deployed.
+    ```
     namespace/gxlb-demo-ns1 created
     namespace/gxlb-demo-ns2 created
     deployment.apps/foo created
@@ -206,11 +242,17 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
     httproute.networking.x-k8s.io/bar created
     ```
 
-11. It can take a few minutes for the load balancer to deploy fully. Validate the Gateway. Once the Gateway is created successfully, the *Addresses.Value* will show the static IP address. 
+11. It can take a few minutes for the load balancer to deploy fully. Validate the Gateway.
 
     ```bash
     kubectl describe gateway external-http
+    ```
 
+    Once the Gateway is created successfully, the `Addresses.Value` will show the static IP address.
+
+    TODO: Focus in on the specific section of this output that is relevant to moving forward. (I wasn't sure if I was done with this step?)
+
+    ```
     Name:         external-http
     Namespace:    default
     Labels:       <none>
@@ -223,7 +265,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
                   networking.gke.io/ssl-certificates: 
                   networking.gke.io/target-proxies: gkegw-pqb5-default-external-http-jy9mc97xb5yh
                   networking.gke.io/url-maps: gkegw-pqb5-default-external-http-jy9mc97xb5yh
-    API Version:  networking.x-k8s.io/v1alpha1
+    API Version:  networking.x-k8s.io/v1beta1
     Kind:         Gateway
     Metadata:
       Creation Timestamp:  2021-12-04T12:55:38Z
@@ -231,7 +273,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
         gateway.finalizer.networking.gke.io
       Generation:  1
       Managed Fields:
-        API Version:  networking.x-k8s.io/v1alpha1
+        API Version:  networking.x-k8s.io/v1beta1
         Fields Type:  FieldsV1
         fieldsV1:
           f:metadata:
@@ -246,7 +288,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
         Manager:      kubectl-client-side-apply
         Operation:    Update
         Time:         2021-12-04T12:55:38Z
-        API Version:  networking.x-k8s.io/v1alpha1
+        API Version:  networking.x-k8s.io/v1beta1
         Fields Type:  FieldsV1
         fieldsV1:
           f:metadata:
@@ -308,22 +350,26 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
         
     ```
 
-12. Validate the HTTP route. The output should look similar to this.
+12. Validate the HTTP route.
     
     ```bash
     kubectl describe httproute foo -n gxlb-demo-ns1
+    ```
 
+    The output should look similar to this.
+
+    ```
     Name:         foo
     Namespace:    gxlb-demo-ns1
     Labels:       <none>
     Annotations:  <none>
-    API Version:  networking.x-k8s.io/v1alpha1
+    API Version:  networking.x-k8s.io/v1beta1
     Kind:         HTTPRoute
     Metadata:
       Creation Timestamp:  2021-12-04T13:02:30Z
       Generation:          1
       Managed Fields:
-        API Version:  networking.x-k8s.io/v1alpha1
+        API Version:  networking.x-k8s.io/v1beta1
         Fields Type:  FieldsV1
         fieldsV1:
           f:metadata:
@@ -341,7 +387,7 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
         Manager:      kubectl-client-side-apply
         Operation:    Update
         Time:         2021-12-04T13:02:30Z
-        API Version:  networking.x-k8s.io/v1alpha1
+        API Version:  networking.x-k8s.io/v1beta1
         Fields Type:  FieldsV1
         fieldsV1:
           f:status:
@@ -393,11 +439,19 @@ Now that you have the background knowledge and understanding of GKE Gateway, you
       Normal  SYNC    22s   sc-gateway-controller  Reconciliation of HTTPRoute "gxlb-demo-ns1/foo" bound to Gateway "default/external-http" was a success
     ```
 
+    TODO: Should there be a step to show pointing the domain to the server? At least mentioning it or possibly detailing for Google Domains/Cloud Domains? Something like:
+
+    This propogation takes time, so it might be good to encourage this at the beginning...
+
+    I'm now remembering that this was mentioned above. Might be worth calling out more explicitly? This recipe could take 24 hours+ to work.
+
 13. Now use the hostnames from the HTTPRoute resources to reach the load balancer.
 
     ```bash
     curl -v -L https://foo.$DOMAIN
+    ```
 
+    ```
     *   Trying x.x.x.x:443...
     * Connected to foo.$DOMAIN (x.x.x.x) port 443 (#0)
     * ALPN, offering h2

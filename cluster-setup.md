@@ -6,11 +6,16 @@ This will be referenced in upcoming command line examples.
   export PROJECT=$(gcloud config get-value project) # or your preferred project
 ```
 
+TODO: Align around name of variable `PROJECT` or `PROJECT_ID`
+TODO: Also set `GKE_REGION` while here
+
 ## Enable the Kubernetes Engine API for your GCP project
 
   ```sh
   gcloud services enable container.googleapis.com
   ```
+
+TODO: Move single-cluster and multi-cluster to different files so that users know which steps are required.
 
 ## Single-cluster environment
 
@@ -22,6 +27,16 @@ The single-cluster examples use the following GKE setup for deploying the manife
     --enable-ip-alias \
       --release-channel rapid 
 ```
+
+### TODO: Change command or understand why I received this message upon running the single cluster command
+
+> Default change: During creation of nodepools or autoscaling configuration changes for cluster versions greater than 1.24.1-gke.800 a default location policy is applied. For Spot and PVM it defaults to ANY, and for all other VM kinds a BALANCED policy is used. To change the default values use the `--location-policy` flag.
+> Note: The Pod address range limits the maximum size of the cluster. Please refer to https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr to learn how to optimize IP address allocation.
+> Creating cluster gke-1 in us-west1-a... Cluster is being deployed...
+
+Doesn't seem to have used the region I selected? (I selected region `us-central1` and it is using zone `us-west1-a`)...
+
+Oh.. of course... that was hardcoded... so why did I add that variable? Should I have used GKE_REGION instead?
 
 ## Multi-cluster environment basic
 

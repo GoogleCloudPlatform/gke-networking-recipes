@@ -1,6 +1,6 @@
 ---
 kind: HTTPRoute
-apiVersion: networking.x-k8s.io/v1alpha1
+apiVersion: networking.x-k8s.io/v1beta1
 metadata:
   name: foo
   namespace: gxlb-demo-ns1
@@ -18,7 +18,7 @@ spec:
       port: 8080
 ---
 kind: HTTPRoute
-apiVersion: networking.x-k8s.io/v1alpha1
+apiVersion: networking.x-k8s.io/v1beta1
 metadata:
   name: bar
   namespace: gxlb-demo-ns2
