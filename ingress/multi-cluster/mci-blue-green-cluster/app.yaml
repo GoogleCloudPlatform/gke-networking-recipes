@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: gcr.io/google-samples/whereami:v1.2.10
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.11
         env:
         - name: METADATA
           value: "default-backend"
@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: gcr.io/google-samples/whereami:v1.2.10
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.11
         env:
         - name: METADATA
           value: "foo"
