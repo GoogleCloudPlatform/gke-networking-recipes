@@ -104,7 +104,6 @@ metadata:
   name: foo
   namespace: gxlb-demo-ns1
   annotations:
-    networking.gke.io/app-protocols: '{"https-port":"HTTPS"}'
     beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
 spec:
   selector:
@@ -113,6 +112,7 @@ spec:
   - name: https-port
     port: 8443
     targetPort: 8443
+    appProtocol: HTTPS
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -219,7 +219,6 @@ metadata:
   name: bar
   namespace: gxlb-demo-ns2
   annotations:
-    networking.gke.io/app-protocols: '{"https-port":"HTTPS"}'
     beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
 spec:
   selector:
@@ -228,6 +227,7 @@ spec:
   - name: https-port
     port: 8443
     targetPort: 8443
+    appProtocol: HTTPS
 ---
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
