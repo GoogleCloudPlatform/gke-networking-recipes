@@ -98,7 +98,7 @@ spec:
     type: HTTPS
 ```
 
-The backend config now has to be matched to the Service via the `beta.cloud.google.com/backend-config` annotation and via the `networking.gke.io/app-protocols` annotation the protocol can be selected.
+The backend config now has to be matched to the Service via the `beta.cloud.google.com/backend-config` annotation and via the `spec.ports.appProtocol` field the protocol can be selected.
 
 ```yaml
 apiVersion: v1
@@ -107,7 +107,6 @@ metadata:
   name: foo
   namespace: gxlb-demo
   annotations:
-    networking.gke.io/app-protocols: '{"https-port":"HTTPS"}'
     beta.cloud.google.com/backend-config: '{"default": "backend-health-check"}'
 spec:
   selector:
@@ -116,6 +115,7 @@ spec:
   - name: https-port
     port: 8443
     targetPort: 8443
+    appProtocol: HTTPS
 ```
 
 ## Try it out
