@@ -37,13 +37,13 @@ This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to
 NOTE: Follow only steps 1-4 in the given link to create the cluster and set the context in kubectl client. Its not necessary to set up hub, MCS etc for communication
 via ILB private IP address.
 
-3. There are two manifests in this folder:
+3. There is app.yaml kubernetes manifest file in this folder :
 
     - app.yaml is the manifest for the `whereami` Deployment and Service of type load balancer. It is also possible to specify the load balancer ip address belonging to subnet CIDR ranges to ensure a stable
     ip address endpoint for dependant services
   
 
-4. Now log into `gke-1` and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
+4. Now log into `gke-1` and deploy the app.yaml manifest. 
 
     ```bash
     $ kubectl --context=gke-1 apply -f app.yaml
@@ -80,17 +80,11 @@ TargetPort:               8080/TCP
 NodePort:                 http  30782/TCP
 Endpoints:                10.92.3.21:8080
 Session Affinity:         None
-External Traffic Policy:  Cluster
-Events:
-  Type    Reason                Age   From                Message
-  ----    ------                ----  ----                -------
-  Normal  EnsuringLoadBalancer  79s   service-controller  Ensuring load balancer
-  Normal  EnsuredLoadBalancer   29s   service-controller  Ensured load balancer
     ```
 
-The load balancer ip address created for the service is 10.138.1.20, which is within the subnet CIDR range.
+The load balancer ip address created for the service is 10.138.1.20, which is based on the subnet CIDR range.
 
-6. Now try to access the internal load balancer endpoint from `gke-2`. Pod in gke-2 will be able to access the service in gke-1 via the Internal Load balancer ip address.
+6. Now try to access the internal load balancer endpoint from `gke-2`. Pod in gke-2 will be able to access the service in gke-1 via the Internal Load balancer ip address. It is necessary to configure the firewalls to allow the gke-2 pod and subnet ip ranges to access the tcp ports for target insteances in gke-2
 
     ```bash
     $kubectl --context=gke-2 run -ti --rm --restart=Never --image=radial/busyboxplus:curl shell-$RANDOM -- curl <<ILB_IP_ADDRESS>> | jq -r '.zone, .cluster_name, .pod_name'
