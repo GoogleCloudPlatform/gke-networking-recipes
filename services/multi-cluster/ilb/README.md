@@ -33,7 +33,9 @@ This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to
     $ cd gke-networking-recipes/services/multi-cluster/ilb
     ```
 
-2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md)
+2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md) . 
+NOTE: Follow only steps 1-4 in the given link to create the cluster and set the context in kubectl client. Its not necessary to set up hub, MCS etc for communication
+via ILB private IP address.
 
 3. There are two manifests in this folder:
 
