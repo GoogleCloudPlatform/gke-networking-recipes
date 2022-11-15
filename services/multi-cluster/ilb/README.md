@@ -39,8 +39,9 @@ via ILB private IP address.
 
 3. There are two manifests in this folder:
 
-    - app.yaml is the manifest for the `whereami` Deployment and Service.
-    - ilb.yaml is the manifest for delpoying the whereami service with an Internal load balancer. NOTE: The ip address specified in ilb.yaml should be in the subnet CIDR range of the GKE cluster.
+    - app.yaml is the manifest for the `whereami` Deployment and Service of type load balancer. It is also possible to specify the load balancer ip address belonging to subnet CIDR ranges to ensure a stable
+    ip address endpoint for dependant services
+  
 
 4. Now log into `gke-1` and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
 
@@ -48,7 +49,7 @@ via ILB private IP address.
     $ kubectl --context=gke-1 apply -f app.yaml
     namespace/multi-cluster-demo unchanged
     deployment.apps/whereami created
-    service/whereami created
+    service/whereami-ilb created
 
     # Shows that pod is running and happy
     $ kubectl --context=gke-1 get deploy -n multi-cluster-demo
@@ -57,14 +58,37 @@ via ILB private IP address.
     ```
 
 
-5. Now create the service as an ilb with an internal ip address within the CIDR of the subnet of GKE cluster.
+5. Now describe the newly created service and note down the load balancer ip address.
 
     ```bash
-    $ kubectl --context=gke-1 apply -f ilb.yaml
-    service/whereami-ilb created
+    $ kubectl --context=gke-1 describe svc whereami-ilb -n multi-cluster-demo
+Name:                     whereami-ilb
+Namespace:                multi-cluster-demo1
+Labels:                   app=whereami-ilb
+Annotations:              cloud.google.com/load-balancer-type: Internal
+                          cloud.google.com/neg: {"ingress":true}
+Selector:                 app=whereami
+Type:                     LoadBalancer
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.96.9.31
+IPs:                      10.96.9.31
+IP:                       10.138.1.20
+LoadBalancer Ingress:     10.138.1.20
+Port:                     http  80/TCP
+TargetPort:               8080/TCP
+NodePort:                 http  30782/TCP
+Endpoints:                10.92.3.21:8080
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:
+  Type    Reason                Age   From                Message
+  ----    ------                ----  ----                -------
+  Normal  EnsuringLoadBalancer  79s   service-controller  Ensuring load balancer
+  Normal  EnsuredLoadBalancer   29s   service-controller  Ensured load balancer
     ```
 
-
+The load balancer ip address created for the service is 10.138.1.20, which is within the subnet CIDR range.
 
 6. Now try to access the internal load balancer endpoint from `gke-2`. Pod in gke-2 will be able to access the service in gke-1 via the Internal Load balancer ip address.
 
@@ -76,7 +100,7 @@ via ILB private IP address.
     ```
 
     ```
-
+7. Note: The load balancer internal ip address for the service will change if the service is destroyed and brought up again. Hence its recommended to specify the load balancer ip address as an additional attribute in the yaml to fix the endpoint address. This ip address should be within the range of the subnet in which the GKE cluster is created.
 ### Cleanup
 
 ```sh

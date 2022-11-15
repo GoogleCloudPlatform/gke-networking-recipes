@@ -36,11 +36,18 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: whereami
+  name: wheraami-ilb
+  annotations:
+    cloud.google.com/load-balancer-type: Internal
+  labels:
+    app: wheraami-ilb
   namespace: multi-cluster-demo
 spec:
+  type: LoadBalancer
   ports:
-  - port: 80
-    targetPort: 8080
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
   selector:
     app: whereami
