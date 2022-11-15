@@ -1,12 +1,12 @@
 # Multi cluster service communication within same network
 
-[Shared VPC](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc#managing_firewall_resources) Shared VPC enables multiple GKE clusters residing across different projects to be part of the same network. This enables different teams to manage their individual projects and communicate using the same shared VPC network centrally managed in the host project. Here we will look at how services residing across different clusters can communicate across cluster boundaries which are part of the same network 
+[Shared VPC](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc#managing_firewall_resources) Shared VPC enables multiple GKE clusters residing across different projects to be part of the same network. This enables different teams to manage their individual projects and communicate using the same shared VPC network centrally managed in the host project. Here we will look at how services residing across different clusters can communicate across cluster boundaries which are part of the same network.  
 
 ### Relevant documentation
 
 - [Shared VPC Concepts](https://cloud.google.com/kubernetes-engine/docs/concepts/multi-cluster-services)
-- [Setting Up Multi-cluster Services](https://cloud.google.com/kubernetes-engine/docs/how-to/multi-cluster-services)
-- [OSS Multi-cluster Services API](https://github.com/kubernetes/enhancements/tree/master/keps/sig-multicluster/1645-multi-cluster-services-api)
+- [GCP Internal TCP load balancer](https://cloud.google.com/load-balancing/docs/internal)
+- [Exposing kubernetes service via ILB](https://cloud.google.com/kubernetes-engine/docs/how-to/internal-load-balancing#create)
 
 #### Versions
 
@@ -16,16 +16,13 @@
 
 ### Networking Manifests
 
-This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`). The Services in gke-1 are exposed via an Internal Load Balancer via a private IP address in the network. The pods in gke-2 will be able to communicate with gke-1 services via the internal ip address as they belong to the same network.
+This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`) through Internal TCP/UDP Load Balancer. The Services in gke-1 are exposed via an Internal Load Balancer on a private IP address in the network. The pods in gke-2 will be able to communicate with gke-1 services via the internal ip address as they belong to the same network. 
 
-![basic multi-cluster services](../../../images/internal-lb-service.png)
+![basic multi-cluster communication via ilb](../../../images/internal-lb-service.png)
 
 
 
 ### Try it out
-
-![Communication across clusters via ILB](../../../images/ilb-service-communication.png)
-
 
 1. Download this repo and navigate to this folder
 
@@ -38,9 +35,7 @@ This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to
 
 2. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md)
 
-3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Services.
-
-    There are two manifests in this folder:
+3. There are two manifests in this folder:
 
     - app.yaml is the manifest for the `whereami` Deployment and Service.
     - ilb.yaml is the manifest for delpoying the whereami service with an Internal load balancer. NOTE: The ip address specified in ilb.yaml should be in the subnet CIDR range of the GKE cluster.
@@ -69,7 +64,7 @@ This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to
 
 
 
-6. Now try to access the internal load balancer endpoint from `gke-2`.
+6. Now try to access the internal load balancer endpoint from `gke-2`. Pod in gke-2 will be able to access the service in gke-1 via the Internal Load balancer ip address.
 
     ```bash
     $kubectl --context=gke-2 run -ti --rm --restart=Never --image=radial/busyboxplus:curl shell-$RANDOM -- curl <<ILB_IP_ADDRESS>> | jq -r '.zone, .cluster_name, .pod_name'
