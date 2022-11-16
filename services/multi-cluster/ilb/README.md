@@ -14,9 +14,9 @@
 - 1.17 and later versions of GKE supported
 - Tested and validated with v1.23.8-gke.1900 on Aug 23rd 2022
 
-### Networking Manifests
+### Networking Scenario
 
-This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`) through Internal TCP/UDP Load Balancer. The Services in gke-1 are exposed via an Internal Load Balancer on a private IP address in the network. The pods in gke-2 will be able to communicate with gke-1 services via the internal ip address as they belong to the same network. 
+This recipe demonstrates deploying a cluster (`gke-1`) and make it accessible to other cluster (`gke-2`) through Internal TCP/UDP Load Balancer. Both these clusters reside in the same network and for the sake of simplicity we will create them in the same project. The Services in gke-1 are exposed via an Internal Load Balancer on a private IP address in the network. The pods in gke-2 will be able to communicate with gke-1 services via the internal ip address as they belong to the same network. 
 
 ![basic multi-cluster communication via ilb](../../../images/internal-lb-service.png)
 
