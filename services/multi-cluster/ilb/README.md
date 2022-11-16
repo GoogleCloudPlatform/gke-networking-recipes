@@ -43,7 +43,7 @@ via ILB private IP address.
     ip address endpoint for dependant services
   
 
-4. Now log into `gke-1` and deploy the app.yaml manifest. 
+4. Now set the context as `gke-1` and deploy the app.yaml manifest. 
 
     ```bash
     $ kubectl --context=gke-1 apply -f app.yaml
@@ -62,35 +62,33 @@ via ILB private IP address.
 
     ```bash
     $ kubectl --context=gke-1 describe svc whereami-ilb -n multi-cluster-demo
-Name:                     whereami-ilb
-Namespace:                multi-cluster-demo1
-Labels:                   app=whereami-ilb
-Annotations:              cloud.google.com/load-balancer-type: Internal
-                          cloud.google.com/neg: {"ingress":true}
-Selector:                 app=whereami
-Type:                     LoadBalancer
-IP Family Policy:         SingleStack
-IP Families:              IPv4
-IP:                       10.96.9.31
-IPs:                      10.96.9.31
-IP:                       10.138.1.20
-LoadBalancer Ingress:     10.138.1.20
-Port:                     http  80/TCP
-TargetPort:               8080/TCP
-NodePort:                 http  30782/TCP
-Endpoints:                10.92.3.21:8080
-Session Affinity:         None
+        Name:                     whereami-ilb
+        Namespace:                multi-cluster-demo1
+        Labels:                   app=whereami-ilb
+        Annotations:              cloud.google.com/load-balancer-type: Internal
+                                cloud.google.com/neg: {"ingress":true}
+        Selector:                 app=whereami
+        Type:                     LoadBalancer
+        IP Family Policy:         SingleStack
+        IP Families:              IPv4
+        IP:                       10.96.9.31
+        IPs:                      10.96.9.31
+        IP:                       10.138.1.20
+        LoadBalancer Ingress:     10.138.1.20
+        Port:                     http  80/TCP
+        TargetPort:               8080/TCP
+        NodePort:                 http  30782/TCP
+        Endpoints:                10.92.3.21:8080
+        Session Affinity:         None
     ```
 
 The load balancer ip address created for the service is 10.138.1.20, which is based on the subnet CIDR range.
 
-6. Now try to access the internal load balancer endpoint from `gke-2`. Pod in gke-2 will be able to access the service in gke-1 via the Internal Load balancer ip address. It is necessary to configure the firewalls to allow the gke-2 pod and subnet ip ranges to access the tcp ports for target insteances in gke-2
+6. Now try to access the internal load balancer endpoint from `gke-2`. Pod in gke-2 will be able to access the service in gke-1 via the Internal Load balancer ip address. It is necessary to configure the firewalls to allow the gke-2 pod and subnet ip ranges to access the tcp ports for target instances in gke-1
 
     ```bash
-    $kubectl --context=gke-2 run -ti --rm --restart=Never --image=radial/busyboxplus:curl shell-$RANDOM -- curl <<ILB_IP_ADDRESS>> | jq -r '.zone, .cluster_name, .pod_name'
-    us-west1-a
-    gke-1
-    whereami-559545767b-xrd4h
+    $kubectl --context=gke-2 run -ti --rm --restart=Never --image=radial/busyboxplus:curl shell-$RANDOM --  curl 10.138.1.20
+    {"cluster_name":"gke-2","host_header":"10.138.1.20","metadata":"default-backend","node_name":"gke-gke-2-default-pool-8f72419f-zb6c.us-west1-a.c.kishorerjbloom.internal","pod_name":"whereami-6f467cb4d5-mvhpr","pod_name_emoji":"🇸🇪","project_id":"kishorerjbloom","timestamp":"2022-11-16T07:02:16","zone":"us-west1-a"}
     ```
 
     ```
@@ -100,5 +98,4 @@ The load balancer ip address created for the service is 10.138.1.20, which is ba
 ```sh
 
 kubectl --context=gke-1 delete -f app.yaml
-kubectl --context=gke-2 delete -f app.yaml -f ilb.yaml
 ```
