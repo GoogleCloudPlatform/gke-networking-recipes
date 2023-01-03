@@ -54,7 +54,7 @@ spec:
 
 1. Download this repo and navigate to this folder
 
-    ```sh
+    ```bash
     $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
@@ -190,7 +190,7 @@ Now to demonstrate how MCS can be used for cluster upgrade, let's simulate migra
 
 ### Cleanup
 
-```sh
+```bash
 
 kubectl --context=gke-1 delete -f app.yaml
 kubectl --context=gke-2 delete -f app.yaml -f export.yaml

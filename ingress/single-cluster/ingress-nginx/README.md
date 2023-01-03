@@ -68,7 +68,7 @@ spec:
 
 1. Download this repo and navigate to this folder
 
-```sh
+```bash
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -89,7 +89,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 
 4. Deploy the Ingress, Deployment, and Service resources in the [ingress-ngnix.yaml](ingress-ngnix.yaml) manifest.
 
-```sh
+```bash
 $ kubectl apply -f ingress-ngnix.yaml
 ingress.networking.k8s.io/ingress-resource created
 service/foo created
@@ -125,7 +125,7 @@ Please note in the event logs that some firewall rules should be manually config
 
 6. Finally, we can validate the data plane by sending traffic to our Ingress VIP
 
-```sh
+```bash
 
 $ curl -H "host: foo.example.com" 34.102.236.246 /foo
 
@@ -133,6 +133,6 @@ $ curl -H "host: foo.example.com" 34.102.236.246 /foo
 
 ### Cleanup
 
-```sh
+```bash
 kubectl delete -f ingress-ngnix.yaml
 ```

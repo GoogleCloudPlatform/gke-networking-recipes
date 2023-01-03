@@ -20,6 +20,8 @@ spec:
         env:
         - name: METADATA
           value: "foo"
+        - name: ECHO_HEADERS
+          value: "True"
         ports:
           - name: http
             containerPort: 8080

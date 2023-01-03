@@ -62,7 +62,7 @@ Steps:
    * Create `BackendConfig` in a `kube-system` namespace. Substitute example policy name with your
    CloudArmor policy name
 
-     ```sh
+     ```bash
      cat << EOF | kubectl apply -f - -n kube-system
      apiVersion: cloud.google.com/v1
      kind: BackendConfig
@@ -76,7 +76,7 @@ Steps:
 
    * Annotate `default-http-backend` service in a `kube-system` namespace with a newly created `BackendConfig`
 
-     ```sh
+     ```bash
      kubectl annotate services default-http-backend \
      beta.cloud.google.com/backend-config='{"default": "cloudarmor-test"}' -n kube-system
      ```
@@ -84,13 +84,13 @@ Steps:
 2. Replace `$POLICY_NAME` variable in `cloudarmor-ingress.yaml` file with your Google CloudArmor
 policy name.
 
-   ```sh
+   ```bash
    sed -i '.bak' 's/$POLICY_NAME/cloudarmor-test/g' cloudarmor-ingress.yaml
    ```
 
 3. Apply `cloudarmor-ingress.yaml` file
 
-   ```sh
+   ```bash
    $ kubectl apply -f cloudarmor-ingress.yaml
    ingress.networking.k8s.io/cloudarmor-test created
    backendconfig.cloud.google.com/cloudarmor-test created
@@ -107,13 +107,13 @@ policy name.
 
 1. Enable GKE API
 
-   ```sh
+   ```bash
    gcloud services enable container.googleapis.com
    ```
 
 2. Create simple zonal GKE cluster for tests
 
-   ```sh
+   ```bash
    gcloud container clusters create cluster-test \
    --zone europe-central2-a \
    --release-channel regular \
@@ -122,7 +122,7 @@ policy name.
 
 3. Configure client credentials for a new cluster
 
-   ```sh
+   ```bash
    gcloud container clusters get-credentials cluster-test \
    --zone europe-central2-a
    ````

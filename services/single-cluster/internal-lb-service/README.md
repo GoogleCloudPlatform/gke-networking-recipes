@@ -51,7 +51,7 @@ spec:
 
 1. Download this repo and navigate to this folder.
 
-```sh
+```bash
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -60,7 +60,7 @@ $ cd gke-networking-recipes/internal-lb-service
 
 2. Deploy the Deployment and Service resources in the [internal-lb-service.yaml](internal-lb-service.yaml) manifest.
 
-```sh
+```bash
 $ kubectl apply -f internal-lb-service.yaml
 service/foo created
 deployment.apps/foo created
@@ -68,7 +68,7 @@ deployment.apps/foo created
 
 3. It may take up to a minute for the pods to deploy and up to a few minutes for the internal IP address of the Service resource to be ready. Validate the progress and make sure that no errors are surfaced in the resource events. [Google Cloud health checks](https://cloud.google.com/load-balancing/docs/health-check-concepts#ip-ranges) are created within your VPC by the GKE Service controller so that health checks are allowed to reach your cluster. If the load balancer health checks appear to not be passing, check that the correct VPC firewall rules are installed.
 
-```sh
+```bash
 $ kubectl get deploy foo
 NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 foo    3/3     3            3           20s
@@ -103,7 +103,7 @@ Events:
 
 As an example, assuming there is already a Firewall Rule to allow SSH for instances with the "allow-ssh" tag, you can create a test VM:
 
-```sh
+```bash
 $ gcloud compute instances create l4-ilb-client \
 --image-family=debian-9 \
 --image-project=debian-cloud \
@@ -115,7 +115,7 @@ $ gcloud compute instances create l4-ilb-client \
 
 5. Finally, validate the data plane by sending traffic to the VIP from the VM created in step 4.
 
-```sh
+```bash
 # SSH into the test VM
 $  gcloud compute ssh l4-ilb-client \
 --zone=<YOUR_ZONE>
@@ -128,12 +128,12 @@ $ curl 10.138.0.31
 
 Delete the GKE internal load balancer:
 
-```sh
+```bash
 kubectl delete -f internal-lb-service.yaml
 ```
 
 and delete the test VM created in step 4:
 
-```sh
+```bash
 gcloud compute instances delete l4-ilb-client --zone <YOUR_ZONE>
 ```

@@ -96,7 +96,7 @@ With these three resources, you are capable of securing your Ingress for product
 
 1. Download this repo and navigate to this folder
 
-```sh
+```bash
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -122,7 +122,7 @@ $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
 
 5. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the foo and bar applications, the FrontendConfig, ManagedCertificate, and Ingress resource.
 
-```sh
+```bash
 $ kubectl apply -f secure-ingress.yaml
 ingress.networking.k8s.io/secure-ingress created
 frontendconfig.networking.gke.io/ingress-security-config created
@@ -191,7 +191,7 @@ You are now ready to serve securely on the internet!
 
 ### Cleanup
 
-```sh
+```bash
 $ kubectl delete -f secure-ingress.yaml
 $ gcloud compute addresses delete --global gke-foobar-public-ip
 $ gcloud compute ssl-policies delete gke-ingress-ssl-policy

@@ -59,7 +59,7 @@ Steps:
 
 1. Apply `custom-http-hc-ingress.yaml` file
 
-   ```sh
+   ```bash
    $ kubectl apply -f custom-http-hc-ingress.yaml
      ingress.networking.k8s.io/hc-test created
      backendconfig.cloud.google.com/hc-test created
@@ -76,13 +76,13 @@ Steps:
 
 1. Enable GKE API
 
-   ```sh
+   ```bash
    gcloud services enable container.googleapis.com
    ```
 
 2. Create simple zonal GKE cluster for tests
 
-   ```sh
+   ```bash
    gcloud container clusters create cluster-test \
    --zone europe-central2-a \
    --release-channel regular \
@@ -91,7 +91,7 @@ Steps:
 
 3. Configure client credentials for a new cluster
 
-   ```sh
+   ```bash
    gcloud container clusters get-credentials cluster-test \
    --zone europe-central2-a
    ````
