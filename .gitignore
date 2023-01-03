@@ -1,4 +1,5 @@
 asm/
 .vscode/
 .crt
-.ket
+.key
+.pem
