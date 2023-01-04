@@ -19,7 +19,7 @@ spec:
             - backend:
                 serviceName: bar
                 servicePort: 443
-      - host: foo1.endpoints.gke-net-recipes-standalone.cloud.goog
+      - host: foo1.endpoints.$PROJECT-ID.cloud.goog
         http:
           paths:
             - backend:
