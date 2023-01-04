@@ -106,7 +106,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 1. Download this repo and navigate to this folder
 
-    ```sh
+    ```bash
     $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
@@ -124,7 +124,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
 
-    ```sh
+    ```bash
     $ kubectl --context=gke-1 apply -f app.yaml
     namespace/multi-cluster-demo created
     deployment.apps/default-backend created
@@ -156,7 +156,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 6. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
 
-    ```sh
+    ```bash
     $ kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
     Name:         foobar-ingress
     Namespace:    multi-cluster-demo
@@ -423,7 +423,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 ### Cleanup
 
-```sh
+```bash
 
 kubectl --context=gke-1 delete -f app.yaml
 kubectl --context=gke-1 delete -f ingress.yaml

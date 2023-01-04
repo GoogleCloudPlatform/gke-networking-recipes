@@ -44,7 +44,7 @@ spec:
 
 1. Download this repo and navigate to this folder.
 
-```sh
+```bash
 $ git clone git@github.com:GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -53,7 +53,7 @@ $ cd gke-networking-recipes/services/external-lb-service
 
 2. Deploy the Deployment and Service resources in the [external-lb-service.yaml](external-lb-service.yaml) manifest.
 
-```sh
+```bash
 $ kubectl apply -f external-lb-service.yaml
 service/foo created
 deployment.apps/foo created
@@ -61,7 +61,7 @@ deployment.apps/foo created
 
 3. It may take up to a minute for the pods to deploy and up to a few minutes for the external IP address of the Service resource to be ready.  Validate their progress and make sure that no errors are surfaced in the resource events.
 
-```sh
+```bash
 $ kubectl get deploy foo
 NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 foo    3/3     3            3           6m19s
@@ -91,7 +91,7 @@ Events:
 
 4. Finally, we can validate the Service is accessible from the Internet by sending traffic to the VIP address.
 
-```sh
+```bash
 $ curl -s 34.105.93.145 | jq ''
 {
   "cluster_name": "gke-1",                                                                                                                                                     
@@ -107,7 +107,7 @@ $ curl -s 34.105.93.145 | jq ''
 
 ### Cleanup
 
-```sh
+```bash
 $ kubectl delete -f external-lb-service.yaml 
 service "foo" deleted
 deployment.apps "foo" deleted

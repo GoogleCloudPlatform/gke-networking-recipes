@@ -51,7 +51,7 @@ Steps:
 
 1. Reserve global static IP address for an ingress
 
-   ```sh
+   ```bash
    gcloud compute addresses create iap-test --global
    ```
 
@@ -59,7 +59,7 @@ Steps:
   
     You can use `gcloud` command to get information about reserved address.
 
-    ```sh
+    ```bash
     $ gcloud compute addresses describe iap-test --global
     address: 123.213.53.69
     addressType: EXTERNAL
@@ -69,7 +69,7 @@ Steps:
 
     Once configured, verify that your domain name resolves to the reserved IP address.
 
-    ```sh
+    ```bash
     $ nslookup -query=a iap-test.mydomain.com
     ...(output omitted)..
 
@@ -80,7 +80,7 @@ Steps:
 
 3. Create kubernetes secret with oAuth client credentials from [IAP setup prerequisite](#prerequisite-iap-setup)
 
-   ```sh
+   ```bash
    kubectl create secret generic iap-test \
    --from-literal=client_id=ATA4NDY1Mzc3NTEyMS1taMWNp1yW50LmNvbQ== \
    --from-literal=client_secret=MjgySf4zSXF1Yk5uTlAwandOc0xrRjFY
@@ -88,13 +88,13 @@ Steps:
 
 4. Replace `$DOMAIN` variable in `iap-ingress.yaml` file with your domain name
 
-   ```sh
+   ```bash
    sed -i '.bak' 's/$DOMAIN/iap-test.mydomain.com/g' iap-ingress.yaml
    ```
 
 5. Apply `iap-ingress.yaml` file
 
-   ```sh
+   ```bash
    $ kubectl apply -f iap-ingress.yaml
    ingress.networking.k8s.io/iap-test created
    managedcertificate.networking.gke.io/iap-test created
@@ -147,13 +147,13 @@ Steps:
 
 1. Authorize gcloud to access GCP
 
-   ```sh
+   ```bash
    gcloud auth login
    ```
 
 2. Configure your project
 
-   ```sh
+   ```bash
    gcloud config set project my-project
    ```
 
@@ -161,13 +161,13 @@ Steps:
 
 1. Enable GKE API
 
-   ```sh
+   ```bash
    gcloud services enable container.googleapis.com
    ```
 
 2. Create simple zonal GKE cluster for tests
 
-   ```sh
+   ```bash
    gcloud container clusters create cluster-test \
    --zone europe-central2-a \
    --release-channel regular \
@@ -176,7 +176,7 @@ Steps:
 
 3. Configure client credentials for a new cluster
 
-   ```sh
+   ```bash
    gcloud container clusters get-credentials cluster-test \
    --zone europe-central2-a
    ````

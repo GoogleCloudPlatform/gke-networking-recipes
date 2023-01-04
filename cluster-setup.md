@@ -8,7 +8,7 @@ This will be referenced in upcoming command line examples.
 
 ## Enable the Kubernetes Engine API for your GCP project
 
-  ```sh
+  ```bash
   gcloud services enable container.googleapis.com
   ```
 
@@ -31,7 +31,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
     Note: ```machine-type=e2-standard-4``` and ```num-nodes=4``` are used to support Anthos Service Mesh (ASM) deployment. You can use smaller machine-type and less number of nodes if ASM is not required. For more information about ASM minumum requirements for GKE, please [click here](https://cloud.google.com/service-mesh/v1.7/docs/scripted-install/gke-asm-onboard-1-7#requirements).
 
-    ```sh
+    ```bash
     gcloud container clusters create gke-1 \
     --machine-type=e2-standard-4 \
     --num-nodes=4 \
@@ -53,13 +53,13 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 2. Ensure that the cluster is running:
 
-    ```sh
+    ```bash
     gcloud container clusters list
     ```
 
-    The output is similar to the following:
+    The output is similar to the following, your regions might be different than the ones below:
 
-    ```sh
+    ```bash
     NAME   LOCATION       MASTER_VERSION   MASTER_IP      MACHINE_TYPE   NODE_VERSION     NUM_NODES  STATUS
     gke-1  us-central1-a  1.21.5-gke.1802  34.136.74.24   e2-standard-4  1.21.5-gke.1802  4          RUNNING
     gke-2  us-west1-b     1.21.5-gke.1802  35.233.255.33  e2-standard-4  1.21.5-gke.1802  4          RUNNING
@@ -94,7 +94,7 @@ The multi-cluster examples use the following GKE setup for deploying the manifes
 
 6. [Register](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-for-anthos-setup#registering_your_clusters) your two clusters (`gke-1` and `gke-2`).
 
-    There are a few steps to complete as part of the registration process. A quick hint to get you going is the `gke-uri` for your GKE clusters.
+    There are a few steps to complete as part of the registration process.
 
     Register the clusters with Hub.
 

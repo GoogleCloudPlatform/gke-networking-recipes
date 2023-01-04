@@ -66,7 +66,7 @@ spec:
 
 1. Download this repo and navigate to this folder
 
-```sh
+```bash
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -75,7 +75,7 @@ $ cd gke-networking-recipes/ingress/external-ingress-basic
 
 2. Deploy the Ingress, Deployment, and Service resources in the [external-ingress-basic.yaml](external-ingress-basic.yaml) manifest.
 
-```sh
+```bash
 $ kubectl apply -f external-ingress-basic.yaml
 ingress.networking.k8s.io/foo-external created
 service/foo created
@@ -119,7 +119,7 @@ Events:
 
 4. Finally, we can validate the data plane by sending traffic to our Ingress VIP.
 
-```sh
+```bash
 $ curl -H "host: foo.example.com" 34.102.236.246
 {"cluster_name":"gke-us-west","host_header":"foo.example.com","node_name":"gke-gke-us-west-default-pool-8cdbdcce-smk6.c.church-243723.internal","pod_name":"foo-55dc6d64ff-66d4w","pod_name_emoji":"👨🏽‍🏭","project_id":"church-243723","timestamp":"2020-08-05T04:00:59","zone":"us-west1-a"}
 ```
@@ -127,6 +127,6 @@ $ curl -H "host: foo.example.com" 34.102.236.246
 
 ### Cleanup
 
-```sh
+```bash
 kubectl delete -f external-ingress-basic.yaml
 ```

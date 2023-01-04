@@ -19,7 +19,7 @@
 
 - GKE clusters on GCP
 - All versions of GKE supported
-- Tested and validated with 1.18.10-gke.1500 on Nov 14th 2020
+- Tested and validated with 1.25.4-gke.1600 on Jan 3rd 2023
 
 ### Networking Manifests
 
@@ -109,33 +109,31 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 1. Download this repo and navigate to this folder
 
-    ```sh
+    ```bash
     $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
-    $ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-ingress-basic
+    $ cd gke-networking-recipes/ingress/multi-cluster/mci-basic
     ```
 
 2. Set up Environment variables
 
     ```bash
     export PROJECT=$(gcloud config get-value project) # or your preferred project
-    export GKE1_REGION=GCP_CLOUD_REGION # Pick a supported Region/Zone for cluster gke-1
-    export GKE2_REGIOn=GCP_CLOUD_REGION # Pick a supported Region/Zone for cluster gke-2
+    export GKE1_ZONE=GCP_CLOUD_REGION # Pick a supported Region/Zone for cluster gke-1
+    export GKE2_ZONE=GCP_CLOUD_REGION # Pick a supported Region/Zone for cluster gke-2
+    # TODO(abdelfettah@) make sure the zones are consistent across all the recipes
     ```
 
-3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#Multi-cluster-environment-basic)
+3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#Multi-cluster-environment-basic) and follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
 
-4. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
-
-    There are two manifests in this folder:
-
+   There are two manifests in this folder:
     - app.yaml is the manifest for the foo and bar Deployments. This manifest should be deployed on both clusters.
     - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
 
-5. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
+4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
 
-    ```sh
+    ```bash
     $ kubectl --context=gke-1 apply -f app.yaml
     namespace/multi-cluster-demo created
     deployment.apps/foo created
@@ -147,9 +145,18 @@ Now that you have the background knowledge and understanding of MCI, you can try
     deployment.apps/foo created
     deployment.apps/bar created
     deployment.apps/default-backend created
+    ```
 
-    # Shows that all pods are running and happy
+5. Check workloads are deployed and running in both clusters
+
+    ```bash
     $ kubectl --context=gke-2 get deploy -n multi-cluster-demo
+    NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+    bar               2/2     2            2           44m
+    default-backend   1/1     1            1           44m
+    foo               2/2     2            2           44m
+
+    $ kubectl --context=gke-1 get deploy -n multi-cluster-demo
     NAME              READY   UP-TO-DATE   AVAILABLE   AGE
     bar               2/2     2            2           44m
     default-backend   1/1     1            1           44m
@@ -169,7 +176,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 7. It can take up to 10 minutes for the load balancer to deploy fully. Inspect the MCI resource to watch for events that indicate how the deployment is going. Then capture the IP address for the MCI ingress resource.
 
-    ```sh
+    ```bash
     $ kubectl --context=gke-1 describe mci/foobar-ingress -n multi-cluster-demo
     Name:         foobar-ingress
     Namespace:    multi-cluster-demo
@@ -306,7 +313,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 ### Cleanup
 
-```sh
+```bash
 
 kubectl --context=gke-1 delete -f app.yaml
 kubectl --context=gke-1 delete -f ingress.yaml # this is unnecessary as the namespace hosting these CRDs has already been deleted in the previous step

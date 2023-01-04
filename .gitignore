@@ -1,2 +1,6 @@
 asm/
 .vscode/
+.crt
+.key
+.pem
+certs/

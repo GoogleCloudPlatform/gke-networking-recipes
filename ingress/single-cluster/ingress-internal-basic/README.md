@@ -64,7 +64,7 @@ spec:
 
 1. Download this repo and navigate to this folder
 
-```sh
+```bash
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
@@ -73,7 +73,7 @@ $ cd gke-networking-recipes/ingress/internal-ingress-basic
 
 2. Deploy the Ingress, Deployment, and Service resources in the [internal-ingress-basic.yaml](internal-ingress-basic.yaml) manifest.
 
-```sh
+```bash
 $ kubectl apply -f internal-ingress-basic.yaml
 ingress.networking.k8s.io/foo-internal created
 service/foo created
@@ -124,7 +124,7 @@ Please note in the event logs that some firewall rules should be manually config
 
 As an example, assuming you already have a Firewall Rule to allow SSH for instances with the "allow-ssh" tag:
 
-```sh
+```bash
 gcloud compute instances create l7-ilb-client \
 --image-family=debian-9 \
 --image-project=debian-cloud \
@@ -136,7 +136,7 @@ gcloud compute instances create l7-ilb-client \
 
 5. Finally, we can validate the data plane by sending traffic to our Ingress VIP from this VM we created in step 4.
 
-```sh
+```bash
 # SSH into the test VM
 $  gcloud compute ssh l7-ilb-client \
 --zone=<YOUR_ZONE>
@@ -149,12 +149,12 @@ $ curl -H "host: foo.example.com" 10.200.10.218
 
 ### Cleanup
 
-```sh
+```bash
 kubectl delete -f internal-ingress-basic.yaml
 ```
 
 Deleting the test VM created in step 4:
 
-```sh
+```bash
 gcloud compute instances delete l7-ilb-client --zone <YOUR_ZONE>
 ```

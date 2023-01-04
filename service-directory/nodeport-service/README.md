@@ -61,7 +61,7 @@ spec:
 
 1.  Download this repo and navigate to this folder.
 
-    ```sh
+    ```bash
     $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
@@ -74,7 +74,7 @@ spec:
 
 1.  Enable the Service Directory feature on your fleet.
 
-    ```sh
+    ```bash
     $ gcloud alpha container hub service-directory enable
     ```
 
@@ -82,7 +82,7 @@ spec:
     ServiceDirectoryRegistrationPolicy resources in the
     [nodeport-service.yaml](nodeport-service.yaml) manifest.
 
-    ```sh
+    ```bash
     $ kubectl apply -f nodeport-service.yaml
     namespace/service-directory-demo created
     service/whereami created
@@ -92,7 +92,7 @@ spec:
 
 1.  Insepct the NodePort Service.
 
-    ```sh
+    ```bash
     $ kubectl describe services/whereami -n service-directory-demo
     Name:                     whereami
     Namespace:                service-directory-demo
@@ -115,7 +115,7 @@ spec:
 
     **Note: The cluster used in this example only had 1 node.**
 
-    ```sh
+    ```bash
     $ kubectl describe nodes
     Name:               gke-my-cluster-default-pool-0b5e50ae-1m08
     Roles:              <none>
@@ -156,7 +156,7 @@ spec:
 1.  Validate that the service has synced to Service Directory by resolving the
     service in the region that your GKE cluster exists in.
 
-    ```sh
+    ```bash
     $ gcloud service-directory services resolve whereami --namespace=service-directory-demo --location=us-west1
     service:
       endpoints:
@@ -170,6 +170,6 @@ spec:
 
 ### Cleanup
 
-```sh
+```bash
 kubectl delete -f nodeport-service.yaml
 ```

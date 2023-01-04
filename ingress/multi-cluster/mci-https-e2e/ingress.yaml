@@ -13,17 +13,17 @@ spec:
         serviceName: default-backend
         servicePort: 443
       rules:
-      - host: foo.$DOMAIN
-        http:
-          paths:
-            - backend:
-                serviceName: foo
-                servicePort: 443
-      - host: bar.$DOMAIN
+      - host: bar1.endpoints.$PROJECT-ID.cloud.goog
         http:
           paths:
             - backend:
                 serviceName: bar
+                servicePort: 443
+      - host: foo1.endpoints.$PROJECT-ID.cloud.goog
+        http:
+          paths:
+            - backend:
+                serviceName: foo
                 servicePort: 443
 ---
 apiVersion: networking.gke.io/v1
