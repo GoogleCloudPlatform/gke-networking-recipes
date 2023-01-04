@@ -16,10 +16,12 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.11
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.15
         env:
         - name: METADATA
           value: "foo"
+        - name: ECHO_HEADERS
+          value: "True"
         ports:
           - name: http
             containerPort: 8080
@@ -67,10 +69,12 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.11
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.15
         env:
         - name: METADATA
           value: "bar"
+        - name: ECHO_HEADERS
+          value: "True"
         ports:
           - name: http
             containerPort: 8080
@@ -117,7 +121,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.11
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.15
         env:
         - name: METADATA
           value: "default-backend"

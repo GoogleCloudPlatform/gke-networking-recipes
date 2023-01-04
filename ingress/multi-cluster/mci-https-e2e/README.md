@@ -6,9 +6,9 @@
 
 ## Use-cases
 
-- Encrypted traffic between both clients and HTTPS Load Balancer and Load Balancer and Backend services
-- Disaster recovery for internet traffic across clusters or regions
-- Low-latency serving of traffic to globally distributed GKE clusters
+- Encrypted traffic between both clients and HTTPS load balancer on one side and the load balancer and the backend pods on the other side.
+- Disaster recovery for internet traffic across clusters or regions.
+- Low-latency serving of traffic to globally distributed GKE clusters.
 
 ## Relevant documentation
 
@@ -28,12 +28,14 @@
 
 This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose two different Services hosted across both clusters. The cluster `gke-1` is in `REGION#1` and `gke-2` is hosted in `REGION#2`, demonstrating multi-regional load balancing across clusters. All Services will share the same MultiClusterIngress and load balancer IP, but the load balancer will match traffic and send it to the right region, cluster, and Service depending on the request.
 
+[//]: # (TODO - abdelfettah@: add diagram)
+
 This Recipes also demonstrates the following:
 
-- How to enable HTTPS on Multi-cluster Ingress
-- How to use HTTPS backends with Multi-cluster Igress
+- How to enable HTTPS on Multi-cluster Ingress.
+- How to use HTTPS backends with Multi-cluster Igress for end to end encryption.
 
-There are two applications in this example, foo and bar. Each is deployed on both clusters. The External HTTPS Load Balancer is designed to route traffic to the closest (to the client) available backend with capacity. Traffic from clients will be load balanced to the closest backend cluster depending on the traffic matching specified in the MultiClusterIngress resource.
+There are two applications in this example, ```foo``` and ```bar```. Deployed on both clusters. The External HTTPS load balancer is designed to route traffic to the closest (to the client) available backend with capacity. Traffic from clients will be load balanced to the closest backend cluster depending on the traffic matching specified in the MultiClusterIngress resource.
 
 The two clusters in this example can be backends to MCI only if they are registered through Hub. Hub is a central registry of clusters that determines which clusters MCI can function across. A cluster must first be registered to Hub before it can be used with MCI.
 
@@ -51,7 +53,7 @@ metadata:
   name: foobar-ingress
   namespace: multi-cluster-demo
   annotations:
-    networking.gke.io/static-ip: x.x.x.x
+    networking.gke.io/static-ip: 34.149.198.76
     networking.gke.io/pre-shared-certs: "mci-certs"
 spec:
   template:
@@ -60,27 +62,25 @@ spec:
         serviceName: default-backend
         servicePort: 443
       rules:
-      - host: foo.$DOMAIN
-        http:
-          paths:
-            - backend:
-                serviceName: foo
-                servicePort: 443
-      - host: bar.$DOMAIN
+      - host: bar.endpoints.$PROJECT-ID.cloud.goog
         http:
           paths:
             - backend:
                 serviceName: bar
                 servicePort: 443
+      - host: foo.endpoints.$PROJECT-ID.cloud.goog
+        http:
+          paths:
+            - backend:
+                serviceName: foo
+                servicePort: 443
 ```
 
-Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. This `foo` MCS specifies that all Pods with the following characteristics will be selected as backends for  `foo`:
+Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. This ```foo``` MCS specifies that all Pods with the following characteristics will be selected as backends for ```foo```::
 
 - Pods with the label `app: foo`
 - In the `multi-cluster-demo` Namespace
 - In any of the clusters that are registered as members to the Hub
-
-If more clusters are added to the Hub, then any Pods in those clusters that match these characteristics will also be registered as backends to `foo`.
 
 The MCS below also defines via annotations:
 
@@ -91,7 +91,7 @@ The MCS below also defines via annotations:
 apiVersion: networking.gke.io/v1
 kind: MultiClusterService
 metadata:
-  name: foo
+  name: bar
   namespace: multi-cluster-demo
   annotations:
     beta.cloud.google.com/backend-config: '{"ports": {"443":"backend-health-check"}}'
@@ -108,7 +108,7 @@ spec:
         targetPort: 443
 ```
 
-Each of the three MCS's referenced in the `foobar-ingress` MCI have their own manifest to describe the matching parameters of that MCS. A BackendConfig resource is also referenced. This allows settings specific to a Service to be configured. We use it here to configure the health check that the Google Cloud load balancer uses.
+Each of the three MCS's referenced in the ```foobar-ingress``` MCI have their own manifest to describe the matching parameters of that MCS. A BackendConfig resource is also referenced. This allows settings specific to a Service to be configured. We use it here to configure the health check that the Google Cloud load balancer uses.
 
 ```yaml
 apiVersion: cloud.google.com/v1
@@ -123,6 +123,27 @@ spec:
     type: HTTPS
 ```
 
+If more clusters are added to the Hub, then any Pods in those clusters that match these characteristics will also be registered as backends to `bar`.
+
+### Cloud Endpoints DNS
+
+To create a stable, human-friendly mapping to your Ingress IP, you must have a public DNS record. You can use any DNS provider and automation that you want. This recipe uses Endpoints instead of creating a managed DNS zone. Endpoints provides a free Google-managed DNS record for a public IP.
+
+NB: we use Cloud Endpoints DNS for the purposes of demonstration. This services has some limitations, most notabley when you register an endpoint and delete it you cannot reuse the same name for 30 days. You will have to use a new names if you register/unregister endpoints quickly.
+
+```yaml
+swagger: "2.0"
+info:
+  description: "Cloud Endpoints DNS"
+  title: "Cloud Endpoints DNS"
+  version: "1.0.0"
+paths: {}
+host: "bar.endpoints.$PROJECT-ID.cloud.goog"
+x-google-endpoints:
+- name: "bar.endpoints.$PROJECT-ID.cloud.goog"
+  target: "$GCLB_IP"
+```
+
 Now that you have the background knowledge and understanding of MCI, you can try it out yourself.
 
 ## Try it out
@@ -133,7 +154,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
     Cloning into 'gke-networking-recipes'...
 
-    cd gke-networking-recipes/ingress/multi-cluster/mci-https-backend
+    cd gke-networking-recipes/ingress/multi-cluster/mci-https-e2e
     ```
 
 2. Set up Environment variables
@@ -148,7 +169,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
 3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#multi-cluster-environment-basic). Once done, come back to the next step.
 
-4. Create a Static IP for the LoadBalancer and register it to DNS
+4. Create a Static IP for the load balancer and register it to DNS
 
     In order to use Google-Managed Certificated, a static IP needs to be reserved and registered with your DNS Server.
 
@@ -164,22 +185,22 @@ Now that you have the background knowledge and understanding of MCI, you can try
     gcloud compute addresses list
     ```
 
-    Copy the IP address (not the name the actual IP in the form x.x.x.x). You will need to register it as an A record with your DNS Server for every host you intend to configure the LoadBalancer for. In this example you will need the IP address to be mapped to ```bar.$DOMAIN``` and ```foo.$DOMAIN```. Replace ```$DOMAIN``` with your own domain, Exp: ```mycompany.com```.
+5. Edit the ```dns-spec-foo.yaml``` and ```dns-spec-bar.yaml``` files and update ```$PROJECT-ID``` value with your project id and ```$GCLB_IP``` with public IP that was created to create Endpoints.
 
-    Save the IP address for later.
-
-5. Provision Google-Managed Certificates
-
-    Export you domain suffix as an environment variable
+6. Deploy the Cloud Endpoints DNS specs file in your Cloud project:  
+    The YAML specification defines the public DNS record in the form of bar.endpoints.PROJECT-ID.cloud.goog, where PROJECT-ID is your unique project number.
 
     ```bash
-    export DOMAIN=mycompany.com
+    gcloud endpoints services deploy dns-spec-foo.yaml
+    gcloud endpoints services deploy dns-spec-bar.yaml
     ```
+
+7. Provision Google-Managed Certificates
 
     We will use Google-Managed Certificates in this example to provision and HTTPS LoadBalancer, run the following command.
 
     ```bash
-    gcloud compute ssl-certificates create mci-certs --domains=foo.${DOMAIN},bar.${DOMAIN} --global
+    gcloud compute ssl-certificates create mci-certs --domains=foo.endpoints.${PROJECT}.cloud.goog,bar.endpoints.${PROJECT}.cloud.goog --global
     ```
 
     Check that the certificates have been created
@@ -190,58 +211,59 @@ Now that you have the background knowledge and understanding of MCI, you can try
 
     The MANAGED_STATUS will indicate ```PROVISIONNING```. This is normal, the certificates will be provisionned when you deploy the MCI
 
-6. We are using a HAPROXY sidecar ```(container image: haproxytech/haproxy-alpine:2.4)``` for HTTPS backend. The backend [SSL terminates](https://www.haproxy.com/blog/haproxy-ssl-termination/) at HAPROXY.
+8. We are using a HAPROXY sidecar ```(container image: haproxytech/haproxy-alpine:2.4)``` for HTTPS backend. The backend [SSL terminates](https://www.haproxy.com/blog/haproxy-ssl-termination/) at HAPROXY.
 
-7. The `haproxy` directory in this code repository has a sample config file for HAPROXY. Change to this directory for steps 8 and 9.
-   
-8. Create self-signed certificate for backends using openssl
+   The `haproxy` directory in this code repository has a sample config file for HAPROXY. Change to this directory for steps 8 and 9.
+
+   Create self-signed certificate for backends using openssl
 
     ```bash
-    openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
+    mkdir certs
+    openssl req -newkey rsa:2048 -nodes -keyout certs/key.pem -x509 -days 365 -out certs/certificate.pem
     ```
 
    Provide required inputs when prompted by above command. Once key and certificate are generated successfully, create a a file that contains both certificate and the private key.
 
-   ```bash
-   cat certificate.pem key.pem >> mycert.pem
-   rm certificate.pem key.pem
-   ```
+    ```bash
+    cat certs/certificate.pem certs/key.pem >> certs/mycert.pem
+    rm certs/certificate.pem certs/key.pem
+    ```
 
 9. Log in to each cluster and create namespace
 
-  ```bash
-  kubectl --context=gke-1 create namespace multi-cluster-demo
-  kubectl --context=gke-2 create namespace multi-cluster-demo
-  ```
+    ```bash
+    kubectl --context=gke-1 create namespace multi-cluster-demo
+    kubectl --context=gke-2 create namespace multi-cluster-demo
+    ```
 
 10. Log in to each cluster and create secret for self-signed certificate
-    
-   ```bash
-   kubectl --context=gke-1 create secret generic haproxy-cert --from-file=mycert.pem -n multi-cluster-demo
-   kubectl --context=gke-2 create secret generic haproxy-cert --from-file=mycert.pem -n multi-cluster-demo
-   ```
+
+     ```bash
+     kubectl --context=gke-1 create secret generic haproxy-cert --from-file=certs/mycert.pem -n multi-cluster-demo
+     kubectl --context=gke-2 create secret generic haproxy-cert --from-file=certs/mycert.pem -n multi-cluster-demo
+     ```
 
 11. Log in to each cluster and create config map for HA Proxy sidecar
 
-    ```bash
-    kubectl --context=gke-1 create configmap haproxy-config --from-file=haproxy.cfg -n multi-cluster-demo
-    kubectl --context=gke-2 create configmap haproxy-config --from-file=haproxy.cfg -n multi-cluster-demo
-    ```
+     ```bash
+     kubectl --context=gke-1 create configmap haproxy-config --from-file=haproxy.cfg -n multi-cluster-demo
+     kubectl --context=gke-2 create configmap haproxy-config --from-file=haproxy.cfg -n multi-cluster-demo
+     ```
 
 12. Log in to each cluster and deploy the app.yaml manifest.
 
-    ```bash
+     ```bash
     kubectl --context=gke-1 apply -f app.yaml
     kubectl --context=gke-2 apply -f app.yaml
     ```
 
-13. Edit the ingress.yaml file and update:
+13. Edit the ```ingress.yaml``` file and update:
 
     ```networking.gke.io/static-ip``` value with the IP address you reserved earlier.
-    ```$DOMAIN``` with your own domain.
+    ```$PROJECT-ID``` with your project id.
 
 14. The multi-cluster service resource should have `networking.gke.io/app-protocols` annotation for HTTPS backends.
-    
+
 15. Now log into `gke-1` and deploy the ingress.yaml manifest.
 
     ```bash
@@ -255,16 +277,15 @@ Now that you have the background knowledge and understanding of MCI, you can try
     Name:         foobar-ingress
     Namespace:    multi-cluster-demo
     Labels:       <none>
-    Annotations:  networking.gke.io/last-reconcile-time: Wednesday, 24-Nov-21 11:41:25 UTC
-                  networking.gke.io/pre-shared-certs: mci-certs
+    Annotations:  networking.gke.io/pre-shared-certs: mci-certs
                   networking.gke.io/static-ip: x.x.x.x
     API Version:  networking.gke.io/v1
     Kind:         MultiClusterIngress
     Metadata:
-      Creation Timestamp:  2021-11-24T11:36:33Z
+      Creation Timestamp:  2023-01-04T12:34:03Z
       Finalizers:
         mci.finalizer.networking.gke.io
-      Generation:  2
+      Generation:  1
       Managed Fields:
         API Version:  networking.gke.io/v1
         Fields Type:  FieldsV1
@@ -288,33 +309,19 @@ Now that you have the background knowledge and understanding of MCI, you can try
                 f:rules:
         Manager:      kubectl-client-side-apply
         Operation:    Update
-        Time:         2021-11-24T11:36:33Z
+        Time:         2023-01-04T12:34:03Z
         API Version:  networking.gke.io/v1beta1
         Fields Type:  FieldsV1
         fieldsV1:
           f:metadata:
-            f:annotations:
-              f:networking.gke.io/last-reconcile-time:
             f:finalizers:
               .:
               v:"mci.finalizer.networking.gke.io":
-          f:status:
-            .:
-            f:CloudResources:
-              .:
-              f:BackendServices:
-              f:Firewalls:
-              f:ForwardingRules:
-              f:HealthChecks:
-              f:NetworkEndpointGroups:
-              f:TargetProxies:
-              f:UrlMap:
-            f:VIP:
         Manager:         Google-Multi-Cluster-Ingress
         Operation:       Update
-        Time:            2021-11-24T11:37:51Z
-      Resource Version:  172580
-      UID:               922c094b-1548-435d-bf9a-68e59e1dc4b8
+        Time:            2023-01-04T12:34:04Z
+      Resource Version:  1064930
+      UID:               76d0e817-be0b-4b80-b286-8093b6e57ba2
     Spec:
       Template:
         Spec:
@@ -322,61 +329,31 @@ Now that you have the background knowledge and understanding of MCI, you can try
             Service Name:  default-backend
             Service Port:  443
           Rules:
-            Host:  foo.$DOMAIN
-            Http:
-              Paths:
-                Backend:
-                  Service Name:  foo
-                  Service Port:  443
-            Host:                bar.$DOMAIN
+            Host:  bar.endpoints.$PROJECT-ID.cloud.goog
             Http:
               Paths:
                 Backend:
                   Service Name:  bar
                   Service Port:  443
-    Status:
-      Cloud Resources:
-        Backend Services:
-          mci-epwpes-443-multi-cluster-demo-bar
-          mci-epwpes-443-multi-cluster-demo-default-backend
-          mci-epwpes-443-multi-cluster-demo-foo
-        Firewalls:
-          mci-epwpes-vpc-1-l7
-        Forwarding Rules:
-          mci-epwpes-fw-multi-cluster-demo-foobar-ingress
-          mci-epwpes-fws-multi-cluster-demo-foobar-ingress
-        Health Checks:
-          mci-epwpes-443-multi-cluster-demo-bar
-          mci-epwpes-443-multi-cluster-demo-default-backend
-          mci-epwpes-443-multi-cluster-demo-foo
-        Network Endpoint Groups:
-          zones/us-central1-b/networkEndpointGroups/k8s1-0568199c-multi-cluste-mci-default-backend-svc-p-4-37f174c8
-          zones/us-central1-b/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-bar-svc-067a3lzs8o-44-89690c8a
-          zones/us-central1-b/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-foo-svc-820zw3izxb-44-8442a44d
-          zones/us-central1-c/networkEndpointGroups/k8s1-0568199c-multi-cluste-mci-default-backend-svc-p-4-37f174c8
-          zones/us-central1-c/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-bar-svc-067a3lzs8o-44-89690c8a
-          zones/us-central1-c/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-foo-svc-820zw3izxb-44-8442a44d
-          zones/us-central1-f/networkEndpointGroups/k8s1-0568199c-multi-cluste-mci-default-backend-svc-p-4-37f174c8
-          zones/us-central1-f/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-bar-svc-067a3lzs8o-44-89690c8a
-          zones/us-central1-f/networkEndpointGroups/k8s1-0568199c-multi-cluster--mci-foo-svc-820zw3izxb-44-8442a44d
-        Target Proxies:
-          mci-epwpes-multi-cluster-demo-foobar-ingress
-          mci-epwpes-multi-cluster-demo-foobar-ingress
-        URL Map:  mci-epwpes-multi-cluster-demo-foobar-ingress
-      VIP:        x.x.x.x
+            Host:                foo.endpoints.$PROJECT-ID.cloud.goog
+            Http:
+              Paths:
+                Backend:
+                  Service Name:  foo
+                  Service Port:  443
     Events:
-      Type    Reason  Age                    From                              Message
-      ----    ------  ----                   ----                              -------
-      Normal  ADD     6m12s                  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
-      Normal  UPDATE  4m54s (x2 over 6m12s)  multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+      Type    Reason  Age   From                              Message
+      ----    ------  ----  ----                              -------
+      Normal  ADD     18s   multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
+      Normal  UPDATE  17s   multi-cluster-ingress-controller  multi-cluster-demo/foobar-ingress
     ```
 
 17. Now use the hosts defined in the MCI to reach the load balancer.
 
     ```bash
-    curl -v -L https://foo.$DOMAIN
+    curl -v -L https://foo.endpoints.$PROJECT-ID.cloud.goog
     *   Trying x.x.x.x:443...
-    * Connected to foo.$DOMAIN (x.x.x.x) port 443 (#0)
+    * Connected to foo.endpoints.$PROJECT-ID.cloud.goog (x.x.x.x) port 443 (#0)
     * ALPN, offering h2
     * ALPN, offering http/1.1
     * successfully set certificate verify locations:
@@ -420,6 +397,18 @@ Now that you have the background knowledge and understanding of MCI, you can try
     < alt-svc: clear
     < 
     {
+      "cloud_run_instance_id": 1667735529331472316,
+      "cloud_run_service_account": "$PROJECT-ID.svc.id.goog",
+      "cluster_name": "gke-1",
+      "headers": {
+        "Accept": "*/*",
+        "Host": "foo1.endpoints.$PROJECT-ID.cloud.goog",
+        "User-Agent": "curl/7.86.0",
+        "Via": "1.1 google",
+        "X-Cloud-Trace-Context": "f6a2f4ba46f09b910381569cb280f58e/5468962487031307443",
+        "X-Forwarded-For": "104.199.75.203, 34.149.198.76",
+        "X-Forwarded-Proto": "http"
+      },
       "cluster_name": "gke-1", 
       "host_header": "foo.$DOMAIN", 
       "metadata": "foo", 
