@@ -1,7 +1,7 @@
 
 # GKE Ingress + NGNIX Ingress
 
-GKE allows customers to deploy their own Ingress Controllers instead of the standard GCP offering. NGNIX is a popular option because of it's simplicity and open source nature. This example deploys an application on GKE and exposes the application with an NGNIX controller. See the [ingress-ngnix.yaml](ingress-ngnix.yaml) manifest for full deployment spec. 
+GKE allows customers to deploy their own Ingress Controllers instead of the standard GCP offering. NGNIX is a popular option because of it's simplicity and open source nature. This example deploys an application on GKE and exposes the application with an NGNIX controller. See the [ingress-ngnix.yaml](./ingress-nginx.yaml) manifest for full deployment spec. 
 
 ### Use-cases
 
@@ -87,7 +87,7 @@ kubectl create clusterrolebinding cluster-admin-binding \
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-4. Deploy the Ingress, Deployment, and Service resources in the [ingress-ngnix.yaml](ingress-ngnix.yaml) manifest.
+4. Deploy the Ingress, Deployment, and Service resources in the [ingress-ngnix.yaml](./ingress-nginx.yaml) manifest.
 
 ```sh
 $ kubectl apply -f ingress-ngnix.yaml

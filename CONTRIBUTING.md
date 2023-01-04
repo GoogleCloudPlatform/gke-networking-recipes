@@ -42,21 +42,21 @@ Each recipe's README should consist of the following sections. In general the RE
 
 | Recipe  | Owner |
 | ------------- | ------------- |
-| [Basic External Ingress](../ingress/single-cluster/external-ingress-basic)  | [@mark-church](https://github.com/mark-church)  |
-| [Basic Internal Ingress](../ingress/single-cluster/internal-ingress-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
-| [Secure Ingress](../ingress/single-cluster/ingress-https)  |   |
-| [IAP Ingress](../ingress/single-cluster/ingress-iap)  |   |
-| [CloudArmor Ingress](../ingress/single-cluster/ingress-cloudarmor)  |   |
-| [Custom HTTP Health Check Ingress](../ingress/single-cluster/ingress-custom-http-health-check)  |   |
-| [Ingress gRPC Health Check Ingress](../ingress/single-cluster/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
-| [Basic Multi-Cluster Ingress](../ingress/multi-cluster/mci-basic)  | [@mark-church](https://github.com/mark-church) |
-| [Multi-Cluster Ingress Blue-Green Cluster Migration](../ingress/multi-cluster/mci-blue-green-cluster) |   |
-| [Multi-Cluster Ingress Blue-Green App Migration](../ingress/multi-cluster/mci-blue-green-app)  |   |
-| [Basic External LoadBalancer Service](../services/single-cluster/external-lb-service)  | [@seils](https://github.com/seils) |
-| [Basic Multi-Cluster Service](../services/multi-cluster/mcs-basic)  | |
-| [Basic Multi-cluster Gateway](../gateway/multi-cluster/mcg-internal-basic)  |  |
-| [Blue-Green Cluster Pattern with multi-cluster Gateway](../gateway/multi-cluster/mcg-internal-blue-green)  |  |
-| [gRPC LoadBalancing](../gateway/grpc)  |  |
+| [Basic External Ingress](./ingress/single-cluster/ingress-external-basic)  | [@mark-church](https://github.com/mark-church)  |
+| [Basic Internal Ingress](./ingress/single-cluster/ingress-internal-basic)  |  [@legranda](https://github.com/aurelienlegrand)  |
+| [Secure Ingress](./ingress/single-cluster/ingress-https)  |   |
+| [IAP Ingress](./ingress/single-cluster/ingress-iap)  |   |
+| [CloudArmor Ingress](./ingress/single-cluster/ingress-cloudarmor)  |   |
+| [Custom HTTP Health Check Ingress](./ingress/single-cluster/ingress-custom-http-health-check)  |   |
+| [Ingress gRPC Health Check Ingress](./ingress/single-cluster/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
+| [Basic Multi-Cluster Ingress](./ingress/multi-cluster/mci-basic)  | [@mark-church](https://github.com/mark-church) |
+| [Multi-Cluster Ingress Blue-Green Cluster Migration](./ingress/multi-cluster/mci-blue-green-cluster) |   |
+| [Multi-Cluster Ingress Blue-Green App Migration](./ingress/multi-cluster/mci-blue-green-app)  |   |
+| [Basic External LoadBalancer Service](./services/single-cluster/external-lb-service)  | [@seils](https://github.com/seils) |
+| [Basic Multi-Cluster Service](./services/multi-cluster/mcs-basic)  | |
+| [Basic Multi-cluster Gateway](./gateway/multi-cluster/mcg-internal-basic)  |  |
+| [Blue-Green Cluster Pattern with multi-cluster Gateway](./gateway/multi-cluster/mcg-internal-blue-green)  |  |
+| [gRPC LoadBalancing](./gateway/grpc)  |  |
 
 ## Contributor License Agreement
 
@@ -74,5 +74,5 @@ again.
 
 All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
+[GitHub Help](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests)
+for more information on using pull requests.
