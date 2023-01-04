@@ -35,7 +35,7 @@ This Recipes also demonstrates the following:
 - How to enable HTTPS on Multi-cluster Ingress.
 - How to use HTTPS backends with Multi-cluster Igress for end to end encryption.
 
-There are two applications in this example, ```foo``` and ```bar```. Deployed on both clusters. The External HTTPS load balancer is designed to route traffic to the closest (to the client) available backend with capacity. Traffic from clients will be load balanced to the closest backend cluster depending on the traffic matching specified in the MultiClusterIngress resource.
+There are two applications in this example, `foo` and `bar` Deployed on both clusters. The External HTTPS load balancer is designed to route traffic to the closest (to the client) available backend with capacity. Traffic from clients will be load balanced to the closest backend cluster depending on the traffic matching specified in the MultiClusterIngress resource.
 
 The two clusters in this example can be backends to MCI only if they are registered through Hub. Hub is a central registry of clusters that determines which clusters MCI can function across. A cluster must first be registered to Hub before it can be used with MCI.
 
