@@ -28,7 +28,7 @@
 
 This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose two different Services hosted across both clusters. The cluster `gke-1` is in `REGION#1` and `gke-2` is hosted in `REGION#2`, demonstrating multi-regional load balancing across clusters. All Services will share the same MultiClusterIngress and load balancer IP, but the load balancer will match traffic and send it to the right region, cluster, and Service depending on the request.
 
-[//]: # (TODO - abdelfettah@: add diagram)
+[//]: # (TODO - Missing diagram https://github.com/GoogleCloudPlatform/gke-networking-recipes/issues/119)
 
 This Recipes also demonstrates the following:
 
