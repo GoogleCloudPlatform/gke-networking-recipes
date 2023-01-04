@@ -103,7 +103,7 @@ Cloning into 'gke-networking-recipes'...
 $ cd gke-networking-recipes/ingress/secure-ingress
 ```
 
-2. Deploy the cluster `gke-1` as specified in [cluster setup](../cluster-setup.md)
+2. Deploy the cluster `gke-1` as specified in [cluster setup](../../../cluster-setup.md)
 
 3. Create a static public IP address in your project.
 
@@ -112,7 +112,7 @@ $ gcloud compute addresses create --global gke-foobar-public-ip
 Created [https://www.googleapis.com/compute/v1/projects/xxx/global/addresses/gke-foobar-public-ip].
 ```
 
-4. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that cllients negotiate using TLS 1.2 or higher.
+4. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that clients negotiate using TLS 1.2 or higher.
 
 ```
 $ gcloud compute ssl-policies create gke-ingress-ssl-policy \
@@ -172,7 +172,7 @@ Events:
 
 7. Now use your browser and connect to your URL (remember to use your own domain for this). You can validate the certificate by clicking on the lock icon in your browser. This will show that the foo.* and bar.* hostnames are both secured via the generated certificate.
 
-![secure ingress certificate](../../images/secure-ingress-cert.png)
+![secure ingress certificate](../../../images/secure-ingress-cert.png)
 
 You can try to reach your application on HTTP but you won't be able to.
 

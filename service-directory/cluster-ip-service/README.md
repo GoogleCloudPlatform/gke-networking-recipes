@@ -18,7 +18,7 @@ deployment spec.
 
 *   [Service Directory Concepts](https://cloud.google.com/service-directory/docs/concepts)
 *   [Service Directory with GKE Overview](https://cloud.google.com/service-directory/docs/sd-gke-overview)
-*   [Configuring Service Directory with GKE](https://cloud.google.com/service-directory/docs/configuring-sd-with-gke)
+*   [Configuring Service Directory for GKE](https://cloud.google.com/service-directory/docs/configuring-sd-for-gke)
 
 #### Versions
 

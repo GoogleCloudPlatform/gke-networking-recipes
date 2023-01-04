@@ -27,7 +27,7 @@ This pattern could also be used cross-region, although that introduces concerns 
 
 ### Networking Manifests
 
-This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose a single service hosted across both clusters. Unlike the [prior example](../multi-cluster-ingress-basic) both clusters (`gke-1` and `gke-3`) reside in the same GCP region (`us-west1`), although they're placed in two different zones. Both clusters sit behind the same MultiClusterIngress and load balancer IP, and the load balancer will round-robin traffic between both clusters, as they sit within the same GCP region.
+This recipe demonstrates deploying Multi-cluster Ingress across two clusters to expose a single service hosted across both clusters. Unlike the [prior example](../mci-basic) both clusters (`gke-1` and `gke-3`) reside in the same GCP region (`us-west1`), although they're placed in two different zones. Both clusters sit behind the same MultiClusterIngress and load balancer IP, and the load balancer will round-robin traffic between both clusters, as they sit within the same GCP region.
 
 The two clusters in this example can be backends to MCI only if they are registered through Hub. Hub is a central registry of clusters that determines which clusters MCI can function across. A cluster must first be registered to Hub before it can be used with MCI.
 
@@ -54,7 +54,7 @@ spec:
                 servicePort: 8080
 ```
 
-Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../multi-cluster-ingress-basic), in this recipe we're just going to use a pair of MCSs, configured as the `default-backend` and `foo`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definitions below - we're explicitly specifying which clusters are hosting these services:
+Similar to the Kubernetes Service, the MultiClusterService (MCS) describes label selectors and other backend parameters to group pods in the desired way. Unlike the [prior example](../mci-basic), in this recipe we're just going to use a pair of MCSs, configured as the `default-backend` and `foo`, to exhibit failover behavior. Notice the `clusters` annotation in the MCS definitions below - we're explicitly specifying which clusters are hosting these services:
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -113,7 +113,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     $ cd gke-networking-recipes/multi-cluster-ingress/multi-cluster-blue-green-cluster
     ```
 
-2. Deploy the two clusters `gke-1` and `gke-3` as specified in [cluster setup](../../cluster-setup.md)
+2. Deploy the two clusters `gke-1` and `gke-3` as specified in [cluster setup](../../../cluster-setup.md)
 
 3. Now follow the steps for cluster registration with Hub and enablement of Multi-cluster Ingress.
 
@@ -122,7 +122,7 @@ Now that you have the background knowledge and understanding of MCI, you can try
     - app.yaml is the manifest for the `default-backend` Deployment. This manifest should be deployed on both clusters.
     - ingress.yaml is the manifest for the MultiClusterIngress and MultiClusterService resources. These will be deployed only on the `gke-1` cluster as this was set as the config cluster and is the  cluster that the MCI controlller is listening to for updates.
 
-4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../cluster-setup.md).
+4. Separately log in to each cluster and deploy the app.yaml manifest. You can configure these contexts as shown [here](../../../cluster-setup.md).
 
     ```bash
     $ kubectl --context=gke-1 apply -f app.yaml

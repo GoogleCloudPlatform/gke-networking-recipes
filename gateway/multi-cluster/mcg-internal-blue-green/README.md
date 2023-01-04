@@ -14,7 +14,7 @@ Redundant GKE clusters are commonly deployed so that one cluster can be removed 
 - Traffic weighting across clusters to enable the [canary release](https://martinfowler.com/bliki/CanaryRelease.html) pattern
 - Header-based routing to target specific clusters
 
-![](../../images/multi-cluster-gateway-bluegreen.png)
+![](../../../images/multi-cluster-gateway-bluegreen.png)
 
 In this example, both clusters reside in the same GCP region to demonstrate a blue/green upgrade pattern where one cluster at a time can be removed from service, upgraded, and returned to service, all while clients can continue to access a given application. Additionally, this example uses a `GatewayClass` of type `gke-l7-rilb-mc`, meaning the MCG endpoint will be a *private* IP address within your VPC. For testing, the infrastructure build instructions include the deployment of a GCE virtual machine in the same VPC that will be used as the test client.
 

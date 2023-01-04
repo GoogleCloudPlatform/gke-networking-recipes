@@ -52,7 +52,7 @@ While both services are served to the user via the Anthos Service Mesh ingress, 
     --enable_all \
     --output_dir ./asm
     ```
-    This also copies some examples into the previously not existing [asm](./asm) directory.
+    This also copies some examples into the previously not existing `asm` directory.
 7. While waiting until `asmcli` installs ASM into your cluster use the time to [configure the IAP](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#enabling_iap).
     Follow the steps in the guide until you have created the secret within the cluster.
 8. As IAP requires HTTPS we need to create a self signed certificate that we can store in the Cluster and attach to the Ingress:
