@@ -52,8 +52,8 @@ The MCI below describes the desired traffic matching and routing behavior. Simil
 
 The MCI below also defines via annotations:
 
-- ```networking.gke.io/pre-shared-certs: "mci-certs"``` refers to [Google-Managed Certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/multi-cluster-ingress#google-managed_certificates) that was provisioned
-- ```networking.gke.io/static-ip: x.x.x.x``` refers to public [Static IP](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-external-ip-address) used to provision Google-Managed Certificates
+- `networking.gke.io/pre-shared-certs: "mci-certs"` refers to [Google-Managed Certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/multi-cluster-ingress#google-managed_certificates) that was provisioned
+- `networking.gke.io/static-ip: x.x.x.x` refers to public [Static IP](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-external-ip-address) used to provision Google-Managed Certificates
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -91,8 +91,8 @@ If more clusters are added to the Hub, then any Pods in those clusters that matc
 
 The MCS below also defines via annotations:
 
-- ```beta.cloud.google.com/backend-config: '{"default":"ingress-backendconfig"}'``` refers to the name of a custom resource called BackendConfig. The Ingress controller uses BackendConfig to set parameters on the Google Cloud BackendService resource.
-- ```cloud.google.com/app-protocols: '{"https":"HTTPS"}'``` directs the GFE to connect to the service mesh's ingress gateway using HTTPS with TLS as described in [Ingress for External HTTP(S) Load Balancing](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb#https_tls_between_load_balancer_and_your_application) and [External HTTP(S) Load Balancing overview](https://cloud.google.com/load-balancing/docs/https#protocol_to_the_backends), for an additional layer of encryption.  
+- `beta.cloud.google.com/backend-config: '{"default":"ingress-backendconfig"}'` refers to the name of a custom resource called BackendConfig. The Ingress controller uses BackendConfig to set parameters on the Google Cloud BackendService resource.
+- `cloud.google.com/app-protocols: '{"https":"HTTPS"}'` directs the GFE to connect to the service mesh's ingress gateway using HTTPS with TLS as described in [Ingress for External HTTP(S) Load Balancing](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb#https_tls_between_load_balancer_and_your_application) and [External HTTP(S) Load Balancing overview](https://cloud.google.com/load-balancing/docs/https#protocol_to_the_backends), for an additional layer of encryption.  
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -263,7 +263,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     gcloud config set project $PROJECT
     ```
 
-    NB: This tutorial uses Zonal Clusters, you can also use Regional Clusters. Replace a Zone with a region and use the ```--region``` flag instead of ```--zone``` in the next steps
+    NB: This tutorial uses Zonal Clusters, you can also use Regional Clusters. Replace a Zone with a region and use the `--region` flag instead of `--zone` in the next steps
 
 3. Deploy the two clusters `gke-1` and `gke-2` as specified in [cluster setup](../../../cluster-setup.md#multi-cluster-environment-basic). Once done, come back to the next step:
 
@@ -308,7 +308,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     deployment.apps/canonical-service-controller-manager condition met    
     ```
 
-6. Create a dedicated ```asm-ingress``` namespace:
+6. Create a dedicated `asm-ingress` namespace:
 
     ```bash
     kubectl --context=gke-1 create namespace asm-ingress
@@ -316,7 +316,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     kubectl --context=gke-2 create namespace asm-ingress
     ```
 
-7. Annotate the ```asm-ingress``` namespace with the ASM revision label:
+7. Annotate the `asm-ingress` namespace with the ASM revision label:
 
     ```bash
     export ASM_REVISION=$(kubectl --context=gke-1 get deploy -n istio-system \
@@ -338,7 +338,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     namespace/asm-ingress labeled
     ```
 
-8. Deploy ```ingress-deployment.yaml``` in your cluster to create the Deployment resource for Ingress Gateway:
+8. Deploy `ingress-deployment.yaml` in your cluster to create the Deployment resource for Ingress Gateway:
 
     ```bash
     kubectl --context=gke-1 apply -f ingress-deployment.yaml
@@ -384,9 +384,9 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     echo $GCLB_IP
     ```
 
-12. Edit the dns-spec.yaml file and update ```$PROJECT-ID``` value with your project id and ```$GCLB_IP``` with public IP that was created to create Endpoints.
+12. Edit the dns-spec.yaml file and update `$PROJECT-ID` value with your project id and `$GCLB_IP` with public IP that was created to create Endpoints.
 
-13. Deploy the ```dns-spec.yaml``` file in your Cloud project:  
+13. Deploy the `dns-spec.yaml` file in your Cloud project:  
     The YAML specification defines the public DNS record in the form of foo.endpoints.PROJECT-ID.cloud.goog, where PROJECT-ID is your unique project number.
 
     ```bash
@@ -406,7 +406,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     gcloud compute ssl-certificates list
     ```
 
-    The ```MANAGED_STATUS``` will indicate ```PROVISIONNING```. This is normal, the certificates will be provisionned when you deploy the MCI.
+    The `MANAGED_STATUS` will indicate `PROVISIONNING` This is normal, the certificates will be provisionned when you deploy the MCI.
 
 15. Create the private key and certificate using openssl. It will enable MCI to establish a TLS connection to the service mesh's ingress gateway:
 
@@ -418,7 +418,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     -out certs/foo.endpoints.${PROJECT}.cloud.goog.crt
     ```
 
-16. Create the Secret in the ```asm-ingress``` namespace in both clusters:
+16. Create the Secret in the `asm-ingress` namespace in both clusters:
 
     ```bash
     kubectl --context=gke-1 -n asm-ingress create secret tls edge2mesh-credential \
@@ -430,7 +430,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     --cert=certs/foo.endpoints.${PROJECT}.cloud.goog.crt
     ```
 
-17. Deploy ```ingress-gateway.yaml``` in your cluster to create the service mesh's Gateway:  
+17. Deploy `ingress-gateway.yaml` in your cluster to create the service mesh's Gateway:  
 
     ```bash
     kubectl --context=gke-1 apply -f ingress-gateway.yaml
@@ -438,7 +438,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     kubectl --context=gke-2 apply -f ingress-gateway.yaml
     ```
 
-18. Install sample application by deploying ```app.yaml``` manifest:
+18. Install sample application by deploying `app.yaml` manifest:
 
     ```bash
     kubectl --context=gke-1 apply -f app.yaml
@@ -453,9 +453,9 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     service/foo created
     ```
 
-19. Edit the ```istio-service.yaml``` file and update ```$PROJECT-ID``` value with your project id:
+19. Edit the `istio-service.yaml` file and update `$PROJECT-ID` value with your project id:
 
-20. Create service mesh's ```VirtualService``` by deploying ```istio-service.yaml``` manifest:
+20. Create service mesh's `VirtualService` by deploying `istio-service.yaml` manifest:
 
     ```bash
     kubectl --context=gke-1 apply -f istio-service.yaml
@@ -469,15 +469,15 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     virtualservice.networking.istio.io/foo-ingress created
     ```
 
-21. Edit ```mci-mcs.yaml``` file and update ```x.x.x.x``` with your IP address and ```$PROJECT-ID``` with your project id.
+21. Edit `mci-mcs.yaml` file and update `x.x.x.x` with your IP address and `$PROJECT-ID` with your project id.
 
-22. Deploy ```mci-mcs.yaml``` to create ```MultiClusterIngress```, ```MultiClusterService``` and ```BackendConfig```:
+22. Deploy `mci-mcs.yaml` to create `MultiClusterIngress` `MultiClusterService` and `BackendConfig`
 
     ```bash
     kubectl --context=gke-1 apply -f mci-mcs.yaml
     ```
 
-23. Inspect the ```MultiClusterIngress``` resource:
+23. Inspect the `MultiClusterIngress` resource:
 
     ```bash
     kubectl --context=gke-1 describe mcs mcs-service -n asm-ingress
@@ -552,7 +552,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     Normal  SYNC    31s   multi-cluster-ingress-controller  Derived Service was ensured in cluster {us-central1-a/gke-1 gke-1}
     ```
 
-24. Inspect the ```MultiClusterService``` resource to check the progress of the load balancer deployment:
+24. Inspect the `MultiClusterService` resource to check the progress of the load balancer deployment:
 
     ```bash
     kubectl --context=gke-1 describe mci gke-ingress -n asm-ingress
@@ -667,7 +667,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
 25. Use curl with the -v for verbose to reach the load balancer.
 
     ```bash
-    Note: You might get an ```ERR_SSL_VERSION_OR_CIPHER_MISMATCH``` error. This error occurs when certificates have not yet propagated to all of the Google Front Ends (GFEs) globally. Wait a few minutes, and then try again.
+    Note: You might get an `ERR_SSL_VERSION_OR_CIPHER_MISMATCH` error. This error occurs when certificates have not yet propagated to all of the Google Front Ends (GFEs) globally. Wait a few minutes, and then try again.
     ```
 
     ```bash
@@ -772,7 +772,7 @@ Now that you have the background knowledge and understanding of MCI and ASM, you
     * Connection #0 to host foo.endpoints.PROJECT_ID.cloud.goog left intact
     ```
 
-The output is very verbose when we add the follow environement variable to the ```whereami``` sample app:
+The output is very verbose when we add the follow environement variable to the `whereami` sample app:
 
   ```bash
   - name: ECHO_HEADERS
