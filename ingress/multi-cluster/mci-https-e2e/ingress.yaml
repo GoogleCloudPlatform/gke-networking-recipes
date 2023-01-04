@@ -4,7 +4,7 @@ metadata:
   name: foobar-ingress
   namespace: multi-cluster-demo
   annotations:
-    networking.gke.io/static-ip: 34.149.198.76
+    networking.gke.io/static-ip: x.x.x.x
     networking.gke.io/pre-shared-certs: "mci-certs"
 spec:
   template:
