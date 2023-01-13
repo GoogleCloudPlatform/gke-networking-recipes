@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: secure-ingress
@@ -26,15 +26,23 @@ spec:
   - host: foo.${DOMAIN}.com
     http:
       paths:
-      - backend:
-          serviceName: foo
-          servicePort: 8080
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: foo
+            port:
+              number: 8080
   - host: bar.${DOMAIN}.com
     http:
       paths:
-      - backend:
-          serviceName: bar
-          servicePort: 8080
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: bar
+            port:
+              number: 8080
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
