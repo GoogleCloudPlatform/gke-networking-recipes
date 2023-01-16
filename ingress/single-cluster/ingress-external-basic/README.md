@@ -27,7 +27,7 @@ In this example an external Ingress resource matches for HTTP traffic with `foo.
 
 
 ```yaml
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: foo-external
@@ -38,9 +38,13 @@ spec:
   - host: foo.example.com
     http:
       paths:
-      - backend:
-          serviceName: foo
-          servicePort: 80
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: foo
+            port:
+              number: 8080
 ```
 
 The following `foo` Service selects across the Pods from the `foo` Deployment. This Deployement consists of three Pods which will get load balanced across. Note the use of the `cloud.google.com/neg: '{"ingress": true}'` annotation. This enables container native load balancing which is a best practice. In GKE 1.17+ this is annotated by default.
@@ -70,7 +74,7 @@ spec:
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/ingress/external-ingress-basic
+$ cd gke-networking-recipes/ingress/single-cluster/ingress-external-basic/
 ```
 
 2. Deploy the Ingress, Deployment, and Service resources in the [external-ingress-basic.yaml](external-ingress-basic.yaml) manifest.
