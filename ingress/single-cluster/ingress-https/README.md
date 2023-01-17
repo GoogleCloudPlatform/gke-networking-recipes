@@ -39,7 +39,7 @@ Several declarative Kubernetes resources are used in the deployment of this reci
 The Ingress resource also has routing rules for `foo.*.com` and `bar.*.com`. Note that Google-managed certificates requires that you have ownership over the certificate DNS domains. To complete this recipe will require that you replace `${DOMAIN}` with a domain you control.  This DNS domain must be mapped to the IP address used by the Ingress. This allows Google to do domain validation against it which is required for certificate provisioning. [Google domains](https://domains.google/) can be used to acquire domains that you can use for testing.
 
 ```yaml
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: secure-ingress
@@ -53,15 +53,23 @@ spec:
   - host: foo.${DOMAIN}.com
     http:
       paths:
-      - backend:
-          serviceName: foo
-          servicePort: 8080
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: foo
+            port:
+              number: 8080
   - host: bar.${DOMAIN}.com
     http:
       paths:
-      - backend:
-          serviceName: bar
-          servicePort: 8080
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: bar
+            port:
+              number: 8080
 ```
 
 The next resource is the  `FrontendConfig` which provides configuration for the [frontend of the Ingress.](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#associating_frontendconfig_with_your_ingress) This config enables HTTPS redirects. Note that it is enabled for the entire Ingress and so it will apply to all Services in the Ingress resource. The other field references an SSL policy. You'll create an SSL policy as a separate Google Cloud resource where you can specify which ciphers can be negotiated in the TLS connection.
@@ -100,7 +108,7 @@ With these three resources, you are capable of securing your Ingress for product
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/ingress/secure-ingress
+$ cd gke-networking-recipes/ingress/single-cluster/ingress-https/
 ```
 
 2. Deploy the cluster `gke-1` as specified in [cluster setup](../../../cluster-setup.md)
