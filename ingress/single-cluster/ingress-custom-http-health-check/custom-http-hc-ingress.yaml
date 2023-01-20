@@ -20,9 +20,13 @@ spec:
   rules:
   - http:
       paths:
-      - backend:
-          serviceName: whereami
-          servicePort: 80
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: whereami
+            port:
+              number: 80
 ---
 apiVersion: cloud.google.com/v1
 kind: BackendConfig
