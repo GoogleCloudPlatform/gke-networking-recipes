@@ -23,7 +23,7 @@ External Ingress on GKE deploys a global External HTTP(S) Load Balancer for publ
 
 ### Networking Manifests
 
-In this example an external Ingress resource matches for HTTP traffic with `foo.example.com` and sends it to the `foo` Service at port 80. A public IP is automatically provisioned by the Ingress controller which listens for internet traffic on port 80. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses. 
+In this example an external Ingress resource matches for HTTP traffic with `foo.example.com` and sends it to the `foo` Service at port 8080. A public IP is automatically provisioned by the Ingress controller which listens for internet traffic on port 80. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses. 
 
 
 ```yaml
@@ -58,7 +58,7 @@ metadata:
     cloud.google.com/neg: '{"ingress": true}'
 spec:
   ports:
-  - port: 80
+  - port: 8080
     targetPort: 8080
     name: http 
   selector:
