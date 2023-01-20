@@ -1,7 +1,5 @@
 # GKE Ingress with custom HTTP health check
-
-Following recipe provides a walk-through for setting up [GKE Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
-with custom HTTP health check.
+The following recipe provides a walk-through for setting up [GKE Ingress](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress) with a custom HTTP health check.
 
 GKE Ingresses use proxy-based [Google Cloud HTTP(s) Load Balancers](https://cloud.google.com/load-balancing/docs/https)
 that can serve multiple backend services (Kubernetes services in GKE case). Each of those backend services
@@ -26,15 +24,15 @@ It is recommended practice to configure health check parameters explicitly for G
 ![iap-ingress](../../../images/healthcheck-ingress.png)
 
 GKE creates [Google Cloud health check](https://cloud.google.com/load-balancing/docs/health-check-concepts)
-for each Ingress backend service in one of a following ways:
+for each Ingress backend service in one of the following ways:
 
 * If service references [BackendConfig CRD](https://github.com/kubernetes/ingress-gce/tree/master/pkg/apis/backendconfig)
 with `healthCheck` information, then GKE uses that to create the health check.
 
 Otherwise:
 
-* If service Pods use Pod template with a container that has readiness probe, GKE can infer some or
-all of the parameters form that probe for health check configuration.
+* If service Pods use Pod template with a container that has a readiness probe, GKE can infer some or
+all of the parameters from that probe for health check configuration.
 Check [Parameters from a readiness probe](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#interpreted_hc)
 for details.
 
@@ -45,9 +43,64 @@ are used.
 **NOTE**: keep in mind differences in destination port when configuring `healthCheck` parameters in
 `BackendConfig` object for services that use [Container Native Load Balancing](https://cloud.google.com/kubernetes-engine/docs/how-to/container-native-load-balancing).
 
-* When using container native load balancing, port should match `containerPort` of a serving Pod
+* When using container-native load balancing, the port should match `containerPort` of a serving Pod
 
-* For backends based on instance groups, port should match `nodePort` exposed by the service
+* For backends based on instance groups, the port should match `nodePort` exposed by the service
+
+### Networking Manifests
+In this example, an external Ingress resource sends HTTP traffic to the `whereami` Service at port 80. A public IP is automatically provisioned by the Ingress controller which listens for internet traffic on port 80.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hc-test
+spec:
+  rules:
+  - http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: whereami
+            port:
+              number: 80
+```
+
+In this recipe, a `BackendConfig` resource is used to configure a custom load balancer health check. The `whereami` service exposes the `/healthz` endpoint that responds with 200 if the application is running. This custom health check probes the `/healthz` endpoint every second at the Service `targetPort`.
+
+```yaml
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: hc-test
+spec:
+  healthCheck:
+    timeoutSec: 1
+    type: HTTP
+    requestPath: /healthz
+    port: 8080
+```
+
+The following `whereami` Service selects across the Pods from the `whereami` Deployment. This Deployment consists of three Pods which will get load balanced across. Note the use of the `cloud.google.com/neg: '{"ingress": true}'` annotation. This enables container-native load balancing which is a best practice. In GKE 1.17+ this is annotated by default.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: whereami
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    beta.cloud.google.com/backend-config: '{"default": "hc-test"}'
+spec:
+  selector:
+    app: whereami
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+```
 
 ### Prerequisites
 
