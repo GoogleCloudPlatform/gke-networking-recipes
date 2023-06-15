@@ -41,6 +41,10 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
   - [Single Cluster Global LoadBalancer HTTPS between the GCLB and the Backend app](./gateway/single-cluster/global-l7-xlb-https-backend) - Deploy an app behind a Global LoadBalancer with the GatewayClass gke-l7-xlb and encrypt traffic between the LB and the backend app using HAProxy.
   - [Single Cluster Regional Internal LoadBalancer](./gateway/single-cluster/regional-l7-ilb) - Deploy an application and expose it with the Gateway API using the GatewayClass gke-l7-rilb.
 
+### Testing the recipes
+
+See [test/README.md](test/README.md) for instructions on how to run the examples recipes against your project.
+
 ### Contributions
 
 Do you have a GKE networking recipe that would be useful for others? [Contribute it](CONTRIBUTING.md) and help build the shared knowledge of the GKE community!
