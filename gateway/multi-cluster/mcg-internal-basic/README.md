@@ -96,7 +96,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.19
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.20
         ports:
           - containerPort: 8080
         env:
@@ -154,7 +154,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.19
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.20
         ports:
           - containerPort: 8080
         env:
