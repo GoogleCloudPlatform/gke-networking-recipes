@@ -16,16 +16,18 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: hc-test
+  annotations:
+    kubernetes.io/ingress.class: "gce"
 spec:
   rules:
   - http:
       paths:
-      - path: "/"
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: whereami
-            port:
+            port: 
               number: 80
 ---
 apiVersion: cloud.google.com/v1
@@ -70,7 +72,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.19
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.20
         ports:
           - name: http
             containerPort: 8080

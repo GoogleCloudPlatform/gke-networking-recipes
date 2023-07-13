@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: foo-internal
@@ -23,9 +23,13 @@ spec:
   - host: foo.example.com
     http:
       paths:
-      - backend:
-          serviceName: foo
-          servicePort: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: foo
+            port:
+              number: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -58,7 +62,7 @@ spec:
     spec:
       containers:
       - name: whereami
-        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.19
+        image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.20
         ports:
           - name: http
             containerPort: 8080
