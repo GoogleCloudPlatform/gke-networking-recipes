@@ -7,7 +7,7 @@
         "pattern": "^https://docs.github.com"
       },
       {
-        "pattern": "^.vendor"  
+        "pattern": "^vendor"  
       }
     ]
 }
