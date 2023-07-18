@@ -5,6 +5,9 @@
       },
       {
         "pattern": "^https://docs.github.com"
+      },
+      {
+        "pattern": "^.vendor"  
       }
     ]
 }
