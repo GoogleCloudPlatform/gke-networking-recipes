@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: iap-test
   annotations:
     kubernetes.io/ingress.global-static-ip-name: iap-test
     networking.gke.io/managed-certificates: iap-test
+    kubernetes.io/ingress.class: "gce"
 spec:
   rules:
   - http:
       paths:
-      - backend:
-          serviceName: whereami
-          servicePort: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: whereami
+            port: 
+              number: 80
 ---
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
