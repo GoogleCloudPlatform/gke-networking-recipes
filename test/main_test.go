@@ -97,9 +97,8 @@ func TestMain(m *testing.M) {
 	}
 
 	output, _ := exec.Command("gcloud", "config", "get-value", "project").CombinedOutput()
-	oldProject := strings.Split(string(output), "\n")[1]
-
-	klog.Infof("Using project %s for testing", project)
+	oldProject := strings.TrimSpace(string(output))
+	klog.Infof("Using project %s for testing. Restore to existing project %s after testing.", project, oldProject)
 
 	if err := setEnvProject(project); err != nil {
 		klog.Fatalf("failed to set project environment to %q: %v", project, err)
@@ -115,6 +114,10 @@ func TestMain(m *testing.M) {
 	klog.Infof("createCluster(%q, %q, %d)", flags.location, flags.testClusterName, flags.numOfNodes)
 	if err := createCluster(flags.location, flags.testClusterName, flags.numOfNodes); err != nil {
 		klog.Fatalf("createCluster(%q, %q, %d) = %v", flags.location, flags.testClusterName, flags.numOfNodes, err)
+	}
+	klog.Infof("getCredential(%q, %q)", flags.location, flags.testClusterName)
+	if err := getCredential(flags.location, flags.testClusterName); err != nil {
+		klog.Fatalf("getCredential(%q, %q) = %v", flags.location, flags.testClusterName, err)
 	}
 	defer func() {
 		klog.Infof("deleteCluster(%q, %q)", flags.location, flags.testClusterName)
