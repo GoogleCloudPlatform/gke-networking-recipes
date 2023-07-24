@@ -43,6 +43,7 @@ var (
 		// Test infrastructure flags.
 		boskosResourceType string
 		inProw             bool
+		deleteCluster      bool
 	}
 	Framework struct {
 		Clientset            *kubernetes.Clientset
@@ -60,6 +61,7 @@ func init() {
 	flag.StringVar(&flags.testClusterName, "cluster-name", "", "Name of the test cluster")
 	flag.StringVar(&flags.location, "location", "", "Location of the test cluster")
 	flag.IntVar(&flags.numOfNodes, "num-nodes", 3, "The number of nodes to be created in each of the cluster's zones")
+	flag.BoolVar(&flags.deleteCluster, "delete-cluster", false, "if the cluster is deleted after test runs")
 }
 
 func TestMain(m *testing.M) {
@@ -111,20 +113,22 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	klog.Infof("createCluster(%q, %q, %d)", flags.location, flags.testClusterName, flags.numOfNodes)
-	if err := createCluster(flags.location, flags.testClusterName, flags.numOfNodes); err != nil {
-		klog.Fatalf("createCluster(%q, %q, %d) = %v", flags.location, flags.testClusterName, flags.numOfNodes, err)
+	klog.Infof("setupCluster(%q, %q, %d)", flags.location, flags.testClusterName, flags.numOfNodes)
+	if err := setupCluster(flags.location, flags.testClusterName, flags.numOfNodes); err != nil {
+		klog.Fatalf("setupCluster(%q, %q, %d) = %v", flags.location, flags.testClusterName, flags.numOfNodes, err)
 	}
 	klog.Infof("getCredential(%q, %q)", flags.location, flags.testClusterName)
 	if err := getCredential(flags.location, flags.testClusterName); err != nil {
 		klog.Fatalf("getCredential(%q, %q) = %v", flags.location, flags.testClusterName, err)
 	}
-	defer func() {
-		klog.Infof("deleteCluster(%q, %q)", flags.location, flags.testClusterName)
-		if err := deleteCluster(flags.location, flags.testClusterName); err != nil {
-			klog.Errorf("deleteCluster(%q, %q) = %v", flags.location, flags.testClusterName, err)
-		}
-	}()
+	if flags.deleteCluster {
+		defer func() {
+			klog.Infof("deleteCluster(%q, %q)", flags.location, flags.testClusterName)
+			if err := deleteCluster(flags.location, flags.testClusterName); err != nil {
+				klog.Errorf("deleteCluster(%q, %q) = %v", flags.location, flags.testClusterName, err)
+			}
+		}()
+	}
 
 	klog.Infof("Using kubeconfig %q", flags.kubeconfig)
 	kubeconfig, err := clientcmd.BuildConfigFromFlags("", flags.kubeconfig)
