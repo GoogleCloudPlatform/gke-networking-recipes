@@ -17,6 +17,7 @@ limitations under the License.
 package test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/rand"
@@ -93,7 +94,39 @@ func setEnvProject(project string) error {
 	return os.Setenv("PROJECT", project)
 }
 
+func setupCluster(location, clusterName string, numOfNodes int) error {
+	params := []string{
+		"container",
+		"clusters",
+		"describe",
+		clusterName,
+		"--zone", location,
+	}
+	out, err := exec.Command("gcloud", params...).CombinedOutput()
+	if err != nil {
+		klog.Infof("Cluster %s does not exist, creating instead.", clusterName)
+		return createCluster(location, clusterName, numOfNodes)
+	}
+
+	pattern := "currentNodeCount: "
+	startIndex := bytes.Index(out, []byte(pattern)) + len(pattern)       // The index immediately after the pattern.
+	endIndex := startIndex + bytes.Index(out[startIndex:], []byte("\n")) // The index after the pattern and before new line.
+	if startIndex == -1 || endIndex == -1 {
+		klog.Infof("Cannot find current node count. Delete and recreate cluster.")
+		return deleteAndCreateCluster(location, clusterName, numOfNodes)
+	}
+
+	gotNumOfNodes, err := strconv.Atoi(string(out[startIndex:endIndex]))
+	if err != nil || gotNumOfNodes != numOfNodes {
+		klog.Infof("Got cluster with %d nodes, expect %d. Delete and recreate cluster %s in %s.", gotNumOfNodes, numOfNodes, clusterName, location)
+		return deleteAndCreateCluster(location, clusterName, numOfNodes)
+	}
+	klog.Infof("Use existing cluster %s in zone %s with %d nodes", clusterName, location, numOfNodes)
+	return nil
+}
+
 func createCluster(location, clusterName string, numOfNodes int) error {
+	klog.Infof("Creating cluster %s in %s, numOfNodes=%d", clusterName, location, numOfNodes)
 	params := []string{
 		"container",
 		"clusters",
@@ -105,22 +138,11 @@ func createCluster(location, clusterName string, numOfNodes int) error {
 	if out, err := exec.Command("gcloud", params...).CombinedOutput(); err != nil {
 		return fmt.Errorf("failed creating cluster: %s, err: %v", out, err)
 	}
-
-	params = []string{
-		"container",
-		"clusters",
-		"get-credentials",
-		clusterName,
-		"--zone",
-		location,
-	}
-	if out, err := exec.Command("gcloud", params...).CombinedOutput(); err != nil {
-		return fmt.Errorf("failed setting kubeconfig: %s, err: %v", out, err)
-	}
 	return nil
 }
 
 func deleteCluster(location, clusterName string) error {
+	klog.Infof("Deleting cluster %s in %s", clusterName, location)
 	params := []string{
 		"container",
 		"clusters",
@@ -132,6 +154,31 @@ func deleteCluster(location, clusterName string) error {
 	}
 	if out, err := exec.Command("gcloud", params...).CombinedOutput(); err != nil {
 		return fmt.Errorf("failed deleting cluster: %s, err: %v", out, err)
+	}
+	return nil
+}
+
+func deleteAndCreateCluster(location, clusterName string, numOfNodes int) error {
+	if err := deleteCluster(location, clusterName); err != nil {
+		return fmt.Errorf("failed delete and create cluster: %s, err: %v", clusterName, err)
+	}
+	if err := createCluster(location, clusterName, numOfNodes); err != nil {
+		return fmt.Errorf("failed delete and create cluster: %s, err: %v", clusterName, err)
+	}
+	return nil
+}
+
+func getCredential(location, clusterName string) error {
+	params := []string{
+		"container",
+		"clusters",
+		"get-credentials",
+		clusterName,
+		"--zone",
+		location,
+	}
+	if out, err := exec.Command("gcloud", params...).CombinedOutput(); err != nil {
+		return fmt.Errorf("failed setting kubeconfig: %s, err: %v", out, err)
 	}
 	return nil
 }
