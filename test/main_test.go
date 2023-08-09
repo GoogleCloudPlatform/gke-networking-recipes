@@ -26,11 +26,11 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	backendconfigclient "k8s.io/ingress-gce/pkg/backendconfig/client/clientset/versioned"
 	frontendconfigclient "k8s.io/ingress-gce/pkg/frontendconfig/client/clientset/versioned"
 	"k8s.io/klog/v2"
+	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
@@ -46,7 +46,7 @@ var (
 		deleteCluster      bool
 	}
 	Framework struct {
-		Clientset            *kubernetes.Clientset
+		Client               ctrlClient.Client
 		BackendConfigClient  *backendconfigclient.Clientset
 		FrontendConfigClient *frontendconfigclient.Clientset
 		Cloud                cloud.Cloud
@@ -135,7 +135,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		klog.Fatalf("Error creating kubernetes clients from %q: %v", flags.kubeconfig, err)
 	}
-	Framework.Clientset = kubernetes.NewForConfigOrDie(kubeconfig)
+	client, err := ctrlClient.New(kubeconfig, ctrlClient.Options{})
+	if err != nil {
+		klog.Errorf("Failed to create kubernetes client: %v", err)
+	}
+	Framework.Client = client
 	Framework.BackendConfigClient = backendconfigclient.NewForConfigOrDie(kubeconfig)
 	Framework.FrontendConfigClient = frontendconfigclient.NewForConfigOrDie(kubeconfig)
 
