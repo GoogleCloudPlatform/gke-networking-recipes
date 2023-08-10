@@ -1,18 +1,16 @@
-/*
-Copyright 2023 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package test
 
@@ -26,11 +24,11 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	backendconfigclient "k8s.io/ingress-gce/pkg/backendconfig/client/clientset/versioned"
 	frontendconfigclient "k8s.io/ingress-gce/pkg/frontendconfig/client/clientset/versioned"
 	"k8s.io/klog/v2"
+	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
@@ -46,7 +44,7 @@ var (
 		deleteCluster      bool
 	}
 	Framework struct {
-		Clientset            *kubernetes.Clientset
+		Client               ctrlClient.Client
 		BackendConfigClient  *backendconfigclient.Clientset
 		FrontendConfigClient *frontendconfigclient.Clientset
 		Cloud                cloud.Cloud
@@ -135,7 +133,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		klog.Fatalf("Error creating kubernetes clients from %q: %v", flags.kubeconfig, err)
 	}
-	Framework.Clientset = kubernetes.NewForConfigOrDie(kubeconfig)
+	client, err := ctrlClient.New(kubeconfig, ctrlClient.Options{})
+	if err != nil {
+		klog.Errorf("Failed to create kubernetes client: %v", err)
+	}
+	Framework.Client = client
 	Framework.BackendConfigClient = backendconfigclient.NewForConfigOrDie(kubeconfig)
 	Framework.FrontendConfigClient = frontendconfigclient.NewForConfigOrDie(kubeconfig)
 
