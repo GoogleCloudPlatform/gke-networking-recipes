@@ -37,5 +37,5 @@ jobs:
         with:
           config-file: '.mlc_config.json'
           base-branch: main
-          folder-path: 'archive', 'gateway', 'gateway-api', 'ingress', 'service-directory', 'services'
-          file-path: './cluster-setup.md', './CONTRIBUTING.md', './README.md'
+          folder-path: 'archive, gateway, gateway-api, ingress, service-directory, services'
+          file-path: './cluster-setup.md, ./CONTRIBUTING.md, ./README.md'
