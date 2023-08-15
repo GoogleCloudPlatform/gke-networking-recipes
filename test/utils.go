@@ -43,12 +43,13 @@ func getBoskosProject(resourceType string) *common.Resource {
 	var project *common.Resource
 	err := retry.OnError(
 		wait.Backoff{
-			Duration: time.Second,
+			Duration: 10 * time.Second,
 			Factor:   1.0,
-			Steps:    10,
+			Steps:    30,
 		},
 		func(err error) bool { return true },
 		func() error {
+			klog.Info("Trying to acquire boskos project...")
 			project, err := boskos.Acquire(resourceType, "free", "busy")
 			if err != nil {
 				return fmt.Errorf("boskos failed to acquire project: %w", err)
@@ -60,7 +61,7 @@ func getBoskosProject(resourceType string) *common.Resource {
 		},
 	)
 	if err != nil {
-		klog.Fatalf("timed out trying to acquire boskos project")
+		klog.Fatalf("Error trying to acquire boskos project: %v", err)
 	}
 	return project
 }
