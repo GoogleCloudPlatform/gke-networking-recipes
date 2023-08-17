@@ -22,68 +22,14 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"time"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
 	"golang.org/x/oauth2/google"
 	alpha "google.golang.org/api/compute/v0.alpha"
 	beta "google.golang.org/api/compute/v0.beta"
 	compute "google.golang.org/api/compute/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
-	boskosclient "sigs.k8s.io/boskos/client"
-	"sigs.k8s.io/boskos/common"
 )
-
-var boskos, _ = boskosclient.NewClient(os.Getenv("JOB_NAME"), "http://boskos", "", "")
-
-// getBoskosProject retries acquiring a boskos project until success or timeout.
-func getBoskosProject(resourceType string) *common.Resource {
-	var project *common.Resource
-	err := retry.OnError(
-		wait.Backoff{
-			Duration: 10 * time.Second,
-			Factor:   1.0,
-			Steps:    30,
-		},
-		func(err error) bool { return true },
-		func() error {
-			klog.Info("Trying to acquire boskos project...")
-			project, err := boskos.Acquire(resourceType, "free", "busy")
-			if err != nil {
-				return fmt.Errorf("boskos failed to acquire project: %w", err)
-			}
-			if project != nil {
-				return fmt.Errorf("boskos does not have a free %s at the moment", resourceType)
-			}
-			return nil
-		},
-	)
-	if err != nil {
-		klog.Fatalf("Error trying to acquire boskos project: %v", err)
-	}
-	return project
-}
-
-func setupProwConfig(resourceType string) string {
-	// Try to get a Boskos project
-	klog.Info("Running in PROW")
-	klog.Info("Fetching a Boskos loaned project")
-
-	p := getBoskosProject(resourceType)
-	project := p.Name
-
-	go func(c *boskosclient.Client) {
-		for range time.Tick(time.Minute * 5) {
-			if err := c.UpdateOne(p.Name, "busy", nil); err != nil {
-				klog.Warningf("[Boskos] Update %s failed with %v", p.Name, err)
-			}
-		}
-	}(boskos)
-
-	return project
-}
 
 func setEnvProject(project string) error {
 	if out, err := exec.Command("gcloud", "config", "set", "project", project).CombinedOutput(); err != nil {
