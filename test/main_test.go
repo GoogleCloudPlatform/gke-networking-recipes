@@ -23,6 +23,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/gke-networking-recipes/test/utils"
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
 	"k8s.io/client-go/tools/clientcmd"
 	backendconfigclient "k8s.io/ingress-gce/pkg/backendconfig/client/clientset/versioned"
@@ -85,10 +86,17 @@ func TestMain(m *testing.M) {
 	}
 
 	project := flags.testProjectID
-
 	// If running in Prow, then acquire and set up a project through Boskos.
 	if flags.inProw {
-		project = setupProwConfig(flags.boskosResourceType)
+		ph, err := utils.NewProjectHolder()
+		if err != nil {
+			klog.Fatalf("NewProjectHolder()=%v, want nil", err)
+		}
+		project = ph.AcquireOrDie(flags.boskosResourceType)
+		defer func() {
+			ph.Release()
+		}()
+
 		if _, ok := os.LookupEnv("USER"); !ok {
 			if err := os.Setenv("USER", "prow"); err != nil {
 				klog.Fatalf("failed to set user in prow to prow: %v", err)
