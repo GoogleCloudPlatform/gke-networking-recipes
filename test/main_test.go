@@ -30,6 +30,7 @@ import (
 	frontendconfigclient "k8s.io/ingress-gce/pkg/frontendconfig/client/clientset/versioned"
 	"k8s.io/klog/v2"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlLog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var (
@@ -141,6 +142,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		klog.Fatalf("Error creating kubernetes clients from %q: %v", flags.kubeconfig, err)
 	}
+	ctrlLog.SetLogger(klog.NewKlogr())
 	client, err := ctrlClient.New(kubeconfig, ctrlClient.Options{})
 	if err != nil {
 		klog.Errorf("Failed to create kubernetes client: %v", err)
