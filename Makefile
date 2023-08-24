@@ -15,7 +15,7 @@
 PROJECT_ID ?= $(shell gcloud config get-value project 2>&1 | head -n 1)
 BOSKOS_RESOURCE_TYPE ?= gke-internal-project
 RUN_IN_PROW ?= false
-LOCATION ?= us-central1-c
+ZONE ?= us-central1-c
 NUM_NODES ?= 3
 TEST_TO_RUN ?= .*
 JOB_NAME ?= gke-networking-recipe-e2e
@@ -33,7 +33,7 @@ test: bin/recipes-test
 		--boskos-resource-type=$(BOSKOS_RESOURCE_TYPE) \
 		--test-project-id=$(PROJECT_ID) \
 		--cluster-name=$(CLUSTER_NAME) \
-		--location=$(LOCATION) \
+		--zone=$(ZONE) \
 		--num-nodes=$(NUM_NODES) \
 		-test.run=$(TEST_TO_RUN) \
 
