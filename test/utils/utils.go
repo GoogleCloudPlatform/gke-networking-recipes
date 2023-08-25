@@ -16,6 +16,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -26,6 +27,7 @@ import (
 	alpha "google.golang.org/api/compute/v0.alpha"
 	beta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/googleapi"
 )
 
 func newCloud(project string) (cloud.Cloud, error) {
@@ -85,4 +87,22 @@ func verifyCluster(config ClusterConfig) error {
 		return fmt.Errorf("expect cluster %s to have %d nodes, got %d", config.Name, config.NumOfNodes, gotNumOfNodes)
 	}
 	return nil
+}
+
+// isHTTPErrorCode checks if the given error matches the given HTTP Error code.
+// For this to work the error must be a googleapi Error.
+func isHTTPErrorCode(err error, code int) bool {
+	var apiErr *googleapi.Error
+	return errors.As(err, &apiErr) && apiErr.Code == code
+}
+
+// getRegionFromZone extracts the region based on a full-qualified zone name.
+// The fully-qualified name for a zone is made up of <region>-<zone>.
+// (https://cloud.google.com/compute/docs/regions-zones#identifying_a_region_or_zone)
+func getRegionFromZone(zone string) string {
+	tokens := strings.Split(zone, "-")
+	if len(tokens) < 2 {
+		return ""
+	}
+	return strings.Join(tokens[:len(tokens)-1], "-")
 }
