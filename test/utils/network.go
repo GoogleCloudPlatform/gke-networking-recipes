@@ -33,7 +33,7 @@ func ensureNetwork(ctx context.Context, c cloud.Cloud, network *compute.Network)
 		}
 		return nil, fmt.Errorf("ensureNetwork(%q) failed: %w", network.Name, err)
 	}
-	klog.Infof("Use existing network %s.", network.Name)
+	klog.Infof("Using existing network %s.", network.Name)
 	return currentNetwork, nil
 }
 

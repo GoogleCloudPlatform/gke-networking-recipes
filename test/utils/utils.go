@@ -16,10 +16,10 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
@@ -71,20 +71,31 @@ func verifyCluster(config ClusterConfig) error {
 		"describe",
 		config.Name,
 		"--zone", config.Zone,
-		"--format", "value(currentNodeCount)",
+		"--format", "json(currentNodeCount, network, subnetwork)",
 	}
 	out, err := exec.Command("gcloud", params...).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("cannot describe cluster %q using gcloud: %w", config.Name, err)
 	}
 
-	outString := strings.TrimSpace(string(out))
-	gotNumOfNodes, err := strconv.Atoi(outString)
+	jsonStruct := struct {
+		CurrenNodeCount int    `json:"currentNodeCount"`
+		Network         string `json:"network"`
+		Subnetwork      string `json:"subnetwork"`
+	}{}
+
+	err = json.Unmarshal(out, &jsonStruct)
 	if err != nil {
-		return fmt.Errorf("failed to convert currentNodeCount %q to int: %w", outString, err)
+		return fmt.Errorf("cannot unmarshal description %q into json: %w", out, err)
 	}
-	if gotNumOfNodes != config.NumOfNodes {
-		return fmt.Errorf("expect cluster %s to have %d nodes, got %d", config.Name, config.NumOfNodes, gotNumOfNodes)
+	if config.NumOfNodes != jsonStruct.CurrenNodeCount {
+		return fmt.Errorf("expect cluster %q to have %d nodes, got %d nodes", config.Name, config.NumOfNodes, jsonStruct.CurrenNodeCount)
+	}
+	if config.NetworkName != jsonStruct.Network {
+		return fmt.Errorf("expect cluster %q to be in network %q, got network %s", config.Name, config.NetworkName, jsonStruct.Network)
+	}
+	if config.SubnetName != jsonStruct.Subnetwork {
+		return fmt.Errorf("expect cluster %q to be in subnetwork %q, got subnetwork %s", config.Name, config.SubnetName, jsonStruct.Subnetwork)
 	}
 	return nil
 }
@@ -105,4 +116,22 @@ func getRegionFromZone(zone string) string {
 		return ""
 	}
 	return strings.Join(tokens[:len(tokens)-1], "-")
+}
+
+func buildTestNetwork(networkName string) *compute.Network {
+	return &compute.Network{
+		Name:                  networkName,
+		AutoCreateSubnetworks: false,
+		// Explicitly specify false for AutoCreateSubnetworks
+		// so the created network is a custom-mode VPC network.
+		ForceSendFields: []string{"Name", "AutoCreateSubnetworks"},
+	}
+}
+
+func buildTestSubnet(subnetName, networkLink string) *compute.Subnetwork {
+	return &compute.Subnetwork{
+		Name:        subnetName,
+		Network:     networkLink,
+		IpCidrRange: "10.1.2.0/24",
+	}
 }

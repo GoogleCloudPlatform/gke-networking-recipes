@@ -33,7 +33,7 @@ func ensureSubnet(ctx context.Context, c cloud.Cloud, region string, subnet *com
 		}
 		return nil, fmt.Errorf("ensureSubnet(%q) failed: %w", subnet.Name, err)
 	}
-	klog.Infof("Use existing subnet %s.", subnet.Name)
+	klog.Infof("Using existing subnet %s.", subnet.Name)
 	return currentSubnet, nil
 }
 

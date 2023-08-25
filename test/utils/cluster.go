@@ -24,9 +24,11 @@ import (
 )
 
 type ClusterConfig struct {
-	Name       string
-	Zone       string
-	NumOfNodes int
+	Name        string
+	Zone        string
+	NumOfNodes  int
+	NetworkName string
+	SubnetName  string
 }
 
 func EnsureCluster(config ClusterConfig) error {
@@ -37,7 +39,7 @@ func EnsureCluster(config ClusterConfig) error {
 	if err := verifyCluster(config); err != nil {
 		return fmt.Errorf("verifyCluster(%q, %q) failed: %w", config.Name, config.Zone, err)
 	}
-	klog.Infof("Use existing cluster %s in zone %s with %d nodes.", config.Name, config.Zone, config.NumOfNodes)
+	klog.Infof("Using existing cluster %s in zone %s with %d nodes.", config.Name, config.Zone, config.NumOfNodes)
 	return nil
 }
 
@@ -49,6 +51,8 @@ func createCluster(config ClusterConfig) error {
 		config.Name,
 		"--zone", config.Zone,
 		"--num-nodes", strconv.Itoa(config.NumOfNodes),
+		"--network", config.NetworkName,
+		"--subnetwork", config.SubnetName,
 	}
 	if out, err := exec.Command("gcloud", params...).CombinedOutput(); err != nil {
 		return fmt.Errorf("createCluster(%q, %q, %d) failed: %q: %w", config.Name, config.Zone, config.NumOfNodes, out, err)

@@ -32,6 +32,8 @@ var (
 	flags struct {
 		kubeconfig      string
 		testProjectID   string
+		testNetworkName string
+		testSubnetName  string
 		testClusterName string
 		zone            string
 		numOfNodes      int
@@ -48,7 +50,9 @@ func init() {
 	flag.StringVar(&flags.boskosResourceType, "boskos-resource-type", "gke-internal-project", "name of the boskos resource type to reserve")
 	flag.BoolVar(&flags.inProw, "run-in-prow", false, "is the test running in PROW")
 	flag.StringVar(&flags.testProjectID, "test-project-id", "", "Project ID of the test cluster")
-	flag.StringVar(&flags.testClusterName, "cluster-name", "", "Name of the test cluster")
+	flag.StringVar(&flags.testNetworkName, "network-name", "", "Name of the test network. This will default to gke-net-recipes-test if unset.")
+	flag.StringVar(&flags.testSubnetName, "subnet-name", "", "Name of the test subnet. This will default to gke-net-recipes-test if unset.")
+	flag.StringVar(&flags.testClusterName, "cluster-name", "", "Name of the test cluster. This will default to gke-net-recipes-test if unset.")
 	flag.StringVar(&flags.zone, "zone", "", "Zone of the test cluster")
 	flag.IntVar(&flags.numOfNodes, "num-nodes", 3, "The number of nodes to be created in each of the cluster's zones")
 	flag.BoolVar(&flags.deleteCluster, "delete-cluster", false, "if the cluster is deleted after test runs")
@@ -113,10 +117,25 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
+	klog.Infof("Using kubeconfig %q", flags.kubeconfig)
+	kubeconfig, err := clientcmd.BuildConfigFromFlags("", flags.kubeconfig)
+	if err != nil {
+		klog.Fatalf("BuildConfigFromFlags(%q) = %v, want nil", flags.kubeconfig, err)
+	}
+
+	framework = utils.NewFramework(kubeconfig, utils.Options{
+		Project:     flags.testProjectID,
+		Zone:        flags.zone,
+		NetworkName: flags.testNetworkName,
+		SubnetName:  flags.testSubnetName,
+	})
+
 	clusterConfig := utils.ClusterConfig{
-		Name:       flags.testClusterName,
-		Zone:       flags.zone,
-		NumOfNodes: flags.numOfNodes,
+		Name:        flags.testClusterName,
+		Zone:        flags.zone,
+		NumOfNodes:  flags.numOfNodes,
+		NetworkName: framework.Network.Name,
+		SubnetName:  framework.Subnet.Name,
 	}
 	klog.Infof("EnsureCluster(%+v)", clusterConfig)
 	err = utils.EnsureCluster(clusterConfig)
@@ -135,17 +154,6 @@ func TestMain(m *testing.M) {
 			}
 		}()
 	}
-
-	klog.Infof("Using kubeconfig %q", flags.kubeconfig)
-	kubeconfig, err := clientcmd.BuildConfigFromFlags("", flags.kubeconfig)
-	if err != nil {
-		klog.Fatalf("BuildConfigFromFlags(%q) = %v, want nil", flags.kubeconfig, err)
-	}
-
-	framework = utils.NewFramework(kubeconfig, utils.Options{
-		Project: flags.testProjectID,
-		Zone:    flags.zone,
-	})
 
 	m.Run()
 }
