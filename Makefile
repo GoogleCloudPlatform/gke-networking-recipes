@@ -15,6 +15,7 @@
 PROJECT_ID ?= $(shell gcloud config get-value project 2>&1 | head -n 1)
 BOSKOS_RESOURCE_TYPE ?= gke-internal-project
 RUN_IN_PROW ?= false
+PKG_DIR ?= src/github.com/GoogleCloudPlatform/gke-networking-recipes
 NETWORK_NAME ?= gke-net-recipes-test
 SUBNET_NAME ?= gke-net-recipes-test
 CLUSTER_NAME ?= gke-net-recipes-test
@@ -22,6 +23,8 @@ ZONE ?= us-west1-a
 NUM_NODES ?= 3
 TEST_TO_RUN ?= .*
 JOB_NAME ?= gke-networking-recipe-e2e
+DELETE_CLUSTER ?= false
+DESTROY_SANDBOXES ?= true
 
 all: bin/recipes-test
 
@@ -34,12 +37,15 @@ test: bin/recipes-test
 	bin/recipes-test \
 		--run-in-prow=$(RUN_IN_PROW) \
 		--boskos-resource-type=$(BOSKOS_RESOURCE_TYPE) \
+		--pkg-dir=$(PKG_DIR) \
 		--test-project-id=$(PROJECT_ID) \
 		--network-name=$(NETWORK_NAME) \
 		--subnet-name=$(SUBNET_NAME) \
 		--cluster-name=$(CLUSTER_NAME) \
 		--zone=$(ZONE) \
 		--num-nodes=$(NUM_NODES) \
+		--delete-cluster=$(DELETE_CLUSTER) \
+		--destroySandboxes=$(DESTROY_SANDBOXES) \
 		-test.run=$(TEST_TO_RUN) \
 
 .PHONY: cleanenv

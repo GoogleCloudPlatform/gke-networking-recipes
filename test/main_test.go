@@ -31,6 +31,7 @@ import (
 var (
 	flags struct {
 		kubeconfig      string
+		pkgDir          string
 		testProjectID   string
 		testNetworkName string
 		testSubnetName  string
@@ -41,6 +42,7 @@ var (
 		boskosResourceType string
 		inProw             bool
 		deleteCluster      bool
+		destroySandboxes   bool
 	}
 	framework *utils.Framework
 )
@@ -49,6 +51,7 @@ func init() {
 	flag.StringVar(&flags.kubeconfig, "kubeconfig", "", "path to the .kube config file. This will default to $HOME/.kube/config if unset.")
 	flag.StringVar(&flags.boskosResourceType, "boskos-resource-type", "gke-internal-project", "name of the boskos resource type to reserve")
 	flag.BoolVar(&flags.inProw, "run-in-prow", false, "is the test running in PROW")
+	flag.StringVar(&flags.pkgDir, "pkg-dir", "", "path from $GOPATH to repo. This will default to src/github.com/GoogleCloudPlatform/gke-networking-recipes if unset")
 	flag.StringVar(&flags.testProjectID, "test-project-id", "", "Project ID of the test cluster")
 	flag.StringVar(&flags.testNetworkName, "network-name", "", "Name of the test network. This will default to gke-net-recipes-test if unset.")
 	flag.StringVar(&flags.testSubnetName, "subnet-name", "", "Name of the test subnet. This will default to gke-net-recipes-test if unset.")
@@ -56,6 +59,7 @@ func init() {
 	flag.StringVar(&flags.zone, "zone", "", "Zone of the test cluster")
 	flag.IntVar(&flags.numOfNodes, "num-nodes", 3, "The number of nodes to be created in each of the cluster's zones")
 	flag.BoolVar(&flags.deleteCluster, "delete-cluster", false, "if the cluster is deleted after test runs")
+	flag.BoolVar(&flags.destroySandboxes, "destroySandboxes", true, "set to false to leave sandboxed resources for debugging")
 }
 
 func TestMain(m *testing.M) {
@@ -124,10 +128,11 @@ func TestMain(m *testing.M) {
 	}
 
 	framework = utils.NewFramework(kubeconfig, utils.Options{
-		Project:     flags.testProjectID,
-		Zone:        flags.zone,
-		NetworkName: flags.testNetworkName,
-		SubnetName:  flags.testSubnetName,
+		Project:          flags.testProjectID,
+		Zone:             flags.zone,
+		NetworkName:      flags.testNetworkName,
+		SubnetName:       flags.testSubnetName,
+		DestroySandboxes: flags.destroySandboxes,
 	})
 
 	clusterConfig := utils.ClusterConfig{
