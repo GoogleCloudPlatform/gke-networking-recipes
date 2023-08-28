@@ -81,7 +81,7 @@ func (crud *K8sCRUD) delete(ctx context.Context, obj ctrlClient.Object) error {
 // ReplaceNamespace makes a copy of the given resources, and return a new list of resources with namespace.
 // Namespace won't be added for resources without namespace.
 func (crud *K8sCRUD) ReplaceNamespace(namespace string, objects ...ctrlClient.Object) ([]ctrlClient.Object, error) {
-	klog.Info("Replace K8s resources to use namespace %s.", namespace)
+	klog.Infof("Replace K8s resources to use namespace %s.", namespace)
 
 	var namespacedObject []ctrlClient.Object
 	for _, obj := range objects {

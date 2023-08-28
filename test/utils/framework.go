@@ -16,6 +16,8 @@ package utils
 
 import (
 	"context"
+	"sync"
+	"testing"
 
 	"github.com/GoogleCloudPlatform/k8s-cloud-provider/pkg/cloud"
 	"google.golang.org/api/compute/v1"
@@ -29,10 +31,11 @@ import (
 
 // Options for the test framework.
 type Options struct {
-	Project     string
-	Zone        string
-	NetworkName string
-	SubnetName  string
+	Project          string
+	Zone             string
+	NetworkName      string
+	SubnetName       string
+	DestroySandboxes bool
 }
 
 type Framework struct {
@@ -41,8 +44,12 @@ type Framework struct {
 	FrontendConfigClient *frontendconfigclient.Clientset
 	Cloud                cloud.Cloud
 	Zone                 string
+	Region               string
 	Network              *compute.Network
 	Subnet               *compute.Subnetwork
+	lock                 sync.Mutex
+	sandboxes            []*Sandbox
+	destroySandboxes     bool
 }
 
 func NewFramework(config *rest.Config, options Options) *Framework {
@@ -66,10 +73,10 @@ func NewFramework(config *rest.Config, options Options) *Framework {
 	// Ensure a subnet exists in the zone of the cluster.
 	region := getRegionFromZone(options.Zone)
 	subnet := buildTestSubnet(options.SubnetName, createdNetwork.SelfLink)
-	klog.Infof("ensureSubnet(%+v)", subnet)
-	createdSubnet, err := ensureSubnet(context.TODO(), cloud, region, subnet)
+	klog.Infof("EnsureSubnet(%+v)", subnet)
+	createdSubnet, err := EnsureSubnet(context.TODO(), cloud, region, subnet)
 	if err != nil {
-		klog.Fatalf("ensureSubnet(%q, %+v) = %v, want nil", options.Zone, subnet, err)
+		klog.Fatalf("EnsureSubnet(%q, %+v) = %v, want nil", options.Zone, subnet, err)
 	}
 
 	return &Framework{
@@ -77,8 +84,42 @@ func NewFramework(config *rest.Config, options Options) *Framework {
 		FrontendConfigClient: frontendconfigclient.NewForConfigOrDie(config),
 		BackendConfigClient:  backendconfigclient.NewForConfigOrDie(config),
 		Zone:                 options.Zone,
+		Region:               region,
 		Cloud:                cloud,
 		Network:              createdNetwork,
 		Subnet:               createdSubnet,
+		destroySandboxes:     options.DestroySandboxes,
 	}
+}
+
+// RunWithSandbox runs the testFunc with the Sandbox, taking care of resource
+// cleanup and isolation. This indirectly calls testing.T.Run().
+func (f *Framework) RunWithSandbox(desc, namespace string, t *testing.T, testFunc func(*testing.T, *Sandbox)) {
+	t.Run(desc, func(t *testing.T) {
+		f.lock.Lock()
+		sandbox := &Sandbox{
+			Namespace: namespace,
+			f:         f,
+		}
+		for _, s := range f.sandboxes {
+			if s.Namespace == sandbox.Namespace {
+				f.lock.Unlock()
+				t.Fatalf("Sandbox %s was created previously by the framework.", s.Namespace)
+			}
+		}
+		klog.V(2).Infof("Using namespace %q for test sandbox", sandbox.Namespace)
+		if err := sandbox.Create(namespace); err != nil {
+			f.lock.Unlock()
+			t.Fatalf("error creating sandbox: %v", err)
+		}
+
+		f.sandboxes = append(f.sandboxes, sandbox)
+		f.lock.Unlock()
+
+		if f.destroySandboxes {
+			defer sandbox.Destroy(namespace)
+		}
+
+		testFunc(t, sandbox)
+	})
 }
