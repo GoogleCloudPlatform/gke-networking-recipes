@@ -24,6 +24,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	beconfig "k8s.io/ingress-gce/pkg/apis/backendconfig/v1"
 
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -137,40 +138,81 @@ spec:
 			},
 		},
 	}
+
+	beConfigText := `apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: cloudarmor-test
+spec:
+  securityPolicy:
+    name: allow-my-ip`
+	beConfig := beconfig.BackendConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "cloudarmor-test",
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "BackendConfig",
+			APIVersion: "cloud.google.com/v1",
+		},
+		Spec: beconfig.BackendConfigSpec{
+			SecurityPolicy: &beconfig.SecurityPolicyConfig{
+				Name: "allow-my-ip",
+			},
+		},
+	}
+
 	testCases := []struct {
 		desc          string
 		yamlText      string
-		expectObjects []ctrlClient.Object
+		expectObjects *ParsedObjects
 		expectNil     bool
 	}{
 		{
-			desc:          "YAML TEXT contains headers and one properly formed object. Comments should be ignored.",
-			yamlText:      headerText + svcText,
-			expectObjects: []ctrlClient.Object{svc},
-			expectNil:     true,
+			desc:     "YAML TEXT contains headers and one properly formed object. Comments should be ignored.",
+			yamlText: headerText + svcText,
+			expectObjects: &ParsedObjects{
+				K8sObjects: []ctrlClient.Object{svc},
+				BeConfigs:  []beconfig.BackendConfig{},
+			},
+			expectNil: true,
 		},
 		{
-			desc:          "Properly formed yaml, with one k8s object",
-			yamlText:      svcText,
-			expectObjects: []ctrlClient.Object{svc},
-			expectNil:     true,
+			desc:     "Properly formed yaml, with one k8s object",
+			yamlText: svcText,
+			expectObjects: &ParsedObjects{
+				K8sObjects: []ctrlClient.Object{svc},
+				BeConfigs:  []beconfig.BackendConfig{},
+			},
+			expectNil: true,
 		},
 		{
-			desc:          "Properly formed yaml, with multiple k8s objects",
-			yamlText:      svcText + "\n---\n" + ingText,
-			expectObjects: []ctrlClient.Object{svc, ing},
-			expectNil:     true,
+			desc:     "Properly formed yaml, with multiple k8s objects",
+			yamlText: svcText + "\n---\n" + ingText,
+			expectObjects: &ParsedObjects{
+				K8sObjects: []ctrlClient.Object{svc, ing},
+				BeConfigs:  []beconfig.BackendConfig{},
+			},
+			expectNil: true,
+		},
+		{
+			desc:     "Properly formed yaml, with one k8s object and one backendConfig",
+			yamlText: svcText + "\n---\n" + beConfigText,
+			expectObjects: &ParsedObjects{
+				K8sObjects: []ctrlClient.Object{svc},
+				BeConfigs:  []beconfig.BackendConfig{beConfig},
+			},
+			expectNil: true,
 		},
 		{
 			desc:          "Properly formed yaml, contains invalid k8s object",
 			yamlText:      svcText + "\n---\n" + "apiVersion: networking.k8s.io/v1\n", // Object missing kind
-			expectObjects: nil,
+			expectObjects: NewParsedObjects(),
 			expectNil:     false,
 		},
 		{
 			desc:          "Empty text",
 			yamlText:      "",
-			expectObjects: nil,
+			expectObjects: NewParsedObjects(),
 			expectNil:     true,
 		},
 	}
@@ -187,19 +229,30 @@ spec:
 			}
 
 			// Compare if we have the same set of objects.
-			if len(tc.expectObjects) != len(gotObjects) {
-				t.Fatalf("Expect %d objects, got %d", len(tc.expectObjects), len(gotObjects))
+			if len(tc.expectObjects.K8sObjects) != len(gotObjects.K8sObjects) {
+				t.Fatalf("Expect %d k8s objects, got %d k8s object", len(tc.expectObjects.K8sObjects), len(gotObjects.K8sObjects))
+			}
+
+			if len(tc.expectObjects.BeConfigs) != len(gotObjects.BeConfigs) {
+				t.Fatalf("Expect %d backendConfig, got %d backendConfig", len(tc.expectObjects.BeConfigs), len(gotObjects.BeConfigs))
 			}
 			var match int
-			for _, gotObj := range gotObjects {
-				for _, expectObj := range tc.expectObjects {
+			for _, gotObj := range gotObjects.K8sObjects {
+				for _, expectObj := range tc.expectObjects.K8sObjects {
 					if reflect.DeepEqual(gotObj, expectObj) {
 						match += 1
 					}
 				}
 			}
-			if len(tc.expectObjects) != match {
-				t.Fatalf("Expect %d matching objects, got %d. Expect objects: %v, gotObjects: %v.", len(tc.expectObjects), match, pretty.Sprint(tc.expectObjects), pretty.Sprint(gotObjects))
+			for _, gotObj := range gotObjects.BeConfigs {
+				for _, expectObj := range tc.expectObjects.BeConfigs {
+					if reflect.DeepEqual(gotObj, expectObj) {
+						match += 1
+					}
+				}
+			}
+			if (len(tc.expectObjects.BeConfigs) + len(tc.expectObjects.K8sObjects)) != match {
+				t.Fatalf("Expect %d matching objects, got %d. Expect objects: %v, gotObjects: %v.", len(tc.expectObjects.BeConfigs)+len(tc.expectObjects.K8sObjects), match, pretty.Sprint(tc.expectObjects), pretty.Sprint(gotObjects))
 			}
 		})
 

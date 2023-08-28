@@ -21,12 +21,26 @@ import (
 	"strings"
 
 	"k8s.io/client-go/kubernetes/scheme"
+	v1 "k8s.io/ingress-gce/pkg/apis/backendconfig/v1"
 	"k8s.io/klog/v2"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
+type ParsedObjects struct {
+	K8sObjects []ctrlClient.Object
+	BeConfigs  []v1.BackendConfig
+}
+
+func NewParsedObjects() *ParsedObjects {
+	return &ParsedObjects{
+		K8sObjects: []ctrlClient.Object{},
+		BeConfigs:  []v1.BackendConfig{},
+	}
+}
+
 // ParseK8sYaml takes a yaml file path to create a list of runtime objects.
-func ParseK8sYamlFile(filePath string) ([]ctrlClient.Object, error) {
+func ParseK8sYamlFile(filePath string) (*ParsedObjects, error) {
 	klog.Infof("Parse K8s resources from path %s.", filePath)
 
 	yamlText, err := os.ReadFile(filePath)
@@ -37,9 +51,10 @@ func ParseK8sYamlFile(filePath string) ([]ctrlClient.Object, error) {
 }
 
 // ParseK8sYaml converts a yaml text to a list of runtime objects.
-func ParseK8sYAML(yamlText string) ([]ctrlClient.Object, error) {
+func ParseK8sYAML(yamlText string) (*ParsedObjects, error) {
 	sepYamlfiles := regexp.MustCompile("\n---\n").Split(string(yamlText), -1)
-	retVal := make([]ctrlClient.Object, 0, len(sepYamlfiles))
+
+	retVal := NewParsedObjects()
 	for _, f := range sepYamlfiles {
 		f = strings.TrimSpace(f)
 		if f == "\n" || f == "" {
@@ -47,17 +62,27 @@ func ParseK8sYAML(yamlText string) ([]ctrlClient.Object, error) {
 			continue
 		}
 
+		if strings.Contains(f, "kind: BackendConfig") {
+			backendConfig := v1.BackendConfig{}
+			err := yaml.Unmarshal([]byte(f), &backendConfig)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode YAML text: %w", err)
+			}
+			retVal.BeConfigs = append(retVal.BeConfigs, backendConfig)
+			continue
+		}
+
 		decode := scheme.Codecs.UniversalDeserializer().Decode
 		runtimeObj, _, err := decode([]byte(f), nil, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode YAML text: %w", err)
+			return NewParsedObjects(), fmt.Errorf("failed to decode YAML text: %w", err)
 		}
 
 		clientObj, ok := runtimeObj.(ctrlClient.Object)
 		if !ok {
-			return nil, fmt.Errorf("cast failed: want Object, got %T", runtimeObj)
+			return NewParsedObjects(), fmt.Errorf("cast failed: want Object, got %T", runtimeObj)
 		}
-		retVal = append(retVal, clientObj)
+		retVal.K8sObjects = append(retVal.K8sObjects, clientObj)
 	}
 	return retVal, nil
 }
