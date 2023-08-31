@@ -18,58 +18,73 @@ import (
 	"context"
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	v1 "k8s.io/ingress-gce/pkg/apis/backendconfig/v1"
+	backendconfigclient "k8s.io/ingress-gce/pkg/backendconfig/client/clientset/versioned"
 	"k8s.io/klog/v2"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type K8sCRUD struct {
-	c ctrlClient.Client
+type Crud struct {
+	c  ctrlClient.Client
+	bc *backendconfigclient.Clientset
 }
 
-func NewK8sCRUD(c ctrlClient.Client) *K8sCRUD {
-	return &K8sCRUD{c: c}
+func NewCrud(c ctrlClient.Client, bc *backendconfigclient.Clientset) *Crud {
+	return &Crud{c: c, bc: bc}
 }
 
 // CreateK8sResources creates all kubernetes resources within the given list.
-func (crud *K8sCRUD) CreateK8sResources(ctx context.Context, objects ...ctrlClient.Object) (map[schema.GroupVersionKind][]ctrlClient.ObjectKey, error) {
+func (crud *Crud) CreateK8sResources(ctx context.Context, objects ...ctrlClient.Object) (map[schema.GroupVersionKind][]ctrlClient.ObjectKey, error) {
 	klog.Info("Creating K8s resources.")
 
 	objectKeys := make(map[schema.GroupVersionKind][]ctrlClient.ObjectKey)
 	for _, obj := range objects {
-		gvk, err := crud.create(ctx, obj)
+		gvk, err := crud.createK8sObject(ctx, obj)
 		if err != nil {
 			return nil, err
 		}
 		objectKeys[gvk] = append(objectKeys[gvk], ctrlClient.ObjectKeyFromObject(obj))
+		klog.Infof("Created %s %s/%s", gvk, obj.GetNamespace(), obj.GetName())
 	}
 	return objectKeys, nil
 }
 
-// Create saves the object obj in the Kubernetes cluster.
-func (crud *K8sCRUD) create(ctx context.Context, obj ctrlClient.Object) (schema.GroupVersionKind, error) {
+// createK8sObject saves the object obj in the Kubernetes cluster.
+func (crud *Crud) createK8sObject(ctx context.Context, obj ctrlClient.Object) (schema.GroupVersionKind, error) {
 	gvk := obj.GetObjectKind().GroupVersionKind()
 	if err := crud.c.Create(ctx, obj); err != nil {
 		return gvk, fmt.Errorf("failed to create %s %s/%s: %w", gvk, obj.GetNamespace(), obj.GetName(), err)
 	}
-	klog.Infof("Created %s %s/%s", gvk, obj.GetNamespace(), obj.GetName())
 	return gvk, nil
 }
 
+func (crud *Crud) CreateBackendConfig(ctx context.Context, BeConfigs ...v1.BackendConfig) error {
+	for _, obj := range BeConfigs {
+		_, err := crud.bc.CloudV1().BackendConfigs(obj.Namespace).Create(ctx, &obj, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+		klog.Infof("Created %s %s/%s", obj.GroupVersionKind(), obj.GetNamespace(), obj.GetName())
+	}
+	return nil
+}
+
 // DeleteK8sResources deletes all kubernetes resources within the given list.
-func (crud *K8sCRUD) DeleteK8sResources(ctx context.Context, objects ...ctrlClient.Object) error {
+func (crud *Crud) DeleteK8sResources(ctx context.Context, objects ...ctrlClient.Object) error {
 	klog.Info("Deleting K8s resources.")
 
 	for _, obj := range objects {
-		if err := crud.delete(ctx, obj); err != nil {
+		if err := crud.deleteK8sObject(ctx, obj); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// Delete deletes the given obj from Kubernetes cluster.
-func (crud *K8sCRUD) delete(ctx context.Context, obj ctrlClient.Object) error {
+// deleteK8sObject deletes the given obj from Kubernetes cluster.
+func (crud *Crud) deleteK8sObject(ctx context.Context, obj ctrlClient.Object) error {
 	gvk := obj.GetObjectKind().GroupVersionKind()
 	if err := crud.c.Delete(ctx, obj); err != nil {
 		return fmt.Errorf("failed to delete %s %s/%s: %w", gvk.String(), obj.GetNamespace(), obj.GetName(), err)
@@ -78,13 +93,22 @@ func (crud *K8sCRUD) delete(ctx context.Context, obj ctrlClient.Object) error {
 	return nil
 }
 
+func (crud *Crud) DeleteBackendConfig(ctx context.Context, BeConfigs ...v1.BackendConfig) error {
+	for _, obj := range BeConfigs {
+		if err := crud.bc.CloudV1().BackendConfigs(obj.Namespace).Delete(ctx, obj.Name, metav1.DeleteOptions{}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ReplaceNamespace makes a copy of the given resources, and return a new list of resources with namespace.
 // Namespace won't be added for resources without namespace.
-func (crud *K8sCRUD) ReplaceNamespace(namespace string, objects ...ctrlClient.Object) ([]ctrlClient.Object, error) {
-	klog.Info("Replace K8s resources to use namespace %s.", namespace)
+func (crud *Crud) ReplaceNamespace(namespace string, objects *ParsedObjects) (*ParsedObjects, error) {
+	klog.Infof("Replace K8s resources to use namespace %s.", namespace)
 
-	var namespacedObject []ctrlClient.Object
-	for _, obj := range objects {
+	namespacedObjects := NewParsedObjects()
+	for _, obj := range objects.K8sObjects {
 		// Make a copy so we don't modify the original object.
 		obj = obj.DeepCopyObject().(ctrlClient.Object)
 
@@ -95,7 +119,12 @@ func (crud *K8sCRUD) ReplaceNamespace(namespace string, objects ...ctrlClient.Ob
 		if isNamespaced {
 			obj.SetNamespace(namespace)
 		}
-		namespacedObject = append(namespacedObject, obj)
+		namespacedObjects.K8sObjects = append(namespacedObjects.K8sObjects, obj)
 	}
-	return namespacedObject, nil
+	for _, obj := range objects.BeConfigs {
+		copiedObj := obj.DeepCopyObject().(*v1.BackendConfig)
+		copiedObj.Namespace = namespace
+		namespacedObjects.BeConfigs = append(namespacedObjects.BeConfigs, *copiedObj)
+	}
+	return namespacedObjects, nil
 }
