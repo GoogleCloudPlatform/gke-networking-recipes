@@ -26,20 +26,31 @@ Make sure you have valid credentials for accessing GCP:
 gcloud auth login
 ```
 
-You will need to set the project to run the test locally:
+Make sure you are at the root directory of the repository.
 
 ```
-export PROJECT_ID=<your-project>
+cd gke-networking-recipes
 ```
 
-To specify the location to create the test cluster, you will need to set the environment varible, it will be `us-central1-c` by default.
+To run a specific test, run the setup.sh, run-test.sh, and cleanup.sh in order in the recipe directory.
 
 ```
-export LOCATION=<your-location>
+./ingress/single-cluster/ingress-external-basic/setup.sh
+./ingress/single-cluster/ingress-external-basic/run-test.sh
+./ingress/single-cluster/ingress-external-basic/cleanup.sh
 ```
 
-Then run to start the test or select a set of tests to run:
-
+To cleanup a specific test separately, you can run its cleanup.sh.
 ```
-make test TEST_TO_RUN=<regex to filter test>
+./ingress/single-cluster/ingress-external-basic/cleanup.sh
+```
+
+To run all tests, use the following make command:
+```
+make test
+```
+
+To cleanup all tests separately, use the following command from test/:
+```
+./test/cleanup_all.sh
 ```
