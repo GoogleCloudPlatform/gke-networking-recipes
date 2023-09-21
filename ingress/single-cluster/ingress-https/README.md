@@ -141,7 +141,8 @@ deployment.apps/foo created
 deployment.apps/bar created
 ```
 
-6. It will take up to 15 minutes for everything to be provisioned. You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
+6. It will usually take up to 15 minutes for certificate to be provisioned if DNS records are set up beforehand. If DNS records are configured around the same time as the certificate, it could take up to 60 minutes to provision. For details, see [here](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs#replace-ssl).
+You can determine the status by checking the Ingress resource events. When it is ready, the events should look like the following:
 
 
 ```bash
