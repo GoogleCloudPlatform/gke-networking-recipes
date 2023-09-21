@@ -30,12 +30,7 @@ bin/recipes-test:
 test: bin/recipes-test
 	bin/recipes-test \
 		--run-in-prow=$(RUN_IN_PROW) \
-		--boskos-resource-type=$(BOSKOS_RESOURCE_TYPE) \
-		--test-project-id=$(PROJECT_ID) \
-		--cluster-name=$(CLUSTER_NAME) \
-		--zone=$(ZONE) \
-		--num-nodes=$(NUM_NODES) \
-		-test.run=$(TEST_TO_RUN) \
+		--boskos-resource-type=$(BOSKOS_RESOURCE_TYPE)
 
 .PHONY: clean
 clean:

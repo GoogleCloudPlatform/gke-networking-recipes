@@ -16,7 +16,6 @@ package test
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"os/exec"
 )
@@ -27,13 +26,4 @@ func setEnvProject(project string) error {
 	}
 
 	return os.Setenv("PROJECT", project)
-}
-
-func randSeq(n int) string {
-	letterBytes := "0123456789abcdef"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }
