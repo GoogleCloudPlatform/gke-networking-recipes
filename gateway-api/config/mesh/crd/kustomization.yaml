@@ -1,3 +1,5 @@
 resources:
 - stable/tdmesh.yaml
 - stable/tdgrpcroute.yaml
+- experimental/gcpsessionaffinitypolicy.yaml 
+- experimental/gcpsessionaffinityfilter.yaml 
