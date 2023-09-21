@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package test
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"os/exec"
 )
@@ -27,13 +26,4 @@ func setEnvProject(project string) error {
 	}
 
 	return os.Setenv("PROJECT", project)
-}
-
-func randSeq(n int) string {
-	letterBytes := "0123456789abcdef"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }

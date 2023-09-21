@@ -23,7 +23,7 @@ metadata:
     networking.gke.io/v1beta1.FrontendConfig: ingress-security-config
 spec:
   rules:
-  - host: foo.${DOMAIN}.com
+  - host: foo.bp.ing.gke.certsbridge.com
     http:
       paths:
       - path: "/"
@@ -33,7 +33,7 @@ spec:
             name: foo
             port:
               number: 8080
-  - host: bar.${DOMAIN}.com
+  - host: bar.bp.ing.gke.certsbridge.com
     http:
       paths:
       - path: "/"
@@ -59,8 +59,8 @@ metadata:
   name: foobar-certificate
 spec:
   domains:
-    - foo.${DOMAIN}.com
-    - bar.${DOMAIN}.com
+    - foo.bp.ing.gke.certsbridge.com
+    - bar.bp.ing.gke.certsbridge.com
 ---
 apiVersion: v1
 kind: Service
