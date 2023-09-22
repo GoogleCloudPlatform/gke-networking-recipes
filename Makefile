@@ -1,4 +1,4 @@
-# Copyright 2023 The Kubernetes Authors.
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@ BOSKOS_RESOURCE_TYPE ?= gke-internal-project
 RUN_IN_PROW ?= false
 ZONE ?= us-central1-c
 NUM_NODES ?= 3
-TEST_TO_RUN ?= .*
+TEST_GOFILES := $(shell find ./test -name \*.go)
 JOB_NAME ?= gke-networking-recipe-e2e
 
 all: bin/recipes-test
 
-bin/recipes-test:
-	mkdir bin/
+bin:
+	mkdir ./bin
+
+bin/recipes-test: bin $(TEST_GOFILES)
 	go test -c -o $@ ./test
 
 .PHONY: test
@@ -31,12 +33,8 @@ test: bin/recipes-test
 	bin/recipes-test \
 		--run-in-prow=$(RUN_IN_PROW) \
 		--boskos-resource-type=$(BOSKOS_RESOURCE_TYPE) \
-		--test-project-id=$(PROJECT_ID) \
-		--cluster-name=$(CLUSTER_NAME) \
-		--zone=$(ZONE) \
-		--num-nodes=$(NUM_NODES) \
-		-test.run=$(TEST_TO_RUN) \
+		-test.v
 
 .PHONY: clean
 clean:
-	rm -rf bin/
+	rm -rf ./bin
