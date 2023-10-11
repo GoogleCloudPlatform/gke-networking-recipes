@@ -29,8 +29,8 @@ test: bin/recipes-test
 	bin/recipes-test \
 		--run-in-prow=$(RUN_IN_PROW) \
 		--boskos-resource-type=$(BOSKOS_RESOURCE_TYPE) \
-		-test.v
-		-test.timeout=0
+		-test.v \
+		-test.timeout=180m
 
 .PHONY: clean
 clean:

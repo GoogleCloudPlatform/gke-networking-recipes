@@ -98,6 +98,77 @@ wait_for_managed_cert() {
     return 1
 }
 
+# Wait for the given ingress to completely delete its resources.
+# Arguments:
+#   Name of the ingress.
+#   Namespace of the ingress.
+# Returns:
+#   0 if resources are deleted within 1 hour, 1 if not.
+wait_for_glbc_deletion() {
+    local ingress_name test_name resource_suffix network ns ing_resource_name 
+    ingress_name="$1"
+    test_name="$2"
+    resource_suffix=$(get_hash "${test_name}")
+    network="gke-net-recipes-${resource_suffix}"
+
+    ns="${test_name}"
+    ing_resource_name="${ns}-${ingress_name}"
+    local ATTEMPT
+    for ATTEMPT in $(seq 360); do
+        local fwr thp thsp um bs neg
+        fwr=( $(gcloud compute forwarding-rules list \
+                --filter="NAME ~ ${ing_resource_name}" \
+                --format="value(NAME)") )
+        if  [[ "${#fwr[@]}" -ne 0 ]]; then
+            sleep 10
+            continue
+        fi
+
+        thp=( $(gcloud compute target-http-proxies list \
+                --filter="NAME ~ ${ing_resource_name}" \
+                --format="value(NAME)") )
+        if  [[ "${#thp[@]}" -ne 0 ]]; then
+            sleep 10
+            continue
+        fi
+
+        thsp=( $(gcloud compute target-https-proxies list \
+                --filter="NAME ~ ${ing_resource_name}" \
+                --format="value(NAME)") )
+        if  [[ "${#thsp[@]}" -ne 0 ]]; then
+            sleep 10
+            continue
+        fi
+
+        um=( $(gcloud compute url-maps list \
+                --filter="NAME ~ ${ing_resource_name}" \
+                --format="value(NAME)") )
+        if  [[ "${#um[@]}" -ne 0 ]]; then
+            sleep 10
+            continue
+        fi
+
+        bs=( $(gcloud compute backend-services list \
+                --filter="NAME ~ ${ing_resource_name}" \
+                --format="value(NAME)") )
+        if  [[ "${#bs[@]}" -ne 0 ]]; then
+            sleep 10
+            continue
+        fi
+
+        neg=( $(gcloud compute network-endpoint-groups list \
+                --filter="network ~ ${network}" \
+                --format="value(NAME)") )
+        if  [[ "${#neg[@]}" -ne 0 ]]; then
+            sleep 10
+            continue
+        fi
+        
+        return 0
+    done
+    return 1
+}
+
 # Basic setup that works for most recipe tests.
 # Create a network, and a subnet in the provided region.
 # Create an instance and a cluster in the given zone with the network and 
@@ -162,6 +233,8 @@ cleanup_gke_basic() {
     gcloud compute instances delete "${instance}" \
         --zone="${zone}" --quiet || true
     gcloud compute networks subnets delete "${subnet}" \
+        --region="${subnet_region}" --quiet || true
+    gcloud compute networks subnets delete "proxy-only-${resource_suffix}" \
         --region="${subnet_region}" --quiet || true
 
     local firewalls fw
