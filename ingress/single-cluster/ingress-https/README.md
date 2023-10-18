@@ -80,7 +80,7 @@ kind: FrontendConfig
 metadata:
   name: ingress-security-config
 spec:
-  sslPolicy: gke-ingress-ssl-policy
+  sslPolicy: gke-ingress-ssl-policy-https
   redirectToHttps:
     enabled: true
 ```
@@ -123,7 +123,7 @@ Created [https://www.googleapis.com/compute/v1/projects/xxx/global/addresses/gke
 4. Create an SSL policy. This policy specifies a broad set of modern ciphers and requires that clients negotiate using TLS 1.2 or higher.
 
 ```
-$ gcloud compute ssl-policies create gke-ingress-ssl-policy \
+$ gcloud compute ssl-policies create gke-ingress-ssl-policy-https \
     --profile MODERN \
     --min-tls-version 1.2
 ```
@@ -203,7 +203,7 @@ You are now ready to serve securely on the internet!
 ```bash
 $ kubectl delete -f secure-ingress.yaml
 $ gcloud compute addresses delete --global gke-foobar-public-ip
-$ gcloud compute ssl-policies delete gke-ingress-ssl-policy
+$ gcloud compute ssl-policies delete gke-ingress-ssl-policy-https
 ```
 
 ### Testing
