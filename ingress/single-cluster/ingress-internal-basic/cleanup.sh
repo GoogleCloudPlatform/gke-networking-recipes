@@ -20,11 +20,11 @@ set -o pipefail;
 set -o xtrace;
 
 source ./test/helper.sh
-test_name="ingress-external-basic"
+test_name="ingress-internal-basic"
 context=$(get_context "${test_name}")
 
 if [[ ! -z "${context}" ]]; then
-    ingress_name="foo-external"
+    ingress_name="foo-internal"
     fr=$(get_forwarding_rule "${ingress_name}" "${test_name}" "${context}")
     thp=$(get_target_http_proxy "${ingress_name}" "${test_name}" "${context}")
     thsp=$(get_target_https_proxy "${ingress_name}" "${test_name}" "${context}")
@@ -32,7 +32,7 @@ if [[ ! -z "${context}" ]]; then
     backends=$(get_backends "${ingress_name}" "${test_name}" "${context}")
     negs=$(get_negs "${context}")
 
-    kubectl --context "${context}" delete -f ingress/single-cluster/ingress-external-basic/external-ingress-basic.yaml -n "${test_name}" || true
+    kubectl --context "${context}" delete -f ingress/single-cluster/ingress-internal-basic/internal-ingress-basic.yaml -n "${test_name}" || true
     wait_for_glbc_deletion "${fr}" "${thp}" "${thsp}" "${um}" "${backends}" "${negs}"
     kubectl --context "${context}" delete namespace "${test_name}" || true
 fi

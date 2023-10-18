@@ -20,8 +20,9 @@ set -o pipefail;
 set -o xtrace;
 
 source ./test/helper.sh
-test_name="ingress-external-basic"
+test_name="ingress-internal-basic"
 setup_gke_basic "${test_name}" "${ZONE}" "${REGION}"
+setup_ilb "${test_name}" "${REGION}"
 context=$(get_context "${test_name}")
 
 if [[ -z "${context}" ]]; then
@@ -29,4 +30,4 @@ if [[ -z "${context}" ]]; then
 fi
 
 kubectl --context "${context}" create namespace "${test_name}"
-kubectl --context "${context}" apply -f ingress/single-cluster/ingress-external-basic/external-ingress-basic.yaml -n "${test_name}"
+kubectl --context "${context}" apply -f ingress/single-cluster/ingress-internal-basic/internal-ingress-basic.yaml -n "${test_name}"

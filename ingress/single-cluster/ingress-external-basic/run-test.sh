@@ -19,4 +19,15 @@ set -o nounset;
 set -o pipefail;
 set -o xtrace;
 
-echo "Running external basic test."
+source ./test/helper.sh
+test_name="ingress-external-basic"
+context=$(get_context "${test_name}")
+
+if [[ -z "${context}" ]]; then
+    exit 1
+fi
+
+vip=$(wait_for_ingress_ip "foo-external" "${test_name}" "${context}")
+
+check_http_status "${vip}" 200 "host: foo.example.com"
+check_http_status "${vip}" 404 "host: bar.example.com"
