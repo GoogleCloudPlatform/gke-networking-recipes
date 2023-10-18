@@ -19,10 +19,12 @@ GKE allows customers to deploy their own Ingress Controllers instead of the stan
 - 1.16.5-gke.1 and later.
 
 
+## Note
+NGINX is not one of the GKE offering, this is just an exmaple of using custom controller.
 
 ### Networking Manifests
 
-In this example an internal Ingress resource matches for HTTP traffic with `foo.example.com`  for path `/foo`  and sends it to the `foo` Service at port 8080. A public IP address is automatically provisioned by the Ngnix controller which listens for traffic on port 8080. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses.
+In this example an external Ingress resource matches for HTTP traffic with `foo.example.com`  for path `/foo`  and sends it to the `foo` Service at port 8080. A public IP address is automatically provisioned by the Ngnix controller which listens for traffic on port 8080. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses.
 
 
 ```yaml
