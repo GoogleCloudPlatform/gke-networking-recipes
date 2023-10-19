@@ -10,10 +10,9 @@ $ gcloud container  clusters create cluster-1 \
   --zone us-central1-a  --num-nodes 2 --enable-ip-alias  -q
 ```
 
-Configure a custom SSL Policy (this is optional and simply added to demonstrate custom TLS policies using `networking.gke.io/v1beta1.FrontEndConfig`)
-
+Configure a custom SSL Policy.
 ```
-gcloud compute ssl-policies create gke-ingress-ssl-policy \
+gcloud compute ssl-policies create gke-ingress-ssl-policy-grpc \
     --profile MODERN \
     --min-tls-version 1.2 
 ```
@@ -116,10 +115,10 @@ $ docker run --add-host grpc.domain.com:$XLB_IP \
 
 #### Test Internal
 
-To test the internal loadbalancer, you must configure a VM from within an [allocated network](https://cloud.google.com/load-balancing/docs/l7-internal/setting-up-l7-internal#configuring_the_proxy-only_subnet) and export the environment variable `$XLB_IP` locally
+To test the internal loadbalancer, you must configure a VM from within an [allocated network](https://cloud.google.com/load-balancing/docs/l7-internal/setting-up-l7-internal#configuring_the_proxy-only_subnet) and export the environment variable `$ILB_IP` locally
 
 ```log
- $ docker run --add-host grpc.domain.com:$XLB_IP \
+ $ docker run --add-host grpc.domain.com:$ILB_IP \
      -t docker.io/salrashid123/grpc_app /grpc_client \
      --host=grpc.domain.com:443 --tlsCert /certs/CA_crt.pem  \
      --servername grpc.domain.com --repeat 10 -skipHealthCheck
@@ -150,7 +149,6 @@ data:
 kind: Secret
 metadata:
   name: hc-secret
-  namespace: default
 type: Opaque
 ---
 ```

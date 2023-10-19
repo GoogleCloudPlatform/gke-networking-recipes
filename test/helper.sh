@@ -199,7 +199,7 @@ setup_gke_basic() {
         --zone="${zone}" \
         --network="${network}" \
         --subnet="${subnet}" \
-        --image-family="debian-11" \
+        --image-family="debian-10" \
         --image-project="debian-cloud" \
         --tags="allow-ssh"
     gcloud container clusters create "${cluster}" \
@@ -335,4 +335,24 @@ check_http_status() {
         sleep 5
     done
     return 1
+}
+
+# Check if the input string has the expected count of the given pattern.
+# Arguments:
+#   String to be counted.
+#   Pattern to look for.
+#   Expected count of pattern within the string.
+# Returns:
+#   0 if the pattern count matches the expected, 1 if not.
+check_pattern_count() {
+    local string pattern expect_count got_count
+    string="$1"
+    pattern="$2"
+    expect_count="$3"
+
+    got_count=$(echo "${string}" | grep -o "${pattern}" | wc -l)
+    if [[ "${expect_count}" != "${got_count}" ]]; then
+        return 1
+    fi
+    return 0
 }

@@ -42,4 +42,4 @@ kind: FrontendConfig
 metadata:
   name: fe-frontend-config
 spec:
-  sslPolicy: gke-ingress-ssl-policy
+  sslPolicy: gke-ingress-ssl-policy-grpc
