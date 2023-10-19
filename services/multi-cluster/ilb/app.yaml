@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multi-cluster-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whereami
+  namespace: multi-cluster-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whereami
+  template:
+    metadata:
+      labels:
+        app: whereami
+    spec:
+      containers:
+      - name: whereami
+        image: gcr.io/google-samples/whereami:v1.1.2
+        env:
+        - name: METADATA
+          value: "default-backend"
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wheraami-ilb
+  annotations:
+    cloud.google.com/load-balancer-type: Internal
+  labels:
+    app: wheraami-ilb
+  namespace: multi-cluster-demo
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: whereami
