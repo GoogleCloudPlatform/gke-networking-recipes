@@ -20,13 +20,14 @@ set -o pipefail;
 set -o xtrace;
 
 source ./test/helper.sh
-test_name="ingress-external-basic"
-setup_gke_basic "${test_name}" "${ZONE}" "${REGION}"
+test_name="ingress-internal-basic"
 context=$(get_context "${test_name}")
 
 if [[ -z "${context}" ]]; then
     exit 1
 fi
 
-kubectl --context "${context}" create namespace "${test_name}"
-kubectl --context "${context}" apply -f ingress/single-cluster/ingress-external-basic/external-ingress-basic.yaml -n "${test_name}"
+vip=$(wait_for_ingress_ip "foo-internal" "${test_name}" "${context}")
+
+check_http_status "${vip}" 200 "host: foo.example.com" "${test_name}" "${ZONE}"
+check_http_status "${vip}" 404 "host: bar.example.com" "${test_name}" "${ZONE}"
