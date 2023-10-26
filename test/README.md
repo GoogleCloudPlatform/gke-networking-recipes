@@ -26,10 +26,27 @@ Make sure you have valid credentials for accessing GCP:
 gcloud auth login
 ```
 
+Set the project property in the core section by running:
+```
+gcloud config set project PROJECT_ID
+```
+
+Install jq by running:
+```
+sudo apt-get install jq
+```
+
 Make sure you are at the root directory of the repository.
 
 ```
 cd gke-networking-recipes
+```
+
+
+Make sure to set ZONE and REGION environment variables before running tests. Resources will be deployed to the specified region and/or zone.
+```
+export ZONE=zone
+export REGION=region
 ```
 
 To run a specific test, run the setup.sh, run-test.sh, and cleanup.sh in order in the recipe directory.
