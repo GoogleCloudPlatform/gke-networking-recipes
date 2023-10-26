@@ -205,3 +205,18 @@ IAP setup can be done from [Google Cloud Console](https://console.cloud.google.c
     They can be also downladed in JSON format.
    * Add **Authorized redirect URI** in a format `https://iap.googleapis.com/v1/oauth/clientIds/CLIENT_ID:handleRedirect`
     *(replace CLIENT_ID with your valid one)*
+
+### Testing
+The test for this recipe will be skipped if the required environment variables are not set.
+To run the test, you need to have a project($DNS_PROJECT) that has Cloud DNS enabled. In this project, set up a public DNS zone with a DNS domain you control. See `Create a managed public zone in Cloud DNS` in [setup guide](https://cloud.google.com/dns/docs/set-up-dns-records-domain-name).
+Then export the zone name and DNS name as environment variables. Make sure the current service account has role/dns_admin access to the DNS project. 
+```
+export DNS_PROJECT=dns-project \
+export DNS_ZONE=example-zone-name
+export DNS_NAME=myzone.example.com
+```
+
+You also need to have a support email that follows the requirement described in [Programmatic OAuth clients](https://cloud.google.com/iap/docs/programmatic-oauth-clients).
+```
+export SUPPORT_EMAIL=support-email
+```

@@ -157,3 +157,10 @@ While both services are served to the user via the Anthos Service Mesh ingress, 
         "zone": "us-west1-a"
     }
     ```
+
+### Testing
+The test for this recipe will be skipped if the required environment variables are not set.
+To run the test, you need to have a support email that follows the requirement described in [Programmatic OAuth clients](https://cloud.google.com/iap/docs/programmatic-oauth-clients). The test will be skipped if the environment variables are not set.
+```
+export SUPPORT_EMAIL=support-email
+```
