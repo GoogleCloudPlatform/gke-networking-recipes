@@ -31,19 +31,21 @@ get_hash() {
 # Argument:
 #   Name of the ingress.
 #   Namespace of the ingress.
+#   The context where the resource resides.
 # Outputs:
 #   Writes the ingress IP to stdout.
 # Returns:
 #   0 if the ingress IP is populated within 15 minutes, 1 if not.
 wait_for_ingress_ip() {
-    local ing ns ATTEMPT
+    local ing ns context attempt
     ing="$1"
     ns="$2"
+    context="$3"
 
     # 180*5s=15min
-    for ATTEMPT in $(seq 180); do
+    for attempt in $(seq 180); do
         local vip
-        vip=$(kubectl get ingress ${ing} \
+        vip=$(kubectl --context "${context}" get ingress ${ing} \
               -n ${ns} \
               -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
         if [[ ! -z "$vip" ]]; then
@@ -59,18 +61,20 @@ wait_for_ingress_ip() {
 # Arguments:
 #   Name of the Managed Certificate.
 #   Namespace of the Managed Certificate.
+#   The context where the resource resides.
 # Returns:
 #   0 if the status of the given certificate is Active within 60 minutes, 1 if not.
 wait_for_managed_cert() {
-    local mc ns ATTEMPT
+    local mc ns context attempt
     mc="$1"
     ns="$2"
+    context="$3"
 
     # 360*10s=60min
-    for ATTEMPT in $(seq 360); do
+    for attempt in $(seq 360); do
         local certStatus domainStatus status
         # Check status of the certificate.
-        certStatus=$(kubectl get ManagedCertificate ${mc} \
+        certStatus=$(kubectl --context "${context}" get ManagedCertificate ${mc} \
                      -n ${ns} \
                      -o jsonpath="{.status.certificateStatus}")
         if [[ "${certStatus}" != "Active" ]]; then
@@ -79,7 +83,7 @@ wait_for_managed_cert() {
         fi
 
         # Check status of each domain.
-        domainStatus=( $(kubectl get ManagedCertificate ${mc} \
+        domainStatus=( $(kubectl --context "${context}" get ManagedCertificate ${mc} \
                          -n ${ns} \
                          -o jsonpath="{.status.domainStatus}" | \
                          jq  ".[] | .status") )
@@ -98,72 +102,203 @@ wait_for_managed_cert() {
     return 1
 }
 
-# Wait for the given ingress to completely delete its resources.
+# Get forwarding rule of the given ingress.
 # Arguments:
 #   Name of the ingress.
 #   Namespace of the ingress.
+#   The context where the resource resides.
+# Outputs:
+#   Name of http(s) forwarding rule for the ingress.
+#   If both HTTP and HTTPS forwarding rules exist, this will return the HTTPS 
+#   forwarding rule. If no forwarding rule exists, return "null".
+get_forwarding_rule() {
+    local ingress_name ns context fr
+    ingress_name="$1"
+    ns="$2"
+    context="$3"
+    fr=$(get_ing_resource "${ingress_name}" "${ns}" "${context}" "ingress.kubernetes.io/https-forwarding-rule")
+    if [[ "${fr}" == "null" ]]; then 
+        fr=$(get_ing_resource "${ingress_name}" "${ns}" "${context}" "ingress.kubernetes.io/forwarding-rule")
+    fi        
+    echo "${fr}"
+}
+
+# Get target http proxy of the given ingress.
+# Arguments:
+#   Name of the ingress.
+#   Namespace of the ingress.
+#   The context where the resource resides.
+# Outputs:
+#   Name of target http proxy for the ingress. If no target http proxy exists,
+#   return "null".
+get_target_http_proxy() {
+    local ingress_name ns context thp
+    ingress_name="$1"
+    ns="$2"
+    context="$3"
+    thp=$(get_ing_resource "${ingress_name}" "${ns}" "${context}" "ingress.kubernetes.io/target-proxy")
+    echo "${thp}"
+}
+
+# Get target https proxy of the given ingress.
+# Arguments:
+#   Name of the ingress.
+#   Namespace of the ingress.
+#   The context where the resource resides.
+#   Name of the target https proxy for the ingress.
+# Outputs:
+#   Name of target https proxy for the ingress. If no target https proxy
+#   exists, return "null".
+get_target_https_proxy() {
+    local ingress_name ns context thsp
+    ingress_name="$1"
+    ns="$2"
+    context="$3"
+    thsp=$(get_ing_resource "${ingress_name}" "${ns}" "${context}" "ingress.kubernetes.io/https-target-proxy")
+    echo "${thsp}"
+}
+
+# Get url map of the given ingress.
+# Arguments:
+#   Name of the ingress.
+#   Namespace of the ingress.
+#   The context where the resource resides.
+# Outputs:
+#   Name of url map for the ingress. If no url map exists, return "null".
+get_url_map() {
+    local ingress_name ns context um
+    ingress_name="$1"
+    ns="$2"
+    context="$3"
+    um=$(get_ing_resource "${ingress_name}" "${ns}" "${context}" "ingress.kubernetes.io/url-map")
+    echo "${um}"
+}
+
+# Get backend services of the given ingress.
+# Arguments:
+#   Name of the ingress.
+#   Namespace of the ingress.
+#   The context where the resource resides.
+# Outputs:
+#   Name of all backend services for the ingress as a string separated by new 
+#   line. If no backend service exists, return "".
+get_backends() {
+    local ingress_name ns context backend_map
+    ingress_name="$1"
+    ns="$2"
+    context="$3"
+    backend_map=$(get_ing_resource "${ingress_name}" "${ns}" "${context}" "ingress.kubernetes.io/backends")
+    backends=$(echo "${backend_map}" | jq "fromjson | keys[]")
+    echo "${backends[@]}"
+}
+
+# Get the specific resource of the given ingress.
+# Arguments:
+#   Name of the ingress.
+#   Namespace of the ingress.
+#   The context where the resource resides.
+#   Name of the resource in the ingress annotation.
+# Output:
+#   Value of the resource using annotation as key in the given ingress. If the
+#   given resource does not exist, return "null".
+get_ing_resource() {
+    local ingress_name ns context resource_annotation resource
+    ingress_name="$1"
+    ns="$2"
+    context="$3"
+    resource_annotation="$4"
+    resource=$(kubectl get ingress --context="${context}" \
+                -n "${ns}" \
+                -o json \
+                ${ingress_name} | \
+                jq ".metadata.annotations.\"${resource_annotation}\"" )
+    echo "${resource}"
+}
+
+# Get names of all NEGs in the cluster.
+# Arguments:
+#   The context where the resource resides.
+# Outputs:
+#   Name of all NEGs in the cluster as a string separated by space. If no NEG
+#   exists, return "".
+get_negs() {
+    local context resource
+    context="$1"
+    resource=$(kubectl get svcneg --context="${context}" \
+                -o=jsonpath="{.items[*].metadata.name}" \
+                -A )
+    echo "${resource}"
+}
+
+# Wait for the given ingress to completely delete its resources.
+# Arguments:
+#   Name of forwarding rule.
+#   Name of target http proxy.
+#   Name of target https proxy.
+#   Name of url map.
+#   Name of backend services.
+#   Name of NEGs.
 # Returns:
 #   0 if resources are deleted within 1 hour, 1 if not.
 wait_for_glbc_deletion() {
-    local ingress_name test_name resource_suffix network ns ing_resource_name 
-    ingress_name="$1"
-    test_name="$2"
-    resource_suffix=$(get_hash "${test_name}")
-    network="gke-net-recipes-${resource_suffix}"
+    local fr thp thsp um backends negs
+    fr="$1"
+    thp="$2"
+    thsp="$3"
+    um="$4"
+    backends="$5"
+    negs="$6"
 
-    ns="${test_name}"
-    ing_resource_name="${ns}-${ingress_name}"
-    local ATTEMPT
-    for ATTEMPT in $(seq 360); do
-        local fwr thp thsp um bs neg
-        fwr=( $(gcloud compute forwarding-rules list \
-                --filter="NAME ~ ${ing_resource_name}" \
-                --format="value(NAME)") )
-        if  [[ "${#fwr[@]}" -ne 0 ]]; then
+    local attempt
+    for attempt in $(seq 360); do
+        local resource
+        resource=$(gcloud compute forwarding-rules list \
+                    --filter="NAME=( ${fr} )" \
+                    --format="value(NAME)")
+        if  [[ ! -z "${resource}" ]]; then
             sleep 10
             continue
         fi
 
-        thp=( $(gcloud compute target-http-proxies list \
-                --filter="NAME ~ ${ing_resource_name}" \
-                --format="value(NAME)") )
-        if  [[ "${#thp[@]}" -ne 0 ]]; then
+        resource=$(gcloud compute target-http-proxies list \
+                    --filter="NAME=( ${thp} )" \
+                    --format="value(NAME)")
+        if  [[ ! -z "${resource}" ]]; then
             sleep 10
             continue
         fi
 
-        thsp=( $(gcloud compute target-https-proxies list \
-                --filter="NAME ~ ${ing_resource_name}" \
-                --format="value(NAME)") )
-        if  [[ "${#thsp[@]}" -ne 0 ]]; then
+        resource=$(gcloud compute target-https-proxies list \
+                    --filter="NAME=( ${thsp} )" \
+                    --format="value(NAME)")
+        if  [[ ! -z "${resource}" ]]; then
             sleep 10
             continue
         fi
 
-        um=( $(gcloud compute url-maps list \
-                --filter="NAME ~ ${ing_resource_name}" \
-                --format="value(NAME)") )
-        if  [[ "${#um[@]}" -ne 0 ]]; then
+        resource=$(gcloud compute url-maps list \
+                    --filter="NAME=( ${um} )" \
+                    --format="value(NAME)")
+        if  [[ ! -z "${resource}" ]]; then
             sleep 10
             continue
         fi
 
-        bs=( $(gcloud compute backend-services list \
-                --filter="NAME ~ ${ing_resource_name}" \
-                --format="value(NAME)") )
-        if  [[ "${#bs[@]}" -ne 0 ]]; then
+        resource=$(gcloud compute backend-services list \
+                    --filter="NAME=( ${backends} )" \
+                    --format="value(NAME)")
+        if  [[ ! -z "${resource}" ]]; then
             sleep 10
             continue
         fi
 
-        neg=( $(gcloud compute network-endpoint-groups list \
-                --filter="network ~ ${network}" \
-                --format="value(NAME)") )
-        if  [[ "${#neg[@]}" -ne 0 ]]; then
+        resource=$(gcloud compute network-endpoint-groups list \
+                    --filter="NAME=( ${negs} )" \
+                    --format="value(NAME)")
+        if  [[ ! -z "${resource}" ]]; then
             sleep 10
             continue
         fi
-        
         return 0
     done
     return 1
@@ -249,6 +384,20 @@ cleanup_gke_basic() {
     gcloud compute networks delete "${network}" --quiet || true
 }
 
+# Get the kubectl context for a test based on the test name.
+# A kubectl context contains the cluster's name.
+# Arguments:
+#   Name of the test, used to genereate the cluster name.
+# Output:
+#   The context used in the given test.
+get_context() {
+    local test_name suffix cluster_name
+    test_name="$1"
+    suffix=$(get_hash "${test_name}")
+    cluster_name="gke-net-recipes-${suffix}"
+    context=$(kubectl config view -o json | jq -r ".contexts[] | select(.name | test(\"${cluster_name}\")).name" || true)
+    echo "${context}"
+}
 
 # Network environment setup for internal load balancer so that the load
 # balancer proxies can be deployed.
@@ -288,10 +437,11 @@ setup_ilb() {
 #   (Optional)Name of the test, will be used to genereate vm instance name. 
 #             If provided, request will be sent via ssh into the test instance.
 #   (Optional)Zone of the test instance.
+#   (Optional)If curl skips verification for secure connection.
 # Returns:
 #   0 if the recieved HTTP response code matches the expected one within 5 minutes, 1 if not.
 check_http_status() {
-    local url expect_code extra_header test_name zone eval_cmd
+    local url expect_code extra_header test_name zone insecure eval_cmd
     url="$1"
     expect_code="$2"
 
@@ -299,6 +449,7 @@ check_http_status() {
     extra_header="${3:-}"
     test_name="${4:-}"
     zone="${5:-}"
+    insecure="${6:-}"
 
     # Get the HTTP status code from the response header.
     if [[ -z "${test_name}" ]]; then
@@ -324,9 +475,13 @@ check_http_status() {
                     'curl -sI -o /dev/null -w \"%{http_code}\" -H \"${extra_header}\" ${url}'"
     fi
 
+    if [[ "${insecure}" ]]; then
+        eval_cmd="${eval_cmd} -k"
+    fi
+
     # 60*5s=5min
-    local ATTEMPT
-    for ATTEMPT in $(seq 60); do
+    local attempt
+    for attempt in $(seq 60); do
         local got_code
         got_code=$(eval ${eval_cmd} || true)
         if [[ "${got_code}" == "${expect_code}" ]]; then
@@ -335,4 +490,63 @@ check_http_status() {
         sleep 5
     done
     return 1
+}
+
+# Get the Cloud OAuth brand in the project if it exists or create a new one.
+# Arguments:
+#   The support email for OAuth brand.
+# Outputs:
+#   OAuth brand name of the project.
+get_or_create_oauth_brand() {
+    local support_email brand
+    support_email="$1"
+
+    brand=$(gcloud iap oauth-brands list --format="value(NAME)")
+    if [[ ! -z "${brand}" ]]; then
+        echo "${brand}"
+        return
+    fi
+
+    gcloud iap oauth-brands create --application_title="gke-net-recipes" --support_email="${support_email}"
+
+    local attempt
+    for attempt in $(seq 10); do
+        brand=$(gcloud iap oauth-brands list --format="value(NAME)")
+        if [[ -z "${brand}" ]]; then
+            sleep 5
+            continue
+        fi
+        break
+    done
+    echo "${brand}"
+}
+
+# Get the OAuth client ID and secret for the given test.
+# Arguments:
+#   The name of oauth_brand.
+#   Name of the test. Used to generate OAuth client name.
+# Outputs:
+#   OAuth client name, ID, and secret.
+get_oauth_client() {
+    local brand test_name existing client_info client_id secret
+    brand="$1"
+    test_name="$2"
+
+    existing=$(gcloud iap oauth-clients list "${brand}")
+    if [[ -z "${existing}" ]]; then
+        gcloud iap oauth-clients create "${brand}" --display_name="${test_name}"
+    fi
+
+    local attempt
+    for attempt in $(seq 10); do
+        client_info=( $(gcloud iap oauth-clients list ${brand} --format="value(NAME,SECRET)") )
+        if [[ -z "${client_info[@]-}" ]]; then
+            sleep 5
+            continue
+        fi
+        break
+    done
+    client_id=$( echo "${client_info[0]-}" | sed 's/.*identityAwareProxyClients\/\(.*\)/\1/' )
+    secret="${client_info[1]-}"
+    echo "${client_info[0]-} ${client_id} ${secret}"
 }
