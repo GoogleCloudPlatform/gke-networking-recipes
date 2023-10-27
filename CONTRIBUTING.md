@@ -12,6 +12,7 @@ The goal for GKE Networking Recipes is to provide a bite-sized, easy to consume,
 - Each recipe should have its own folder that includes all of the deployment YAML necessary to achieve the use-case in addition to its README.
 - The resource manifests should be stored in a single YAML file so that it can be easily copied, pasted, and deployed with a single command. Exceptions include multiple deployment steps (like v1 and v2 of an app) or multiple clusters where different manifests are deployed to each.
 - Each recipe should use the [whereami sample application](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples/tree/master/whereami) wherever possible to demonstrate the use-case. There may be use-cases that depend on specific application functionality so it is fine to diverge in these instances.
+- Each recipe should include its corresponding test files that follows the testing framework and guideline described in the [test README page](./test/README.md).
 - Recipes should rely on the shared [GKE cluster setup](./cluster-setup.md) steps instead of instructing how to deploy the cluster or environment. Each recipe should focus on just the use-case without repeating any boilerplate setup. Please make sure to use Anchor links (Exp: cluster-setup.md#Multi-cluster-environment-basic) to send the user to the proper section of the doc.
 - For special cases where a unique environment or more than one cluster is required, feel free to include these steps in the recipe.
 - There should be clear ownership of a recipe. Each recipe has one owner. If you contributed it then you own it until someone else has agreed to be the owner. If functionality changes and your recipe is no longer valid or no longer makes sense, it is your responsibility to update over time.
@@ -47,8 +48,11 @@ Each recipe's README should consist of the following sections. In general the RE
 | [Secure Ingress](./ingress/single-cluster/ingress-https)  |   |
 | [IAP Ingress](./ingress/single-cluster/ingress-iap)  |   |
 | [CloudArmor Ingress](./ingress/single-cluster/ingress-cloudarmor)  |   |
+| [Nginx Ingress](./ingress/single-cluster/ingress-nginx)  |   |
+| [Custom default backend Ingress](./ingress/single-cluster/ingress-custom-default-backend)  |   |
 | [Custom HTTP Health Check Ingress](./ingress/single-cluster/ingress-custom-http-health-check)  |   |
 | [Ingress gRPC Health Check Ingress](./ingress/single-cluster/ingress-custom-grpc-health-check)  | [@rramkumar1](https://github.com/rramkumar1)  |
+| [Istio Ingress Gateway with multiple Backend Configs](./ingress/single-cluster/ingress-asm-multi-backendconfig) |  |
 | [Basic Multi-Cluster Ingress](./ingress/multi-cluster/mci-basic)  | [@mark-church](https://github.com/mark-church) |
 | [Multi-Cluster Ingress Blue-Green Cluster Migration](./ingress/multi-cluster/mci-blue-green-cluster) |   |
 | [Multi-Cluster Ingress Blue-Green App Migration](./ingress/multi-cluster/mci-blue-green-app)  |   |

@@ -17,8 +17,10 @@ GKE is a managed Kubernetes platform that provides a more opinionated and seamle
   - [IAP Ingress](./ingress/single-cluster/ingress-iap) - GKE Ingress with Identity-Aware Proxy based authentication.
   - [CloudArmor Ingress](./ingress/single-cluster/ingress-cloudarmor) - GKE Ingress with Google CloudArmor policy protection.
   - [Nginx Ingress](./ingress/single-cluster/ingress-nginx) - Deploy an internet-facing HTTP load balancer with Nginx Ingress. 
+  - [Custom default backend Ingress](./ingress/single-cluster/ingress-custom-default-backend) - GKE Ingress with custom default backend.
   - [Custom HTTP health check Ingress](./ingress/single-cluster/ingress-custom-http-health-check) - GKE Ingress with custom HTTP based health check.
   - [Custom gRPC health check Ingress](./ingress/single-cluster/ingress-custom-grpc-health-check) - GKE Ingress with custom gRPC based health check.
+  - [Istio Ingress Gateway with multiple Backend Configs](./ingress/single-cluster/ingress-asm-multi-backendconfig) - Deploy ASM ingress gateway to run multiple different backends with different Backend Configs
 
 - Multi-cluster Ingress
   - [Basic Multi-cluster Ingress](./ingress/multi-cluster/mci-basic) - Deploy applications across different clusters and different regions but retain a single global load balancer and public IP for global traffic management.
