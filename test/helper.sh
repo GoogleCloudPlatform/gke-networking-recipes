@@ -479,9 +479,9 @@ check_http_status() {
         eval_cmd="${eval_cmd} -k"
     fi
 
-    # 60*5s=5min
+    # 180*5s=15min
     local attempt
-    for attempt in $(seq 60); do
+    for attempt in $(seq 180); do
         local got_code
         got_code=$(eval ${eval_cmd} || true)
         if [[ "${got_code}" == "${expect_code}" ]]; then

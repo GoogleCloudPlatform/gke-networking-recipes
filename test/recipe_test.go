@@ -62,7 +62,8 @@ func runRecipeTest(t *testing.T, recipeDir string) {
 	for _, file := range []string{"setup.sh", "run-test.sh", "cleanup.sh"} {
 		path := path.Join(recipeDir, file)
 		if _, err := os.Stat(path); err != nil {
-			t.Skipf("Skipping test %q: stat(%q) = %v", recipeDir, path, err)
+			t.Logf("stat(%q) = %v", path, err)
+			t.Skipf("Skipping test %q: %q doesn't exist", recipeDir, path)
 		}
 		paths = append(paths, path)
 	}
