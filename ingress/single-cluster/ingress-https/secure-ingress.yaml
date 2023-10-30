@@ -49,7 +49,7 @@ kind: FrontendConfig
 metadata:
   name: ingress-security-config
 spec:
-  sslPolicy: gke-ingress-ssl-policy
+  sslPolicy: gke-ingress-ssl-policy-https
   redirectToHttps:
     enabled: true
 ---
