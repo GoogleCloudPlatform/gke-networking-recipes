@@ -65,14 +65,14 @@ func TestMain(m *testing.M) {
 		oldProject := strings.TrimSpace(string(output))
 		klog.Infof("Using project %s for testing. Restore to existing project %s after testing.", project, oldProject)
 
-		if err := setEnvProject(project); err != nil {
-			klog.Fatalf("setEnvProject(%q) failed: %v, want nil", project, err)
+		if err := utils.SetEnvProject(project); err != nil {
+			klog.Fatalf("SetEnvProject(%q) failed: %v, want nil", project, err)
 		}
 
 		// After the test, reset the project
 		defer func() {
-			if err := setEnvProject(oldProject); err != nil {
-				klog.Errorf("setEnvProject(%q) failed: %v, want nil", oldProject, err)
+			if err := utils.SetEnvProject(oldProject); err != nil {
+				klog.Errorf("SetEnvProject(%q) failed: %v, want nil", oldProject, err)
 			}
 		}()
 	}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package utils
 
 import (
 	"fmt"
@@ -20,9 +20,9 @@ import (
 	"os/exec"
 )
 
-func setEnvProject(project string) error {
+func SetEnvProject(project string) error {
 	if out, err := exec.Command("gcloud", "config", "set", "project", project).CombinedOutput(); err != nil {
-		return fmt.Errorf("setEnvProject(%q) failed: %q: %w", project, out, err)
+		return fmt.Errorf("SetEnvProject(%q) failed: %q: %w", project, out, err)
 	}
 
 	return os.Setenv("PROJECT", project)
