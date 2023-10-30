@@ -14,9 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source ./test/helpers/hash.sh
-source ./test/helpers/ingress.sh
-source ./test/helpers/managed_cert.sh
-source ./test/helpers/oAuth.sh
-source ./test/helpers/setup.sh
-source ./test/helpers/validation.sh
+# Genereate a hash of length 20 using sha1 checksum and take the first 20 characters.
+# Argument:
+#   Value to be hashed, a string
+# Outputs:
+#   Writes the hashed result to stdout.
+get_hash() {
+    # By default, sha1sum prints out hash and filename, so we only access the 
+    # [0] element for the hash.
+    local h
+    h=($(echo -n $1 | sha1sum))
+    echo "${h:0:20}"
+}
