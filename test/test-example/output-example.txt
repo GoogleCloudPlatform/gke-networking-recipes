@@ -1,0 +1,54 @@
+bin/recipes-test \
+        --run-in-prow=false \
+        --boskos-resource-type=gke-internal-project \
+        -test.v \
+        -test.timeout=180m
+I1103 06:57:28.596928 2794931 main_test.go:42] Flags: {boskosResourceType:gke-internal-project inProw:false}
+=== RUN   TestHelloWorld
+I1103 06:57:28.597120 2794931 main_test.go:84] Hello world
+--- PASS: TestHelloWorld (0.00s)
+=== RUN   TestRecipe
+=== RUN   TestRecipe/ingress-asm-multi-backendconfig
+=== PAUSE TestRecipe/ingress-asm-multi-backendconfig
+=== RUN   TestRecipe/ingress-cloudarmor
+=== PAUSE TestRecipe/ingress-cloudarmor
+=== RUN   TestRecipe/ingress-custom-default-backend
+=== PAUSE TestRecipe/ingress-custom-default-backend
+=== RUN   TestRecipe/ingress-custom-grpc-health-check
+=== PAUSE TestRecipe/ingress-custom-grpc-health-check
+=== RUN   TestRecipe/ingress-custom-http-health-check
+=== PAUSE TestRecipe/ingress-custom-http-health-check
+=== RUN   TestRecipe/ingress-external-basic
+=== PAUSE TestRecipe/ingress-external-basic
+=== RUN   TestRecipe/ingress-https
+=== PAUSE TestRecipe/ingress-https
+=== RUN   TestRecipe/ingress-iap
+=== PAUSE TestRecipe/ingress-iap
+=== RUN   TestRecipe/ingress-internal-basic
+=== PAUSE TestRecipe/ingress-internal-basic
+=== RUN   TestRecipe/ingress-nginx
+=== PAUSE TestRecipe/ingress-nginx
+=== CONT  TestRecipe/ingress-asm-multi-backendconfig
+=== CONT  TestRecipe/ingress-external-basic
+=== CONT  TestRecipe/ingress-custom-grpc-health-check
+    recipe_test.go:65: stat("ingress/single-cluster/ingress-custom-grpc-health-check/setup.sh") = stat ingress/single-cluster/ingress-custom-grpc-health-check/setup.sh: no such file or directory
+    recipe_test.go:66: Skipping test "ingress/single-cluster/ingress-custom-grpc-health-check": "ingress/single-cluster/ingress-custom-grpc-health-check/setup.sh" doesn't exist
+=== CONT  TestRecipe/ingress-nginx
+=== CONT  TestRecipe/ingress-internal-basic
+=== CONT  TestRecipe/ingress-custom-http-health-check
+=== CONT  TestRecipe/ingress-custom-default-backend
+=== CONT  TestRecipe/ingress-iap
+=== CONT  TestRecipe/ingress-https
+=== CONT  TestRecipe/ingress-cloudarmor
+--- PASS: TestRecipe (0.00s)
+    --- SKIP: TestRecipe/ingress-custom-grpc-health-check (0.00s)
+    --- PASS: TestRecipe/ingress-nginx (985.15s)
+    --- PASS: TestRecipe/ingress-custom-default-backend (1253.93s)
+    --- PASS: TestRecipe/ingress-internal-basic (1263.71s)
+    --- PASS: TestRecipe/ingress-cloudarmor (1292.18s)
+    --- PASS: TestRecipe/ingress-external-basic (1330.15s)
+    --- PASS: TestRecipe/ingress-custom-http-health-check (1417.95s)
+    --- PASS: TestRecipe/ingress-asm-multi-backendconfig (1692.30s)
+    --- PASS: TestRecipe/ingress-iap (2156.83s)
+    --- PASS: TestRecipe/ingress-https (3115.15s)
+PASS
