@@ -19,6 +19,11 @@ set -o nounset;
 set -o pipefail;
 set -o xtrace;
 
+if [[ -z "${DNS_PROJECT-}" ||  -z "${DNS_ZONE-}" ||  -z "${DNS_NAME-}" || -z "${SUPPORT_EMAIL-}" ]]; then
+    echo "Required environment variables are not set. See ingress-iap/REAME.md for details."
+    exit 0
+fi
+
 source ./test/helper.sh
 test_name="ingress-iap"
 context=$(get_context "${test_name}")

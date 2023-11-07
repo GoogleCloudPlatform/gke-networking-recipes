@@ -21,7 +21,7 @@ set -o xtrace;
 
 if [[ -z "${DNS_PROJECT-}" ||  -z "${DNS_ZONE-}" ||  -z "${DNS_NAME-}" || -z "${SUPPORT_EMAIL-}" ]]; then
     echo "Required environment variables are not set. See ingress-iap/REAME.md for details."
-    exit 1
+    exit 0
 fi
 
 source ./test/helper.sh
