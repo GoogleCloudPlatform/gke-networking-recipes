@@ -19,6 +19,11 @@ set -o nounset;
 set -o pipefail;
 set -o xtrace;
 
+if [[ -z "${SUPPORT_EMAIL-}" ]]; then
+    echo "Required environment variable is not set. See ingress-asm-multi-backendconfig/REAME.md for details."
+    exit 0
+fi
+
 source ./test/helper.sh
 test_name="ingress-asm-multi-backendconfig"
 context=$(get_context "${test_name}")
