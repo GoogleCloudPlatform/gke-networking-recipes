@@ -18,6 +18,8 @@ limitations under the License.
 
 The tests here are intended to test the recipes in this repo to make sure it workable and up-to-date.
 
+PLEASE NOTE: All recipe tests are run periodically to ensure they are all passed. If a new recipe or changes to an existing recipe causes test failures, it will be reverted.
+
 ## Running tests locally
 
 Make sure you have valid credentials for accessing GCP:
@@ -75,7 +77,7 @@ To cleanup all tests separately, use the following command from test/:
 
 ## Adding a new recipe test
 
-For a new recipe, in addition to its yaml file and REAME.md, it should also include a set of test files to make sure the recipe is functional and up-to-date.
+For a new recipe, in addition to its yaml file and REAME.md, it should also include a set of test files to make sure the recipe is functional and up-to-date. In the description section of the pull request, you should also provide the result of `make test` to show your test is passing and is not breaking other tests. See example in [output-example.txt](./test_example/output_example.txt). 
 
 A recipe directory should have the following layout:
 ```
