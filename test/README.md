@@ -72,7 +72,7 @@ make test
 
 To cleanup all tests separately, use the following command from test/:
 ```
-./test/cleanup_all.sh
+./test/cleanup-all.sh
 ```
 
 ## Adding a new recipe test
@@ -95,6 +95,6 @@ gke-networking-recipes/
 
 Note that the files have to be named in the exact way to be picked up by the [test framework](recipe_test.go). If any of the test files is missing, it would be skipped by the framework.
 
-You should validate your test passes by following instruction from `Running tests locally`. When creating a new test, you can utilize the helper functions defined in the [helper functions library](./helper.sh). You can find examples for each test file in the [test_example](./test_example/). In general, each test should contain at least one `check_http_status` call in its run-test.sh to validate the traffic.
+You should validate your test passes by following instruction from `Running tests locally`. When creating a new test, you can utilize the helper functions defined in the [helper functions library](./helper.sh). You can find examples for each test file in the [test-example](./test-example/). In general, each test should contain at least one `check_http_status` call in its run-test.sh to validate the traffic.
 
 For additional helper functions, please submit a feature request or raise a pull request with example. 
