@@ -49,6 +49,11 @@ func TestMain(m *testing.M) {
 		}
 		project := ph.AcquireOrDie(flags.boskosResourceType)
 		defer func() {
+			out, err := exec.Command("bash", "test/cleanup-all.sh").CombinedOutput()
+			if err != nil {
+				// Fail now because we shouldn't continue testing if any step fails.
+				klog.Errorf("failed to run ./test/cleanup-all.sh: %q, err: %v", out, err)
+			}
 			ph.Release()
 		}()
 
@@ -78,8 +83,4 @@ func TestMain(m *testing.M) {
 	}
 
 	m.Run()
-}
-
-func TestHelloWorld(t *testing.T) {
-	klog.Info("Hello world")
 }
