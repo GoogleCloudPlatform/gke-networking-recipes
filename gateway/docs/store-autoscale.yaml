@@ -26,6 +26,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: store-autoscale
+  annotations:
+    networking.gke.io/max-rate-per-endpoint: "10"
 spec:
   ports:
   - port: 8080
