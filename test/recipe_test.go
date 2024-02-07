@@ -40,17 +40,19 @@ func TestRecipe(t *testing.T) {
 
 // runRecipeTests iterates each recipe file, and run its test if it is a directory.
 func runRecipeTests(t *testing.T, parentPath string, fileNames []fs.DirEntry) {
-	for _, fileName := range fileNames {
+	for i, fileName := range fileNames {
+		i := i
 		fileName := fileName
 		t.Run(fileName.Name(), func(t *testing.T) {
 			t.Parallel()
+			// Pause 30*i seconds
+			time.Sleep(time.Duration(i*30) * time.Second)
 			path := path.Join(parentPath, fileName.Name())
 			if err := validateDir(path); err != nil {
 				t.Skipf("Skipping test %q: validateDir(%q) = %v", path, path, err)
 			}
 			runRecipeTest(t, path)
 		})
-		time.Sleep(30 * time.Second)
 	}
 }
 
