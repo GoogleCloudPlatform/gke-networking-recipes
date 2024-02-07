@@ -21,6 +21,7 @@ import (
 	"os/exec"
 	"path"
 	"testing"
+	"time"
 )
 
 var testFilePaths = []string{
@@ -49,6 +50,7 @@ func runRecipeTests(t *testing.T, parentPath string, fileNames []fs.DirEntry) {
 			}
 			runRecipeTest(t, path)
 		})
+		time.Sleep(30 * time.Second)
 	}
 }
 
