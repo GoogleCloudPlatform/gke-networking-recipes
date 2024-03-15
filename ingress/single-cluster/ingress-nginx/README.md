@@ -108,7 +108,7 @@ $ kubectl get deploy foo
 NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 foo    3/3     3            3           2m56s
 
-$ kubectl describe ingress ingress-resource
+$ kubectl describe ingress foo-external
 Name:             ingress-resource
 Namespace:        default
 Address:          34.102.236.246
