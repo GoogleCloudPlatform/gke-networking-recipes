@@ -17,7 +17,7 @@ kind: Service
 metadata:
   name: foo
   annotations:
-    cloud.google.com/load-balancer-type: "Internal"
+    networking.gke.io/load-balancer-type: "Internal"
   labels:
     app: foo
 spec:
