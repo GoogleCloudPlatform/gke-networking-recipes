@@ -1,7 +1,7 @@
 
-# GKE Ingress + NGNIX Ingress
+# GKE Ingress + NGINX Ingress
 
-GKE allows customers to deploy their own Ingress Controllers instead of the standard GCP offering. NGNIX is a popular option because of it's simplicity and open source nature. This example deploys an application on GKE and exposes the application with an NGNIX controller. See the [ingress-ngnix.yaml](./ingress-nginx.yaml) manifest for full deployment spec. 
+GKE allows customers to deploy their own Ingress Controllers instead of the standard GCP offering. NGINX is a popular option because of it's simplicity and open source nature. This example deploys an application on GKE and exposes the application with an NGINX controller. See the [ingress-nginx.yaml](./ingress-nginx.yaml) manifest for full deployment spec.
 
 ### Use-cases
 
@@ -12,7 +12,7 @@ GKE allows customers to deploy their own Ingress Controllers instead of the stan
 
 - [Ingress for GKE](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
 - [Ingress with NGINX](https://cloud.google.com/community/tutorials/nginx-ingress-gke)
-- [NGNIX on GKE](https://kubernetes.github.io/ingress-nginx/deploy/#gce-gke)
+- [NGINX on GKE](https://kubernetes.github.io/ingress-nginx/deploy/#gce-gke)
 
 ### Versions
 
@@ -24,7 +24,7 @@ NGINX is not one of the GKE offering, this is just an exmaple of using custom co
 
 ### Networking Manifests
 
-In this example an external Ingress resource matches for HTTP traffic with `foo.example.com`  for path `/foo`  and sends it to the `foo` Service at port 8080. A public IP address is automatically provisioned by the Ngnix controller which listens for traffic on port 8080. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses.
+In this example an external Ingress resource matches for HTTP traffic with `foo.example.com`  for path `/foo`  and sends it to the `foo` Service at port 8080. A public IP address is automatically provisioned by the Nginx controller which listens for traffic on port 8080. The Ingress resource below shows that there is one host match. Any traffic which does not match this is sent to the default backend to provide 404 responses.
 
 
 ```yaml
@@ -74,7 +74,7 @@ spec:
 $ git clone https://github.com/GoogleCloudPlatform/gke-networking-recipes.git
 Cloning into 'gke-networking-recipes'...
 
-$ cd gke-networking-recipes/ingress/single-cluster/ingress-ngnix
+$ cd gke-networking-recipes/ingress/single-cluster/ingress-nginx
 ```
 2. Ensure that your user has cluster-admin permissions on the cluster. This can be done with the following command:
 
@@ -83,13 +83,13 @@ kubectl create clusterrolebinding cluster-admin-binding \
   --clusterrole cluster-admin \
   --user $(gcloud config get-value account)
 ```
-3. Install the ingress controller 
+3. Install the ingress controller
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-4. Deploy the Ingress, Deployment, and Service resources in the [ingress-ngnix.yaml](./ingress-nginx.yaml) manifest.
+4. Deploy the Ingress, Deployment, and Service resources in the [ingress-nginx.yaml](./ingress-nginx.yaml) manifest.
 
 ```bash
 $ kubectl apply -f ingress-nginx.yaml
