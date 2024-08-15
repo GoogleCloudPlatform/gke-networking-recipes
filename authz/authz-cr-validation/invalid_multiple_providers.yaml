@@ -1,0 +1,22 @@
+apiVersion: networking.gke.io/v1
+kind: GCPAuthzPolicy
+metadata:
+  name: "test"
+spec:
+  action: CUSTOM
+  httpRules:
+  - to:
+      operations:
+      - paths:
+        - type: Exact
+          value: "/"
+  customProviders:
+    cloudIAP: true
+    extensionRefs:
+    - kind: Service
+      name: test
+      group: ""
+  targetRefs:
+  - kind: Deployment
+    name: test-deploy
+    group: ""

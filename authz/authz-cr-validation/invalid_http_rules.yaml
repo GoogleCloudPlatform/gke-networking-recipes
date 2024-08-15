@@ -1,0 +1,10 @@
+apiVersion: networking.gke.io/v1
+kind: GCPAuthzPolicy
+metadata:
+  name: "test"
+spec:
+  action: ALLOW
+  targetRefs:
+  - kind: Deployment
+    name: test-deploy
+    group: ""
