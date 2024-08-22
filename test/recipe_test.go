@@ -20,12 +20,14 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"testing"
 	"time"
 )
 
 var testFilePaths = []string{
 	"ingress/single-cluster/",
+	"authz/",
 }
 
 func TestRecipe(t *testing.T) {
@@ -65,11 +67,14 @@ func runRecipeTest(t *testing.T, recipeDir string) {
 	var paths []string
 	for _, file := range []string{"setup.sh", "run-test.sh", "cleanup.sh"} {
 		path := path.Join(recipeDir, file)
-		if _, err := os.Stat(path); err != nil {
+		_, err := os.Stat(path)
+		if err != nil && !strings.Contains(path, "authz") {
 			t.Logf("stat(%q) = %v", path, err)
 			t.Skipf("Skipping test %q: %q doesn't exist", recipeDir, path)
 		}
-		paths = append(paths, path)
+		if err == nil {
+			paths = append(paths, path)
+		}
 	}
 
 	for _, path := range paths {
