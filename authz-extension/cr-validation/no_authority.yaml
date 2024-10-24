@@ -1,0 +1,11 @@
+apiVersion: networking.gke.io/v1
+kind: GCPAuthzExtension
+metadata:
+  name: "test"
+spec:
+  backendRef:
+    group: ""
+    kind: Service
+    name: test-service
+    port: 80
+  timeout: 1s
