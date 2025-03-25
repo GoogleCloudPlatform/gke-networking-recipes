@@ -1,0 +1,30 @@
+kind: GCPRoutingExtension
+apiVersion: networking.gke.io/v1
+metadata:
+  name: bbr-extension
+  namespace: default
+spec:
+  targetRefs:
+  - group: "gateway.networking.k8s.io"
+    kind: Gateway
+    name: my-inference-gateway
+  extensionChains:
+  - name: chain1
+    matchCondition:
+      celExpressions:
+      - celMatcher:
+          celExpression: `request.headers["x-gateway-model-name"] != ""`
+    extensions:
+    - name: ext1
+      authority: "myext.com"
+      timeout: 1s
+      supportedEvents:
+      - RequestHeaders
+      - RequestBody
+      - RequestTrailers
+      requestBodySendMode: "FullDuplexStreamed"
+      backendRef:
+        group: ""
+        kind: Service
+        name: body-based-router
+        port: 9002
