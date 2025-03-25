@@ -1,0 +1,18 @@
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: bbr-healthcheck
+  namespace: default
+spec:
+  default:
+    logConfig:
+      enabled: true
+    config:
+      type: "GRPC"
+      grpcHealthCheck:
+        portSpecification: "USE_FIXED_PORT"
+        port: 9003
+  targetRef:
+    group: ""
+    kind: Service
+    name: body-based-router
