@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whereami
+  namespace: whereami
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: whereami
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: whereami
+    spec:
+      containers:
+        - name: whereami
+          image: us-docker.pkg.dev/google-samples/containers/gke/whereami:v1.2.11
+          ports:
+            - containerPort: 8080
