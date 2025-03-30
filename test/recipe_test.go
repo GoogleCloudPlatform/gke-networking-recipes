@@ -28,6 +28,7 @@ import (
 var testFilePaths = []string{
 	"ingress/single-cluster/",
 	"authz/",
+	"authz-extension/",
 }
 
 func TestRecipe(t *testing.T) {
