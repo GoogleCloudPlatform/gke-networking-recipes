@@ -85,7 +85,7 @@ spec:
     enabled: true
 ```
 
-The managed certificate generation is goverened via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource with these two hostnames as SANs to the cert. 
+The managed certificate generation is governed via the [ManagedCertificate resource.](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs) The spec below will create a single SSL certificate resource with these two hostnames as SANs to the cert.
 
 ```yaml
 apiVersion: networking.gke.io/v1
@@ -128,7 +128,7 @@ $ gcloud compute ssl-policies create gke-ingress-ssl-policy-https \
     --min-tls-version 1.2
 ```
 
-5. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Deploy the following manifest which deploys the foo and bar applications, the FrontendConfig, ManagedCertificate, and Ingress resource.
+5. Now that all the Google Cloud resources have been created you can deploy your Kubernetes resources. Apply the manifest `secure-ingress.yaml` which deploys the foo and bar applications, the FrontendConfig, ManagedCertificate, and Ingress resource.
 
 ```bash
 $ kubectl apply -f secure-ingress.yaml
